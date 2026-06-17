@@ -22,3 +22,7 @@ __pycache__/
 # 系統隱藏檔
 .DS_Store
 Thumbs.db
+
+# OCR 模型檔 (大檔案，不需同步)
+*.traineddata
+tessdata/
