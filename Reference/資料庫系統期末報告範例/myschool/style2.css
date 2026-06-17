@@ -1,0 +1,266 @@
+body {margin: 0}
+
+.container {
+    display: grid;  /* 使用網格  */
+  width: 100%;  /* 網格外部寬度同瀏覽器可視寬度  */
+  height: 100%;  /* 網格外部高度放到最大  */
+  grid-template-areas: 
+"ttl"
+"header"
+  "nav"
+  "main";  /* 網格 由上到下依序為  header nav main */
+  grid-template-columns:1fr; /* 網格內部寬度同瀏覽器可視寬度  */
+  grid-template-rows: 170px 800px 57px 300px ; /* 網格內部 header區塊同瀏覽器可視高度 其他區塊依照內容自動調整  */
+}
+
+.container > div {
+  
+}
+
+.header {
+  grid-area: header;  /* 對應網格header位置  */
+  font-size: 25px;   /* header字體尺寸25px */
+  text-align: center; /* header文字置中 */
+  color: white; /* header文字白色 */
+  position: relative; /* header為相對位置 內容會隨著卷軸滾動而移動 */
+}
+
+.nav {
+  grid-area: nav;  /* 對應網格nav位置  此為nav選單 */
+  position: sticky; 
+  top: 0px;        /* 卷軸滾動時 nav選單會固定在頂部0px的位置 */
+  background-color:#18B380;  /* nav選單背景顏色  */
+  font-size: 22px;  /* nav選單字體尺寸22px */
+  color:white;      /* nav選單文字白色 */
+  text-align: center;  /* nav選單文字置中 */
+  font-weight:bold  /* nav選單文字粗體 */
+  z-index:1;
+}
+
+.main { 
+grid-area: main;  /* 對應網格main位置  此為網頁主要內容 */
+  background-color:#62BFD9;    /* main背景顏色  */
+  font-size: 30px;         /* main字體尺寸30px */
+  color:rgb(255, 255, 255);     /*  main文字白色 */
+    display:flex;
+    flex-wrap:  wrap; 
+    justify-content:  space-around;
+}
+/*左右按鈕*/
+.prev, .next {
+  cursor: pointer; /*可以指定當滑鼠指標指向按鈕時，顯示不同的游標.*/
+  position: absolute; 
+  top: 45%;  /*放在 高度為45%位置 會依照卷軸移動*/
+  width: auto; /*寬度依內容自動調整*/
+  margin-top: -22px; /*上外間隙內縮22px   可多次嘗試調整*/
+  padding: 16px; /*內間隙16px   可多次嘗試調整*/
+  color: white; /*文字白色*/
+  font-weight: bold; /*粗體*/ 
+  font-size: 20px;  /*字體大小20px*/
+  transition: 1.5s ease; /*轉換動畫 0.6秒*/
+  user-select: none; /*不允許使用者選取這兩個按鈕*/
+}
+
+.next {
+  right: 0;
+  border-radius: 10px 0 0 10px;/*邊框倒角*/
+}
+
+.prev {
+  left: 0;
+  border-radius: 0 10px 10px 0; /*邊框倒角*/
+}
+
+.prev:hover, .next:hover {
+  background-color: rgba(244, 248, 7, 0.8);  /*游標碰到按鈕時改變顏色*/
+}
+
+/*圖片說明文字*/
+.text {
+  color: #000000;   
+  font-size: 1.5rem;
+  padding: 50px 12px;
+  position: absolute; /*卷軸滾動說明文字跟著移動*/
+  bottom: 8px;  /*說明文字位於圖片下方8px位置*/
+  width: 100%;  /*說明文字與父層區塊同寬*/
+  text-align: center; /*說明文字文字置中*/
+}
+/*圓點按鈕*/
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 5px;
+  background-color: #989898;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.8s ease;   
+}
+.dot:hover {
+  background-color: #282828;
+}
+/*圖片變暗消失的效果*/
+.fade {
+  animation-name: fade;
+  animation-duration: 2s;
+}
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+img {z-index: 1}
+        .box-1{
+            height: 300px;
+            width: 1200px;
+            word-break: break-all;
+            position:fixed;
+            z-index: 1;
+            top:-70px;
+            display:flex;
+    flex-wrap:  wrap; 
+    justify-content:  space-around;
+             }
+        .ttl {
+            width: auto;
+            display: grid;
+                    grid-template-areas: 
+                    "header";
+                    grid-template-columns: 1fr;
+                    grid-template-rows:170px;
+                    display:flex;
+    flex-wrap:  wrap; 
+    justify-content:  space-around;
+                }
+        .box0{
+            z-index: 1;
+            height: 170px;
+            width: 1900px;
+            word-break: break-all;
+            position:fixed;
+            top:0px;
+            background-image: url("https://media.istockphoto.com/id/1310251421/zh/%E5%90%91%E9%87%8F/%E6%91%98%E8%A6%81%E5%85%AD%E9%82%8A%E5%BD%A2%E8%83%8C%E6%99%AF%E5%90%91%E9%87%8F%E6%8F%92%E5%9C%96.jpg?s=612x612&w=0&k=20&c=HR4mt73lRUJElo7kIBK--XbJGoqSQcs-AqwNeeB9cCk=");
+                display:flex;
+    flex-wrap:  wrap; 
+    justify-content:  space-around;
+             }
+        .box1{
+            height: 300px;
+            width: 300px;
+            word-break: break-all;
+            bottom: 0px;
+             }
+        .box2{
+            height: 300px;
+            width: 300px;
+            word-break: break-all;
+            bottom: 0px;
+             }
+        .box3{
+            height: 300px;
+            width: 300px;
+            word-break: break-all;
+            bottom: 0px;
+             }
+        .box4{
+            height: 300px;
+            width: 300px;
+            word-break: break-all;
+            bottom: 0px;
+             }
+             .header-container {
+              display: flex;
+              align-items: center; /* 讓圖片和選單垂直置中 */
+              justify-content: space-between; /* 如果需要在兩邊對齊，使用此屬性 */
+              background-color: #d8d5d5; /* 選單背景色一致 */
+              padding: 10px; /* 添加內邊距 */
+            }
+            
+            .header-image {
+              width: 300px; /* 調整圖片寬度 */
+              height: auto; /* 保持圖片比例 */
+              margin-right: 20px; /* 為圖片與選單間提供間距 */
+            }
+            .menu ul {
+              list-style-type: none;
+              display: flex; /* 水平排列選單 */
+              margin: 0;
+              padding: 0;
+            }
+            
+            /* 選單項目之間的間距 */
+            .menu ul li {
+              margin: 0 15px; /* 每個項目間的水平空隙 */
+            }
+            
+            /* 選單連結的樣式 */
+            .menu ul li a {
+              text-decoration: none;
+              color: white;
+              font-size: 16px;
+            }
+            
+            /* 選單項目懸停效果 */
+            .menu ul li a:hover {
+              color: #FFD700;
+            }
+            
+            /* 主選單容器的樣式 */
+            .menu {
+              list-style-type: none;
+              margin: 0;
+              padding: 0;
+              display: flex; /* 水平排列 */
+            }
+            
+            /* 主選單項目樣式 */
+            .menu > li {
+              position: relative; /* 使次選單的定位生效 */
+              display: block; /* 塊級元素，便於樣式設置 */
+              margin-bottom: 0; /* 垂直間距設置為 0 */
+            }
+            
+            /* 主選單項目連結樣式 */
+            .menu > li > a {
+              display: block;
+              color: white;
+              text-align: center;
+              padding: 14px 20px;
+              text-decoration: none;
+            }
+            
+            /* 主選單項目懸停背景色 */
+            .menu > li > a:hover {
+              background-color: #ffffff93;
+            }
+            
+            /* 次選單的隱藏樣式 */
+            .submenu {
+              display: none; /* 預設隱藏次選單 */
+              position: absolute; /* 絕對定位 */
+              top: calc(100% + 10px); /* 次選單向下偏移 */
+              left: 0; /* 向左對齊父級 */
+              background-color: #333; /* 背景色 */
+              min-width: 160px; /* 設定次選單的最小寬度 */
+              padding: 10px; /* 內距，讓內容與邊框分開 */
+              z-index: 1000; /* 確保層級較高 */
+            }
+            
+            /* 次選單內的連結樣式 */
+            .submenu a {
+              color: white;
+              padding: 12px 16px;
+              text-decoration: none;
+              display: block;
+              text-align: left;
+            }
+            
+            /* 次選單內連結的懸停效果 */
+            .submenu a:hover {
+              background-color: #575757;
+            }
+            
+            /* 滑鼠懸停在主選單項目時顯示次選單 */
+            .menu > li:hover .submenu {
+              display: block;
+            }
+     

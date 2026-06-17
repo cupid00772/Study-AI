@@ -1,0 +1,11 @@
+{
+  "skill_name": "report-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here is the data from our recent marketing campaign: Spent $5000 on FB ads, got 100,000 impressions, 2000 clicks, and 50 conversions. On Google ads, spent $3000, got 50,000 impressions, 1500 clicks, and 80 conversions. Please generate a report summarizing this.",
+      "expected_output": "A markdown report containing an executive summary, key findings (e.g., comparing cost per conversion between FB and Google), detailed analysis, and recommendations.",
+      "files": []
+    }
+  ]
+}

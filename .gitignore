@@ -1,0 +1,24 @@
+# === Python 虛擬環境 ===
+.venv/
+.venv_312/
+__pycache__/
+*.pyc
+
+# === 執行檔與編譯結果 (C/C++ 等) ===
+*.exe
+*.o
+*.out
+*.obj
+
+# === 大型壓縮檔 (避免超過 GitHub 100MB 限制) ===
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# 如果有特定的日誌檔 (log) 也可以排除
+*.log
+
+# 系統隱藏檔
+.DS_Store
+Thumbs.db
