@@ -1,4 +1,5 @@
 @echo off
+set "PATH=%PATH%;C:\Windows\System32;C:\Windows\System32\wbem;C:\Program Files\Git\cmd"
 chcp 65001 >nul
 echo =========================================
 echo       正在同步學習資料到 GitHub...
