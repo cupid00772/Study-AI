@@ -21,11 +21,11 @@
 | **5. 積分的應用 (Applications of Integrals)** | 🔴 | 1. 弧長計算易失誤。 2. 忘記旋轉曲面面積公式 ($S = \int 2\pi y ds$)。 3. 忘記質心公式 ($\bar{y} = \frac{1}{A} \int \frac{1}{2}[f(x)]^2 dx$)。 | Sweep Exam |
 | **6. 積分技巧 (Techniques of Integration)** | 🟢 | 基本計算熟練，概念清楚 | Sweep Exam |
 | **7. 瑕積分 (Improper Integrals)** | 🔴 | 1. 忘記 $\arcsin(x)$ 的主值範圍是 $[-\pi/2, \pi/2]$。<br>2. 瑕積分發散時誤以為正負無限大可相消 (Cauchy Principal Value 誤用)。<br>3. 對數運算律在極限發散情況下的誤用。 | Sweep Exam |
-| **8. 數列與無窮級數 (Sequences and Series)** | 🟡 | 1. 曾將數列收斂與級數收斂搞混，誤用 Divergence Test 判斷數列極限。<br>2. Ratio test 極限 $L<1$ 為絕對收斂。 | Sweep Exam |
+| **8. 數列與無窮級數 (Sequences and Series)** | 🔴 | 1. 曾將數列收斂與級數收斂搞混，誤用 Divergence Test 判斷數列極限。<br>2. Ratio test 極限 $L<1$ 為絕對收斂。<br>3. `ln(1+x)` 與 `ln(1-x)` 的 Maclaurin series 忘記或正負號背錯。 | Mock Exam D |
 | **9. 參數方程式與極座標 (Parametric Eq. & Polar Coordinates)** | 🟢 | 概念清楚，極座標面積與參數方程式等計算均能正確掌握 | Sweep Exam |
 | **10. 偏導數 (Partial Derivatives)** | 🟡 | 混和偏導數 (Mixed Partial Derivatives) 的極限定義容易計算出錯，導致忽略了 Clairaut's Theorem 的不成立條件 | Clairaut's Theorem (Mock Exam 2) |
-| **11. 多變數函數的應用 (Applications of Partial Derivatives)** | 🔴 | 1. Lagrange 計算易失誤。<br>2. 求方向導數最大值方向時，忘記將梯度向量 (Gradient) 標準化為「單位向量 (Unit Vector)」 | Lagrange Multiplier, Directional Derivative |
-| **12. 多重積分 (Multiple Integrals)** | 🔴 | 計算三維空間積分時，容易將 $x^2+y^2+z^2$ 誤認為柱座標的 $r^2$，忘記其中包含 $z$ (應為球座標的 $\rho^2$) | Volume Integral |
+| **11. 多變數函數的應用 (Applications of Partial Derivatives)** | 🔴 | 1. Lagrange 計算易失誤。<br>2. 求方向導數最大值方向時，忘記將梯度向量 (Gradient) 標準化為「單位向量 (Unit Vector)」。<br>3. 找絕對極值後，對於指數常數大小比較（如 $2e^{-2}$ 與 $e^{-1}$）不熟練。 | Mock Exam D |
+| **12. 多重積分 (Multiple Integrals)** | 🔴 | 1. 空間積分易混淆 $r^2$ 與 $\rho^2$。<br>2. 變數代換 (Change of Variables) 找上下限不熟，且未能及時辨識出極座標代換的時機。 | Mock Exam D |
 | **13. 向量微積分 (Vector Calculus)** | 🔴 | 1. 容易混淆 Stokes' 與 Divergence Theorem。<br>2. 面積分公式 $d\mathbf{S} = \hat{n}dS$ 與投影 $dA$ 之間的轉換與定義容易搞混 | Stokes' Theorem, Surface Integrals |
 
 ---
