@@ -75,3 +75,8 @@ This skill enables the AI agent to generate high-quality, customized mock exam p
      ```
    - **出題前**：先讀取 `Learning_Status.md` 了解學習狀態，針對 🔴 (弱點) 或 🟡 (尚可) 強化出題，避開重複考點。
    - **測驗後**：依據作答與檢討結果，自動以上述表格格式覆寫更新 `Learning_Status.md`。
+
+10. **痛點精準紀錄與考前速記轉化 (Pain Point Recording & Cheat Sheet Generation)**
+    - 當使用者回報錯題時，AI 必須深挖使用者的「根本錯誤原因（如：觀念混淆、公式背錯）」，詳細記錄在狀態表或總整理儀表板中。
+    - **自動轉化素材**：在紀錄痛點的同時，AI 應主動將該弱點轉化為「考前速記素材 (Cheat Sheet)」，例如：比較表格、架構圖/流程圖 (Mermaid) 或一秒記憶口訣。
+    - 所有的總整理與速記素材，應集中存放於專案根目錄下的 `Review_Dashboard/` (或相關統整資料夾) 中，方便考前快速複習。

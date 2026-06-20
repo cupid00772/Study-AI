@@ -1,0 +1,128 @@
+# 計算機概論 錯題與觀念復盤 (Computer Science Review)
+
+此檔案用於紀錄每次模擬考的錯題復盤與核心觀念釐清，以便考前快速複習。
+
+---
+
+## 📝 Mock Exam 7 復盤 (2026-06-20)
+
+### 📌 Dijkstra 演算法的資料結構搭配與時間複雜度 (對應 Q6)
+
+Dijkstra 演算法的時間複雜度取決於「圖 (Graph)」與「優先權佇列 (Priority Queue)」的實作資料結構。核心動作分為：
+
+1. **Extract-Min**：從尚未處理的節點中找出距離最小的點。
+2. **Decrease-Key (Relaxation)**：更新該點的鄰居距離。
+
+| 圖的表示法                            | Priority Queue 實作方式             | Extract-Min 成本 | Decrease-Key 成本 | 總時間複雜度                  | 適用場景                                                     |
+| :------------------------------------ | :---------------------------------- | :--------------- | :---------------- | :---------------------------- | :----------------------------------------------------------- |
+| **Adjacency Matrix** (相鄰矩陣) | **Array** (一維陣列線性搜尋)  | $O(V)$         | $O(1)$          | **$O(V^2)$**          | **稠密圖** (Dense Graph)，邊數 $E$ 接近 $V^2$ 時。 |
+| **Adjacency List** (相鄰串列)   | **Binary Heap** (二元堆積)    | $O(\log V)$    | $O(\log V)$     | **$O((V+E)\log V)$**  | **稀疏圖** (Sparse Graph)，多數情況下的標準實作。      |
+| **Adjacency List** (相鄰串列)   | **Fibonacci Heap** (費氏堆積) | $O(\log V)$    | $O(1)$ (均攤)   | **$O(V \log V + E)$** | 理論上最快，但實作極度複雜，常出現在考題中。                 |
+
+*推導提示：圖中有 $V$ 個點，取出最小值 $V$ 次；圖中有 $E$ 條邊，最多更新 $E$ 次。總和即為最終複雜度。*
+
+---
+
+### 📌 Cache Mapping Techniques 快取映射機制 (對應 Q8)
+
+負責決定主記憶體 (Main Memory) 的 Block 搬到 Cache 時，應該放在哪個位置。
+
+1. **Direct Mapping (直接映射)**：
+   - **規則**：某個 Block 只能放在 Cache 裡**唯一固定**的位置 (`Block_Address % Cache_Lines`)。
+   - **優缺點**：硬體簡單、找資料快；但極易發生 **Conflict Miss (衝突失誤)**。
+2. **Fully Associative Mapping (全關聯映射)**：
+   - **規則**：Block 可以放在 Cache 中的**任何空位**。
+   - **優缺點**：沒有 Conflict Miss；但尋找時需平行掃描全區，硬體極貴且耗電。
+3. **Set Associative Mapping (集合關聯映射)**：
+   - **規則**：將 Cache 分為多個 Set。Block 只能去特定的 Set，但進入 Set 後裡面的位置可隨便挑 (例如 4-way 代表一個 Set 內有 4 個位置)。折衷前兩者的優缺點。
+
+---
+
+### 📌 C/C++ 陣列傳遞與 `sizeof` 陷阱 (對應 Q13)
+
+- **`\0` 的迷思**：只有「字元陣列 (字串)」如 `char str[] = "hello"` 會有 `\0` 結尾 (`sizeof` 為 6)。一般的整數陣列如 `int arr[]` **沒有** `\0`。
+- **陣列退化 (Array Decay)**：當陣列作為函數參數傳遞時（如 `void func(int arr[])`），會自動退化成指標 `int *arr`，失去原有的長度資訊。
+- **陷阱**：在函數內對該參數使用 `sizeof(arr)`，測量到的會是**指標變數本身的大小**（64-bit 系統為 8 Bytes，32-bit 為 4 Bytes），而不是陣列的總位元組數。
+
+---
+
+### 📌 System Call 系統呼叫 (對應 Q11)
+
+System Call 是作業系統提供給應用程式的「API」，用於請求高權限的服務（如讀寫檔案、網路連線）。
+
+- **運作機制 (Software Interrupt / Trap)**：
+  1. **觸發**：使用者程式呼叫 Library，發出一個**軟體中斷 (Software Interrupt) 或稱 Trap**。
+  2. **切換**：CPU 暫停目前工作，將權限從 **User Mode (使用者模式)** 切換到 **Kernel Mode (核心模式)**。
+  3. **執行**：OS 接管控制權，根據 System call number 執行對應的服務。
+  4. **返回**：服務完成後，OS 將結果回傳，並把權限降回 User Mode，程式繼續執行。
+
+---
+
+## 📝 Mock Exam 8 復盤 (2026-06-20)
+
+### 📌 經典圖論演算法比較：MST vs Shortest Path (對應 Q16)
+
+圖論演算法主要解決兩大類問題：「最小生成樹 (MST)」與「最短路徑 (Shortest Path)」。
+
+| 演算法名稱 | 解決的問題 | 核心精神 (設計典範) | 運作機制與特點 |
+| :--- | :--- | :--- | :--- |
+| **Kruskal's Algorithm** | 最小生成樹 (MST) | Greedy (貪婪法) | 將**所有邊**依權重排序，從小到大挑選。若加入該邊會形成 Cycle 則捨棄 (通常用 Disjoint Set / Union-Find 檢查)。適合**稀疏圖**。 |
+| **Prim's Algorithm** | 最小生成樹 (MST) | Greedy (貪婪法) | 從單一**節點**出發，每次挑選與目前 MST 相連且權重最小的邊加入。類似 Dijkstra。適合**稠密圖**。 |
+| **Dijkstra's Algorithm** | 單點源最短路徑 (SSSP) | Greedy (貪婪法) | 從起點出發，每次挑選距離最近的點向外擴展 (Relaxation)。**缺點：不能處理負權重邊 (Negative edges)**。 |
+| **Bellman-Ford Algorithm**| 單點源最短路徑 (SSSP) | Dynamic Programming | 對所有邊進行 $V-1$ 次 Relaxation。**優點：可處理負權重邊，並偵測負權重迴圈 (Negative weight cycle)**。時間複雜度較高 $O(VE)$。 |
+| **Floyd-Warshall Algorithm**| 全點對最短路徑 (APSP) | Dynamic Programming | 找出圖中所有點到所有點的最短路徑。透過三層迴圈列舉所有可能的中繼點。時間複雜度 $O(V^3)$。 |
+
+---
+
+### 📌 TCP 三方交握 (3-way Handshake) 與 Flags (對應 Q19)
+
+TCP 是可靠的連線導向協定，在傳輸資料前必須先建立連線。過程稱為 Three-way Handshake：
+
+1. **第一次交握 (Client -> Server)**：
+   - 傳送 Flag：`SYN` (Synchronize)
+   - 意義：Client 告訴 Server「我想建立連線，我的初始序號是 X」。
+2. **第二次交握 (Server -> Client)**：
+   - 傳送 Flag：**`SYN` + `ACK`** (Acknowledge)
+   - 意義：Server 回覆 `ACK` 說「我收到你的請求了」，同時也傳送 `SYN` 說「我也想跟你建立連線，我的初始序號是 Y」。
+3. **第三次交握 (Client -> Server)**：
+   - 傳送 Flag：`ACK`
+   - 意義：Client 回覆 `ACK` 說「我收到你的請求了，連線建立完成」。
+
+*記憶口訣：C 說 Hi (SYN) -> S 說收到你的 Hi，我也 Hi (ACK + SYN) -> C 說收到你的 Hi (ACK)。*
+
+---
+
+### 📌 動態規劃與 LCS (Longest Common Subsequence) (對應 Q20)
+
+最長共同子序列 (LCS) 是經典的**動態規劃 (Dynamic Programming, DP)** 問題。雖然台聯大較少考複雜的 DP 計算，但常考其「觀念分類」。
+
+- **DP 的兩大核心條件**：
+  1. **Optimal Substructure (最佳子結構)**：大問題的最佳解可以由小問題的最佳解組合而成。
+  2. **Overlapping Subproblems (重疊子問題)**：在遞迴過程中，相同的小問題會被重複計算。
+- **DP 的解決方案**：
+  使用記憶體將計算過的小問題答案存起來 (Memoization / Tabulation)，避免重複計算。常見於 LCS、背包問題 (Knapsack)、最短路徑 (Bellman-Ford, Floyd-Warshall)。
+
+---
+
+### 📌 Pipeline Hazards (管線化危險) 總整理
+
+在 CPU 的管線化 (Pipelining) 設計中，多個指令重疊執行可能會發生資源或資料衝突，導致管線必須暫停 (Stall)。這種衝突稱為 Hazard，主要分為三大類：
+
+#### 1. Structural Hazard (結構危險)
+- **原因**：硬體資源不足。例如兩個指令在同一個 Clock Cycle 要求使用同一個硬體元件（如：只有單一記憶體，導致 Instruction Fetch 與 Memory Access 互搶）。
+- **解決方案**：
+  - **硬體資源加倍**：例如採用哈佛架構 (Harvard Architecture)，將記憶體拆分為獨立的 Instruction Memory 與 Data Memory。
+  - **Stall (暫停)**：讓後續指令等待，產生氣泡 (Bubble)。
+
+#### 2. Data Hazard (資料危險)
+- **原因**：指令間存在資料依賴性 (Data Dependency)。後續指令需要用到前面指令尚未寫回 (Write-Back) 的暫存器結果。最常見的為 RAW (Read After Write)。
+- **解決方案**：
+  - **Data Forwarding / Bypassing (資料前推)**：不等待寫回階段，直接把 ALU 算出的熱騰騰結果拉線 (Bypass) 給下一個指令的 ALU 使用。
+  - **Stall + Forwarding**：遇到特例 `Load-Use Hazard` (前面是 Load 指令從記憶體讀資料，下一個指令馬上要用)，即便有 Forwarding 也必須強行 Stall 一個 Cycle 等資料讀出來。
+  - **Compiler Scheduling (編譯器排程)**：編譯器在不影響結果的前提下，調換指令順序，將無關指令安插在依賴的指令之間。
+
+#### 3. Control Hazard (控制危險 / Branch Hazard)
+- **原因**：遇到分支指令 (Branch/Jump)。因為管線化是不斷預先抓取指令，當執行到 Branch 確定要跳轉時，後面已經被抓進管線的指令就全成了廢指令。
+- **解決方案**：
+  - **Branch Prediction (分支預測)**：大膽猜測會不會跳轉（Static 猜測或 Dynamic 硬體紀錄）。若猜錯了，就把誤抓進入管線的指令清空 (Flush)。
+  - **Delayed Branch (延遲分支)**：定義分支指令後方有一個 Delay Slot，編譯器刻意找一個「一定會執行」的指令塞進去，避免浪費管線空間。

@@ -52,7 +52,7 @@
 *須詳細寫出計算及證明過程，否則不予計分。*
 
 **1. (12 分)**
-Find the absolute maximum and absolute minimum values of the function $f(x,y) = e^{-x^2-y^2}(x^2+2y^2)$ on the closed disk $D = \{(x,y) \mid x^2+y^2 \le 4\}$. 
+Find the absolute maximum and absolute minimum values of the function $f(x,y) = e^{-x^2-y^2}(x^2+2y^2)$ on the closed disk $D = \{(x,y) \mid x^2+y^2 \le 4\}$.
 *(提示：請務必詳盡檢查內部臨界點與邊界條件，並比較無窮小數/指數常數的實際大小，確認極值為何。)*
 
 **2. (12 分)**
