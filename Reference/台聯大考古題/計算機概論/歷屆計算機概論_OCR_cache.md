@@ -173,11 +173,10 @@ return 0 ;
 24. What is the output of the following code?
 
 25. What is the output of the following code?
-
-
 ```
 
 ---
+
 ## 【113計算機概論.pdf】
 
 ```text
@@ -408,10 +407,10 @@ void print1() \{
 \hline & \multicolumn{4}{|l|}{\(\frac{\text { deri } 1}{\text { deri2 }}\)} \\
 \hline
 \end{tabular}
-
 ```
 
 ---
+
 ## 【112計算機概論.pdf】
 
 ```text
@@ -555,10 +554,10 @@ B \(=(10010110)_{2}\)
 (C) 01111111
 (D) 10000101
 (E) Overflow 溢位
-
 ```
 
 ---
+
 ## 【111計算機概論.pdf】
 
 ```text
@@ -793,10 +792,10 @@ what is the output of the following code?
 (C) 51
 (D) 52
 (E) None of the above
-
 ```
 
 ---
+
 ## 【109計算機概論.pdf】
 
 ```text
@@ -988,10 +987,10 @@ Which sorting algorithm would produce the following results after four iteration
 (C) In public-key cryptography, two parties communicate each other by using a shared key to encrypt and decrypt their secret messages
 (D) Denial-of-service (DoS) attacks confidentiality of the secret communication channel between two parties.
 (E) All of the above
-
 ```
 
 ---
+
 ## 【108計算機概論.pdf】
 
 ```text
@@ -1274,10 +1273,10 @@ which of the following statements are/is correct about this code segment?
 (C) An inference engine
 (D) A collection of productions
 (E) A search tree
-
 ```
 
 ---
+
 ## 【107計算機概論(A4,804).pdf】
 
 ```text
@@ -1531,10 +1530,10 @@ What is the value after running?
 (C) A process can move to a different classified ready queue in multilevel feedback scheduling algorithm.
 (D) User level thread can be scheduled by the kernel.
 (E) The interval time from a process submit and complete time is called turnaround time.
-
 ```
 
 ---
+
 ## 【106計算機概論(A4,803).pdf】
 
 ```text
@@ -1674,11 +1673,10 @@ Alain Colmerauer and Philippe Roussel to deal with the natural language.
 (C) Templates does not allows a function or class to work on many different data types without being rewritten for each one.
 (D) The C++ Standard Library provides many useful functions within a framework of connected templates
 (E) Function templates, class templates, and variable template are three types of templates.
-
-
 ```
 
 ---
+
 ## 【105計算機概論(A4,804).pdf】
 
 ```text
@@ -1829,7 +1827,6 @@ return 0 ;
 (C) A stack is a restricted linear list in which all additions and deletions are made at first in, first out. (FIFO)
 (D) A queue is a last in, first out (LIFO) structure.
 (E) None of the above
-
 ```
 
 ---
