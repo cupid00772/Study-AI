@@ -165,14 +165,70 @@ return 0 ;
 (D) Constructor Copy Copy Destructor Destructor Destructor
 (E) Constructor Constructor Constructor Destructor Destructor Destructor
 22. What is the output of the following code?
+#include <iostream>
+using namespace std;
 
-\title{
-台淲聯合大學系統 114 學年度學士班轉學生考試試題
+void function(int x) {
+    cout << "int: " << x << " ";
 }
 
+void function(double x) {
+    cout << "double: " << x << " ";
+}
+
+void function(int x, int y = 10) {
+    cout << "two ints: " << x << " " << y << " ";
+}
+
+
+int main() {
+    function(5);
+    function(5.0);
+    function(5, 15);
+    return 0;
+}
+23.
+#include <iostream>
+using namespace std;
+
+void function(const int& x) {
+    cout << "const ref: " << x << " ";
+}
+
+void function(int &x) {
+    cout << "ref: " << x << " ";
+    x = 100;
+}
+
+
+int main() {
+    int a = 5;
+    const int b = 10;
+
+    function(a);  
+    function(b); 
+    cout << a << endl;
+    return 0;
+}
 24. What is the output of the following code?
 
 25. What is the output of the following code?
+#include <iostream>
+using namespace std;
+
+int totalised(int n) {
+    static int accum = 0;
+    if (n == 0) return accum;
+    accum += n;
+    return n + totalised(n - 1);  // <--- 你的盲點在這裡！
+}
+
+int main() {
+    cout << "First call: " << totalised(3) << endl; 
+    cout << "Second call: " << totalised(2) << endl; 
+    cin.get();
+    return 0;
+}
 ```
 
 ---

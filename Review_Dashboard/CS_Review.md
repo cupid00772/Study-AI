@@ -316,18 +316,18 @@ Cache 位址通常被切割為三個部分：`[ Tag | Index | Offset ]`。
 
 1. **先備知識 (QuickSort 的複雜度)**：
    我們知道 QuickSort 在平均情況下 (Average-case) 以及處理隨機排列 (random permutations) 時，時間複雜度為 **$O(n \log n)$**。
-
 2. **分析題目的 Benchmark 觀察 (兩倍成長)**：
    題目說當資料量從 $2\mathrm{M}$ ($2 \times 10^6$) 變成 $4\mathrm{M}$ ($4 \times 10^6$)，也就是資料量 $n$ 變成 $2n$ 時，執行時間「變為 2 倍 (doubles)」。
    這時很多學生會掉入陷阱，直覺認為「資料兩倍、時間兩倍」就是線性成長 $O(n)$。但讓我們用數學驗證一下 $O(n \log n)$ 在大資料量下的行為：
+
    - 假設 $T(n) = c \cdot n \log_2 n$
    - 則 $T(2n) = c \cdot (2n) \log_2(2n) = 2cn(\log_2 n + 1) = 2cn \log_2 n + 2cn = 2 \cdot T(n) + 2cn$
    - 成長倍率為：$\frac{T(2n)}{T(n)} = \frac{2n \log_2 n + 2n}{n \log_2 n} = 2 + \frac{2}{\log_2 n}$
-   
+
    現在將 $n = 2,000,000 \approx 2^{21}$ 代入：
+
    - $\log_2(2^{21}) = 21$
    - 成長倍率 $= 2 + \frac{2}{21} \approx 2.095$ 倍。
-
 3. **結論**：
    在實際的效能測量 (Benchmark) 中，$2.095$ 倍的成長幾乎與「兩倍 (doubles)」無法區分，會被視為是兩倍成長。因此，這個觀察結果與 **$O(n \log n)$** 是完全吻合的。這題不僅考驗考生對 QuickSort 複雜度的死背，更考驗是否理解對數函數在大尺度下變化極為緩慢（接近常數）的特性。(答案選 C)
 
@@ -342,10 +342,12 @@ Cache 位址通常被切割為三個部分：`[ Tag | Index | Offset ]`。
 **題目回顧：**
 
 > A function returns `std::vector<T> foo();`. At call-site you write:
+>
 > ```cpp
 > std::vector<T> v;
 > v = std::move(foo());
 > ```
+>
 > Why might the extra `std::move()` be worse than writing `v = foo();`?
 > (A) Disables copy elision
 > (B) Prevents RVO
@@ -358,10 +360,11 @@ Cache 位址通常被切割為三個部分：`[ Tag | Index | Offset ]`。
 為了讓只熟悉 C 語言的人好懂，我們先把 C++ 的 `std::vector` 想像成 C 語言裡的一個 `struct`，裡面有 `malloc` 出來的陣列指標與大小。
 
 1. **先備知識：什麼是 Copy Elision 與 RVO？**
+
    - **RVO (Return Value Optimization)**：在 C 語言中，如果一個函式回傳很大的 `struct`，通常編譯器會在呼叫者那邊偷偷開好記憶體，把指標傳進函式裡，讓函式直接寫入那塊記憶體，省去記憶體搬移。這在 C++ 就叫做 RVO 或 Copy Elision。
    - **C++ 的 Move (搬移)**：在 C 語言中，要把一個結構裡的陣列交給另一個結構，我們通常會直接把**指標**傳過去 (Pointer Stealing)，然後把原來的指標設為 `NULL`，這樣就不用呼叫 `malloc` 跟 `memcpy` 重新拷貝一次。C++ 的 `std::move` 就是在做這件事：告訴編譯器「這個東西我不要了，你可以把它的資源(指標)偷走」。
-
 2. **分析題目的程式碼 (賦值 Assignment vs 初始化 Initialization)**：
+
    - 題目明確寫出分兩行：
      ```cpp
      std::vector<T> v;       // 第一行：誕生。相當於 C 的 struct Vector v; 裡面指標初始化為 NULL。
@@ -371,8 +374,8 @@ Cache 位址通常被切割為三個部分：`[ Tag | Index | Offset ]`。
    - 如果程式寫成 `std::vector<T> v = foo();` (誕生並同時給值)，編譯器可以施展 Copy Elision，讓 `foo()` 直接把資料寫進 `v` 的肚子裡。
    - 但題目是分兩行寫，這叫做**賦值 (Assignment)**。因為 `v` 已經誕生了，裡面可能已經有 `malloc` 過的舊資料了，編譯器不敢直接讓函式暴力覆蓋它。編譯器必須先讓 `foo()` 產生一個暫時的 `struct`，把 `v` 的舊資料清掉 (`free`)，然後再把這個暫時 `struct` 的指標偷過來給 `v`。
    - 在「賦值」的情況下，不管你寫 `v = foo();` 還是 `v = std::move(foo());`，編譯器都知道 `foo()` 是一個馬上就要消失的暫時物件，所以**一定都會去偷它的指標 (自動使用 Move)**。
-
 3. **選項分析與陷阱 (為什麼官方答案是 B？)**：
+
    - 官方給的答案是 **(B) Prevents RVO**，但就 C++ 標準而言，這其實是**出題老師觀念錯誤（出題瑕疵）**！
    - **老師的思維誤區**：在 C++ 中有一條極度有名的鐵律：「在函式內部寫 `return std::move(local_var);` 會破壞 RVO（妨礙編譯器直接寫入記憶體）」。出題老師顯然是想考這條鐵律，但他**把場景放錯地方了**！他把 `std::move` 寫在了「呼叫端 (call-site)」，而不是「函式內部」。
    - **真實情況**：RVO 是發生在 `foo()` 裡面的事，外面的 `v = std::move(...)` 根本管不到裡面。而且因為這裡是「賦值」，本來就沒有任何魔法 (Copy Elision) 可以被破壞。嚴格來說，這題在標準 C++ 下的答案應該是 (E)。
@@ -381,3 +384,48 @@ Cache 位址通常被切割為三個部分：`[ Tag | Index | Offset ]`。
 > [!CAUTION]
 > **考試防呆重點 (通靈技巧)：**
 > 轉學考的題目常常有這種「出題者自己觀念也沒搞清楚」的瑕疵題。以後在考卷上看到 `std::move` 搭配函式回傳值，只要題目問「這樣寫為什麼不好？」，請一律反射性尋找 **「破壞 RVO (Prevents RVO)」** 或 **「破壞 Copy Elision」** 的選項並大膽選下去！即使他程式碼寫在呼叫端 (call-site) 甚至寫成了賦值，他的「考點」依然是那個死背的鐵律。在考場上，順著老師的誤區拿分最重要！
+
+---
+
+### 📌 AES 加密演算法與 Block Size 陷阱 (對應 114年 Q19)
+
+**題目回顧：**
+
+> A company implements AES-256 encryption for sensitive data. Each encryption operation takes 0.1 ms. If they need to encrypt 100 GB of data in 1-hour batches, what is the minimum number of encryption threads needed to meet the deadline?
+> (A) 100
+> (B) 200
+> (C) 400
+> (D) 1000
+> (E) 2778
+
+**解題 SOP 與觀念釐清：**
+
+1. **破除 AES-256 的迷思 (極度重要！)**：
+   許多考生看到 `AES-256` 就會直覺認為一次加密處理 256 bits (32 bytes) 的資料。這是**完全錯誤**的！
+   - AES 演算法 (Advanced Encryption Standard) 的**區塊大小 (Block Size) 永遠固定是 128 bits (也就是 16 Bytes)**。
+   - 題目裡的 `256` 指的是**金鑰長度 (Key Size)**，與一次能處理多少資料量無關。
+   - 因此，一次「加密運算 (encryption operation)」處理的資料量是 **16 Bytes**。
+
+2. **計算總共需要多少次加密運算 (Blocks)**：
+   - 總資料量 = $100 \text{ GB}$。
+   - 假設以十進位計算 ($1 \text{ GB} = 10^9 \text{ Bytes}$)：
+     總資料量 $= 100 \times 10^9 = 10^{11} \text{ Bytes}$。
+   - 需要的區塊數 (Blocks) $= \frac{10^{11} \text{ Bytes}}{16 \text{ Bytes/Block}} = 6.25 \times 10^9 \text{ 個區塊}$。
+   *(註：若以二進位 $1 \text{ GB} = 2^{30} \text{ Bytes}$ 計算，則約為 $6.71 \times 10^9$ 個區塊，不影響最終選答)*
+
+3. **計算循序加密所需的總時間**：
+   - 每個區塊耗時 $0.1 \text{ ms} = 0.0001 \text{ 秒} (10^{-4} \text{ s})$。
+   - 總時間 $= 6.25 \times 10^9 \times 10^{-4} = 625,000 \text{ 秒}$。
+
+4. **計算所需的執行緒 (Threads)**：
+   - 限制時間 (Deadline) = 1 小時 = $3600 \text{ 秒}$。
+   - 所需執行緒 $= \frac{625,000 \text{ 秒}}{3600 \text{ 秒/Thread}} \approx 173.61 \text{ 個執行緒}$。
+   *(若以 $2^{30}$ 計算則為 \approx 186.4 個)*。
+   
+   - 為了在期限內完成，我們必須選擇大於等於計算結果的**最小值**。在選項 (A) 100, (B) 200, (C) 400 中，最接近且滿足條件的最小整數是 **200**。(答案選 B)
+
+> [!CAUTION]
+> **考試防呆重點 (選項陷阱分析)：**
+> 這題的選項設計得非常狠毒，完美捕捉了考生可能犯的兩種常見觀念錯誤：
+> 1. **中了「256 bits 區塊」陷阱**：如果以為 Block Size 是 32 Bytes，算出來的執行緒會是 $\approx 86.8$ 個，你就會開心地選了 **(A) 100**。
+> 2. **中了「1 byte 運算」陷阱**：如果你忘記 AES 是一種區塊加密 (Block Cipher)，以為一次 operation 只處理 1 byte，算出來的時間會是 $10,000,000$ 秒，所需的執行緒 $= \frac{10,000,000}{3600} = 2777.77...$ 個，你會驚喜地發現選項 **(E) 2778** 簡直一模一樣而掉入陷阱！
