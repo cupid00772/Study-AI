@@ -26,3 +26,6 @@ Thumbs.db
 # OCR 模型檔 (大檔案，不需同步)
 *.traineddata
 tessdata/
+
+# === VS Code 相關設定 ===
+.vscode/
