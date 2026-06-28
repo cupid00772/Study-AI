@@ -3,6 +3,7 @@
 ## 微積分 (Calculus)
 
 **甲、填充題**
+
 1. **(1) \(y = 2x - 1\) 及 (2) \(y = -10x - 25\)**
    *詳解：* 設切點分別在 \(f(x)\) 的 \(x=a\) 與 \(g(x)\) 的 \(x=b\)。\(f(x)\) 切線為 \(y = 2ax - a^2\)，\(g(x)\) 切線為 \(y = (b-2)x - \frac{1}{2}b^2 + 7\)。比較斜率與截距可得 \(2a = b-2\) 且 \(-a^2 = -\frac{1}{2}b^2 + 7\)。解聯立得 \(a=1, -5\)。代回即得兩切線方程式。
 2. **\(-(4+\pi)/(1+2\pi)\)**
@@ -33,6 +34,7 @@ II. **Absolute maximum: \(1\), Absolute minimum: \(-1/8\)**
 ---
 
 ## 計算機概論 (Computer Science)
+
 1. **(C)** -6.5 = -110.1(2) = -1.101 x 2^2。符號 1，指數 127+2=129 (10000001)，尾數 1010。
 2. **(B)** (A+B)*(A+C) 展開為 AA + AC + BA + BC = A(1+C+B) + BC = A + BC，對應 (B) A + B*C。
 3. **(E)** Cache line=16B 可存4個整數。讀 A[0] (Miss) 載入 A[0]-A[3]。隨後 A[1]-A[3] (Hit)。讀 A[4] (Miss)。故 M, H, H, H, M。
@@ -57,10 +59,12 @@ II. **Absolute maximum: \(1\), Absolute minimum: \(-1/8\)**
 ---
 
 ## 英文 (English)
+
 (以簡明答案為主)
+
 1. D (impervious: 不受影響的)
 2. B (erode: 侵蝕、削弱信心)
-3. A (lucid: 清晰的，或 ambiguous/unequivocal 依題意；此處題意為 sufficiently _ to permit multiple interpretations，故選 ambiguous C，但前有 sufficiently 應為曖昧不明，正確答案應為 C。Wait, 讓我們重新評估：permit multiple interpretations 應該是 ambiguous (C)。)
+3. C (lucid: 清晰的，或 ambiguous/unequivocal 依題意；此處題意為 sufficiently _ to permit multiple interpretations，故選 ambiguous C，但前有 sufficiently 應為曖昧不明，正確答案應為 C。Wait, 讓我們重新評估：permit multiple interpretations 應該是 ambiguous (C)。)
 4. B (isolate: 獨立/分離變因)
 5. B (addresses: 處理問題 rather than 解決)
 6. B (representative: 具代表性的)
