@@ -1,0 +1,141 @@
+
+--- Prob_Stat_06-Probability(III).pdf ---
+Probability –III
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 2
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 4
+-William Navidi , Statistics for Engineers and Scientists, Ch. 2.6
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+JOINT DISTRIBUTED RANDOM 
+VARIABLES
+Motivation
+•Given an experiment, e.g., a medical diagnosis
+–The results of blood test is modeled as numerical values of a 
+random variable X
+–The results of magnetic resonance imaging (MRI, 核磁共振攝影 ) 
+is also modeled as numerical values of a random variable Y
+We would like to consider probabilities of events involving 
+simultaneously the numerical values of these two variables and to 
+investigate their mutual couplings
+Probability & Statistics -3
+  ?yY xX P
+Joint Discrete Random Variables
+•If X and Y are jointly discrete random variables:
+–The joint probability mass function of X and Y is the function
+–The marginal probability mass functions of X and Y can be 
+obtained from the joint probability mass function as follows:
+where the sums are taken over all the possible values of Y and of 
+X, respectively
+–The joint probability mass function has the property that 
+where the sum is taken over all the possible values of X and Y
+Probability & Statistics -4
+ yYxX yx pYX  , ,, P
+ 
+x yYX yx p 1 ,,
+   
+y xYX Y YX X yx p yY yp yx p xX xp ,         ,,, , P P
+Tabular Method
+•Tabular Method : Given the joint PMF of random variables  X
+and  Yis specified in a two -dimensional table , the marginal 
+PMF of  Xand  Yat a given value is obtained by adding the 
+table entries along a corresponding column or row, respectively
+Probability & Statistics -5
+
+
+--- Prob_Stat_08-Commonly Used Distributions(I).pdf ---
+Commonly Used Distribution –I
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 3
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 5
+-William Navidi , Statistics for Engineers and Scientists, Chapter 4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+How to Estimate Population (Distribution ) 
+Parameters?
+Probability & Statistics -2
+-Unbiased Estimate ?
+-Estimation Uncertainty ?
+Propagation Error
+Probability & Statistics -3•Any measuring procedure contains error
+–This causes measured values to differ from the true values that are 
+measured
+•Errors in measurement produce error in calculated values 
+(like the mean )
+•Definition : When error in measurement produces error in 
+calculated values, we say that error is propagated from the 
+measurements to the calculated value
+•Having knowledge concerning the sizes of the errors in 
+measurement → Obtaining knowledge concerning the likely 
+size of the error in a calculated quantity
+from Ch.3 Propagation Error
+Measurement Error
+Probability & Statistics -4•A geologist weighs a rock on a scale and gets the following 
+measurements:
+251.3 252.5  250.8  251.1  250.4
+•None of the measurements are the same and none are 
+probably the actual measurement
+•The error in the measured value is the difference between a 
+measured value and the true value
+Parts of  Error
+Probability & Statistics -5•We think of the error of the measurement as being 
+composed of two parts :
+–Systematic error (or bias)
+–Random error
+•Bias is error that is the same for every measurement
+–E.g., a imperfectly calibrated scale always gives you a reading that is 
+too low
+•Random error is error that varies from measurement to 
+measurement and averages out to zero in the long run
+–E.g., Parallax ( 視差 ) error
+•The difference in the position of dial indicator when observed 
+from different angles
+Measured Value = True Value + Bias + Random Error
+random variable constant        constant random variable
+ 0 Error Random  E
+from Ch.3 Propagation Error
+
+--- Prob_Stat_09-Commonly Used Distributions(II).pdf ---
+Commonly Used Distribution –II
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 3
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 5
+-William Navidi , Statistics for Engineers and Scientists, Chapter 4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+CONTINUOUS DISTRIBUTION
+The Normal Distribution
+Probability & Statistics -3•The normal distribution (also called the Gaussian 
+distribution ) is by far the most commonly used distribution 
+in statistics. This distribution provides a good model for 
+many, although not all, continuous populations
+•The normal distribution is continuous rather than discrete. 
+The mean of a normal population may have any value, and 
+the variance may have any positive value
+pdf, Mean and Variance of  Normal
+Probability & Statistics -4•The probability density function of a normal population with 
+mean μand variance σ2is given by
+•If X ~ N(μ, σ2), then the mean and variance of X are given by
+X
+
+ 
+x - e xfx
+X    ,
+21 22
+2
+
+2 2X
+bell shape
+68-95-99.7% Rule
+Probability & Statistics -5•The above figure represents a plot of the normal probability 
+density function with mean μand standard deviation σ. 
+Note that the curve is symmetric about μ, so that μis the 
+median as well as the mean. It is also the case for the 
+normal population
+–About 68% of the population is in the interval μ±σ
+–About 95% of the population is in the interval μ±2σ
+–About 99.7% of the population is in the interval μ±3σ
+
