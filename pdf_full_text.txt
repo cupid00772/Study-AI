@@ -1,0 +1,4167 @@
+
+================== Reference/FCU_Classes/機率與統計pdf\Prob_Stat_04-Probability(I).pdf ==================
+Probability –I
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 2
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 3
+-William Navidi , Statistics for Engineers and Scientists, Ch. 2.4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+RANDOM VARIABLES:
+DISCRETE & CONTINUOUS
+Random Variables
+•Given an experiment and the corresponding set of 
+possible outcomes (the sample space), a random variable 
+associates a particular number with each outcome
+–This number is referred to as the (numerical) value of the random 
+variable
+–We can say a random variable is a real -valued function of the 
+experimental outcome
+Probability & Statistics -3
+w
+Random Variables: Example 
+Probability & Statistics -4•An experiment consists of two rolls of a 4 -sided die, and the 
+random variable is the maximum of the two rolls
+–If the outcome of the experiment is (4, 2), the value of this random 
+variable is 4
+–If the outcome of the experiment is (3, 3), the value of this random 
+variable is 3
+–Can be one -to-one or many -to-one mapping
+
+Main Concepts Related to Random Variables 
+Probability & Statistics -5•For a probabilistic model of an experiment
+–A random variable is a real -valued function of the outcome of the 
+experiment
+–A function of a random variable defines another random variable
+–We can associate with each random variable certain “ averages” of 
+interest such the mean and the variance
+–A random variable can be conditioned on an event or on another 
+random variable
+–There is a notion of independence of a random variable from an 
+event or from another random variable
+x wX:
+xgY
+Discrete/Continuous Random Variables 
+Probability & Statistics -6•A random variable is called discrete if its range (the set of 
+values that it can take) is finite or at most countably infinite
+•A random variable is called continuous (not discrete) if its 
+range (the set of values that it can take) is uncountably
+infinite
+–E.g., the experiment of choosing a point  afrom the interval [ −1, 1 ]
+•A random variable that associates the numerical value  a2to the 
+outcome ais not discrete
+ ,2,1 : infinite countably      ,4,3,2,1 : finite
+Concepts Related to Discrete Random Variables 
+Probability & Statistics -7•For a probabilistic model of an experiment
+–A discrete random variable is a real -valued function of the outcome 
+of the experiment that can take a finite or countably infinite number 
+of values
+–A (discrete) random variable has an associated probability mass 
+function (PMF), which gives the probability of each numerical value 
+that the random variable can take
+–A function of a random variable defines another random variable , 
+whose PMF can be obtained from the PMF of the original random 
+variable
+Probability Mass Functions
+Probability & Statistics -8•A (discrete) random variable Xis characterized through the 
+probabilities of the values that it can take, which is captured 
+by the probability mass function (PMF )of X , denoted
+–The sum of probabilities of all outcomes that give rise to a value of  
+Xequal to x
+–Upper case characters (e.g. ,  X ) denote random variables , while 
+lower case ones (e.g., x ) denote the numerical values of a random 
+variable
+–The probability mass function is sometimes called probability 
+distribution
+xpX
+xX xp xX xpX X   P P or  
+Cumulative Distribution Function
+Probability & Statistics -9•The probability mass function specifies the probability that 
+a random variable is equal to a given value 
+•A function called the cumulative distribution function (CDF) 
+specifies the probability that a random variable is less than 
+or equal to a given value
+•The cumulative distribution function of the random variable 
+X is the function F(x) = P(X ≤ x)
+Calculation of  the PMF
+Probability & Statistics -10•For each possible value  xof a random variable X :
+1. Collect all the possible outcomes that give rise to the event
+2. Add their probabilities to obtain
+•An example: the PMF             of the random variable  X = 
+maximum roll in two independent rolls of a fair 4 -sided die
+xpX
+xX
+xpX
+More on Discrete Random Variables
+Probability & Statistics -11•Let X be a discrete random variable. Then
+–The probability mass function (PMF) of X is the function 
+pX(x) = P(X = x)
+–The cumulative distribution function (CDF) of X is the function
+– , where the sum is over all the possible 
+values of X
+
+
+  
+xt xtX tX tp xFxX xF
+PP
+1
+x xX xX xp P
+sxX '
+are disjoint and form a partition of the sample space
+Motivation for Expected Value (1/2)
+•An Illustrative Example : Suppose that you spin the wheel 
+ktimes , and that kiis the number of times that the 
+outcome (money) is  mi(there are ndistinct outcomes,  
+m1,m2,...,mn)
+•What is the amount of money that you “expect” to get 
+“per spin” ?
+–The total amount received is
+–The amount received per spin is
+Probability & Statistics -12
+nnkm kmkm 22 11
+kkm kmkmMnn22 11
+Motivation for Expected Value ( 2/2)
+–If the number of spins kis very large, and if we are willing to 
+interpret probabilities as relative frequencies, it is reasonable to 
+anticipate that micomes up a fraction of times that is roughly 
+equal to pi
+–Therefore, the amount received per spin can be also represented 
+as
+Probability & Statistics -13
+kkpi
+i
+
+Expectation
+•The expected value (also called the expectation or the 
+mean ) of a random variable  X, with PMF         , is defined 
+by
+–Can be interpreted as the center of gravity of the PMF ( Or a 
+weighted average, in proportion to probabilities, of the possible 
+values of X)
+•The expectation is well -defined if
+–That is, converges to a finite value
+Probability & Statistics -14
+xpx XX
+xE
+pX
+
+xXxpx
+
+xXx xp
+
+
+
+xXxX
+x xp cxpcx 0
+Example
+•Example 2.2: Consider two independent coin tosses, each 
+with a 3/4 probability of a head, and let  Xbe the number 
+of head obtained. This is a binomial random variable with 
+parameters n= 2 and p= 3/4. Its PMF is
+Probability & Statistics -15
+
+
+ 
+
+ ,2 if                ,)4/3( ,1 if   ),4/3()4/1(2 ,0 if                ,)4/1(
+22
+xxx
+xpX
+23
+1624
+43243
+41214102 2
+
+
+
+
+
+
+  xpx XX
+xE
+Moments
+•The n-thmoment of a random variable  Xis the expected 
+value of a random variable  Xn(or the random variable   
+Y ,                            )
+–The 1st moment of a random variable Xis just its mean ( or 
+expectation)
+Probability & Statistics -16
+EXnéëùû=xn
+xå pXx()
+Y=gX()=XnXnis termed as Xraised to the power of n(or the nth power) 
+or the nth power of X
+Variance
+•The variance of a random variable  Xis the expected 
+value of a random variable                       
+–The variance is always nonnegative (why?)
+–The variance provides a measure of dispersion of   Xaround its 
+mean
+–The standard derivation is another measure of dispersion, which is 
+defined as ( a square root of variance )
+•Easier to interpret, because it has the same units as  X
+Probability & Statistics -17
+2X XE
+XX var
+ 
+xpX xX X X
+X
+x
+22var
+EE E
+Variance in Terms of  Moments Expression
+•We can also express variance of a random variable   Xas
+Probability & Statistics -18
+2 2var X X X E E
+
+  
+
+
+2 22 2 22 22 22
+222var
+X XX X Xxp X x xp X xpxxp X Xx xxpX x X
+xX
+xX
+xXX
+xX
+x
+E EE E EE EE EE
+ 
+
+
+
+  
+Mean and Variance for Discrete Random Variables
+•The mean (or expected value) of X is given by
+where the sum is over all possible values of X
+•The variance of X is given by
+•The standard deviation is the square root of the variance
+Probability & Statistics -19
+ 
+ 2 2 2 22 22
+ as denoted also,       as denoted also ,   
+X X xpxX xp x
+X X
+xX X
+xX X
+E EE
+   
+
+  
+ X xpxX
+xX E as denoted also ,   
+The Probability Histogram
+•When the possible values of a discrete random 
+variable are evenly spaced, the probability mass 
+function can be represented by a histogram, with 
+rectangles centered at the possible values of the 
+random variable
+•The area of the rectangle centered at a value x is 
+equal to P(X = x)
+•Such a histogram is called a probability histogram , 
+because the areas represent probabilities
+Probability & Statistics -20
+Example
+•The following is a probability histogram for the example 
+with number of flaws in a randomly chosen piece of wire
+–P(X = 0) = 0.48, P(X = 1) = 0.39, P(X = 2) = 0.12, P(X = 3) = 
+0.01
+•Figure 2.10
+Probability -21
+
+Continuous Random Variables (1/2)
+•Random variables with a continuous range of possible 
+values are quite common
+–The velocity of a vehicle
+–The temperature of a day
+–The blood pressure of a person
+–etc.
+Probability & Statistics -22Event {e outcomes f}
+Sample Space
+a’    b’        c’          d’         e’    f’
+xEvent {c outcomes d}
+Event {a outcomes b}
+Continuous Random Variables (2/2)
+•A random variable is continuous if its probabilities are 
+given by areas under a curve
+•The curve is called a probability density function (PDF) for 
+the random variable. Sometimes the PDF is called the 
+probability distribution
+•Let X be a continuous random variable with probability 
+density function f(x). Then
+ 1
+dxxfX
+Probability & Statistics -23
+Computing Probabilities
+•Let X be a continuous random variable with probability 
+density function f(x). Let a and b be any two numbers, 
+with a < b. Then
+•In addition ,
+Probability & Statistics -24
+
+dxxfbXa bXa bXa bXa
+b
+a P P P P
+
+dxxf aX aXdxxf aX aX
+aa
+
+
+
+P PP P
+Cumulative Distribution Functions
+Probability & Statistics -25•The cumulative distribution function (CDF) of a random 
+variable  Xis denoted by                and provides the 
+probability 
+–The CDF              accumulates probability up to x
+–The CDF              provides a unified way to describe all kinds of 
+random variables mathematically
+
+
+
+
+
+continuous is  if   ,     discrete is  if     ,
+X dttfX kp
+xX xFx
+XxkX
+X P
+xFX
+xXP
+xFX
+xFX
+Properties of  a CDF (1/3)
+Probability & Statistics -26•The CDF              is monotonically non -decreasing
+•The CDF              tends to 0 as  x–, and to 1 as  x
+•If  Xis discrete , then               is a piecewise constant 
+function of x
+xFX
+j X i X j i xF xF xx    then ,  if
+xFX
+xFX
+
+Properties of  a CDF (2/3)
+Probability & Statistics -27•If  Xis continuous , then               is a continuous function of 
+x
+xFX
+ bx for aabxfX    ,1
+
+abaxdtabdttf xXFx
+ax
+aX X
+  1
+
+
+
+2222
+abaxdt
+abatdttf xXFx
+ax
+aX X
+  
+
+
+
+
+ ab ababbfabcaxcdxaxcbx for aaxcxf
+Xb
+ab
+aX
+
+ 
+
+2 2212  ), (
+222
+Properties of  a CDF (3/3)
+Probability & Statistics -28•If  Xis discrete and takes integer values, the PMF and the CDF 
+can be obtained from each other by summing or differencing 
+•If  Xis continuous , the PDF and the CDF can be obtained from 
+each other by integration or differentiation
+–The second equality is valid for those   xfor which the CDF has a 
+derivative (or at which PDF is continuous)
+
+1 1,
+
+
+kFkF kX kX kpip kX kF
+X X Xk
+iX X
+P PP
+
+
+dxx dFxfdttf xX xF
+X
+Xx
+X X
+, P
+dxxf bXab
+aXP
+aFbFX Xis equivalent to ?
+Example
+Probability & Statistics -29•Example 2.41 : A hole is drilled in a sheet -metal component, and 
+then a shaft is inserted through the hole.  The shaft clearance is 
+equal to the difference between the radius of the hole and the 
+radius of the shaft.  Let the random variable Xdenote the 
+clearance, in millimeters.  The probability density function of Xis 
+1. Components with clearances larger than 0.8 mm must be scraped. 
+What proportion of components are scrapped?
+2. Find the cumulative distribution function F(x).
+
+  
+otherwise                      0   1 0       125.14x xxf
+Answer
+Probability & Statistics -301.Figure 2.13 : Graph of the PDF of X
+
+
+0819.0525.1125.18.0
+1
+8.058.048.0
+
+
+
+ 
+
+
+xxdxxdxxf XX P
+
+Probability & Statistics -312.       
+
+00
+
+
+
+dtdttf xF
+xx
+Figure : Plot of F(x)If x0
+If 0 < x< 1
+
+
+
+
+
+
+
+
+
+ 
+
+
+525.1525.10125.1 0
+50504000
+xxttdtt dtdttf dttfdttf xF
+xxxxIf x1
+
+
+
+10100525.100 125.1 0
+1
+0511
+04011
+00
+
+
+
+ 
+ 
+
+ttdt dtt dtdttf dttf dttfdttf xF
+xxx
+
+
+
+
+
+
+
+
+
+   1      1,                 1 0     ,525.1            0      0,                    
+5
+xxxxx
+xF
+Another Example on Continuous RV
+Probability & Statistics -32•Suppose that the error in the reaction temperature, in C (實驗反應溫度 ), 
+for a controlled laboratory experiment is a continuous random variable X 
+having the probability density function
+•Problems: 
+–a. Find                      .
+–b. Find the F(x), and use it to evaluate 
+–Solution:
+•a. 
+•b.
+1 0X P
+1 0X P
+
+
+         otherwise,     ,0      ,2 1 if    ,32
+xx
+xfX
+ 1
+01
+03 21
+0 91
+9 3)1 0(xdxxdxxf xX P
+91
+93
+13 
+x tdttf xX xFx
+x
+X X P
+91
+91
+92)0( )1( )1 0(  F F x P
+
+
+
+
+
+
+             .2           1,      ,2 1  ,91             1           0,
+3
+xxxx
+xFX
+Exercise #13
+Probability & Statistics -33•Exercise #13 : Resistor( 電阻器 ) labeled 100 have true 
+resistances that are between 80 and 120 . Let Xbe the mass 
+of a randomly chosen resistor. The probability density function of 
+Xis given by
+1. What proportion of resistors have resistances less than 90 ?
+Ans: 1/16
+2. Find the cumulative distribution function F( x) of the resistances.
+Ans:
+
+
+
+otherwise           0  120 80      80080xx
+xf
+
+
+
+
+
+
+120      1,            120 08     ,410 1600            80      0,                
+2
+xxx xx
+xF
+Exercise #18
+Probability & Statistics -36•Exercise #18 : The lifetime, in years, of a certain type of pump is a 
+random variable with probability density function
+1. What is the probability that a pump lasts more than two years?
+Ans: 1/16
+2. Find the cumulative distribution function F( x) of the lifetime.
+Ans: 
+
+
+
+
+0                0  0       
+264
+5
+xx
+x xf
+
+
+
+
+0      ,0                0     ,
+21614
+xx
+x xF
+More on Continuous Random Variables
+•Let X be a continuous random variable with probability 
+density function f(x). The cumulative distribution function
+(CDF) of X is the function
+•The mean (or expected value) of X is given by
+•The variance of X is given by
+Probability & Statistics -39
+ 
+ 2 2 2 22 2 2
+ as denoted also,      x as denoted also ,x   
+X X dxfxX dxf x
+XX X X
+E EE
+   
+
+
+
+
+  
+ X dxxxf
+-X E as denoted also ,       
+
+,dttf xX xFxP
+Example
+Probability & Statistics -40•Example 2.44 :  Refer to Example 2.41. Find the mean clearance 
+and the variance of the clearance.
+1. The mean is given by
+2. Having computed X= 0.4167, we can now compute       by using 
+the equation: 
+
+  
+otherwise                      0   1 0       125.14x xxf
+2
+X
+  x2 2 2
+X X dxfx    
+
+
+
+
+0645.04167.0 7 31.254167.0 125.1x
+21
+07 31
+02 4 22 2 2
+
+
+
+   
+
+
+x xdxx xdxfxX X  
+
+
+4167.0 6 21.25125.1x
+1
+06 21
+04
+
+
+
+  
+
+
+x xdxx xdxxfX
+Exercise #13
+Probability & Statistics -41•Exercise #13 : Find the mean resistance and the standard 
+deviation of the resistances.
+1. The mean is given by
+2. Having computed X= 106.67, we can now compute                    : 
+2
+X X
+
+9800
+3320 30 3200 10 8003320
+80080x
+2120
+803 4120
+802 3120
+802
+22 2 2
+
+
+
+
+
+
+
+
+ 
+
+
+
+ 
+
+
+x xdxx xdxxxdxfxX X  
+
+67.1063320 240012080080x
+120
+802 3120
+80
+
+
+
+
+
+
+
+
+x xdxxxdxxfX
+
+
+
+otherwise           0  120 80      80080xx
+xf
+428.998002X X
+Median and Percentiles
+Probability & Statistics -42•Let X be a continuous random variable with probability mass 
+function f(x) and cumulative distribution function F(x)
+–The median of X is the point xmthat solves the equation
+–If p is any number between 0 and 100, the pthpercentile is the 
+point xpthat solves the equation
+–The median is the 50th percentile
+ 5.0 dxxf xX xFmx
+m mP
+ 100/p dxxf xX xFpx
+p p  P
+Exercise # 18
+Probability & Statistics -43•Exercise #18 : 
+1. What is the probability that a pump last between two and four 
+years?
+2. Find the mean lifetime.
+3. Find the variance of the lifetimes.
+
+
+
+
+0                0  0       
+264
+5
+xx
+x xf
+ 
+3/221
+31642 64642
+264
+24 325 4
+2505
+
+
+ 
+
+
+     
+u uduu u duuu dx
+xxX
+
+
+ 
+989/4 34
+21649/4 4 4 643/2642x
+264
+24 3 225 4 322
+522
+052 2
+
+
+  
+
+
+   
+
+u u uduu u uduuud
+xxX X  
+Exercise # 18
+Probability & Statistics -44•Exercise #18 : 
+1. What is the probability that a pump last between two and four 
+years?
+2. Find the mean lifetime. (next)
+3. Find the variance of the lifetimes. (next)
+4. Find the median lifetime. The median xmsloves F(xm) = 0.5. 
+Therefore                              , so xm= 0.3784
+5. Find the 60thpercentile of the lifetimes. The 60thpercentile x60
+sloves F(x60) = 0.6. Therefore                               , so x60 = 0.5149
+
+
+
+
+0                0  0       
+264
+5
+xx
+x xf
+ 129665
+216
+2644 24
+244
+25
+
+x xX P
+5.0
+21614
+
+mx
+6.0
+21614
+60
+
+x
+
+
+
+
+0      ,0                0     ,
+21614
+xx
+x xF
+
+================== Reference/FCU_Classes/機率與統計pdf\Prob_Stat_05-Probability(II).pdf ==================
+Probability –II
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 2
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 3
+-William Navidi , Statistics for Engineers and Scientists, Ch. 2.4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+LINEAR FUNCTIONS OF RANDOM 
+VARIABLES
+Functions of  Random Variables (1/2)
+Probability & Statistics -3•Given a random variable  X , other random variables can be 
+generated by applying various transformations on X 
+–Linear
+–Nonlinear
+Y=gx()=aX+bDaily temperature
+in degree FahrenheitDaily temperature
+in degree Celsius
+Y=gx()=logX
+Sample Space
+Ω
+ x
+pXx()
+pYy() y
+one-to-one
+or many to oneone-to-one
+or many to one
+
+Functions of  Random Variables (2/2)
+Probability & Statistics -4•That is, if  Y  is an function of X  , then Yis also a 
+random variable
+–If  X  is discrete with PMF              , then  Yis also discrete and its 
+PMF can be calculated using 
+
+
+
+yxgxX Y xp yp
+Y=gX() ( )
+pXx()
+Functions of  Random Variables: An Example
+Probability & Statistics -5
+Expectations for Functions of  Random Variables
+•Let  Xbe a random variable with PMF       , and let             
+be a function of   X. Then, the expected value of the 
+random variable             is given by
+•To verify the above rule
+–Let                       ,  and therefore 
+Probability & Statistics -6
+EgX()éëùû=EY[]=y
+yåpYy()
+=y
+yå pXx()=
+xgx()=y { }å gx()pXx()
+xgx()=y { }å
+yå
+=gx()
+xå pXx()
+gX()
+gX()
+Y=gX()
+
+
+
+yxgxX Y xp yp
+y1x1x2x3x4x5x6x7
+y2y3 y4
+EgX()éëùû=gx()pXx()
+xå
+?
+pX
+Example
+•Example 2.3: For the  a random variable  Xwith PMF                      
+Probability & Statistics -7
+960
+91var4
+42 2 2   
+xX
+xx xpX x X X X E E E
+pXx()=1/9,  if x is an integer in the range [-4, 4],
+0,      otherwise                                          ì
+íï
+îï
+ 0914
+4  
+xX
+xx xpx XE
+
+
+
+
+        otherwise     ,0          0 if   ,9/11,4,9,16 if   ,9/2
+Z zz
+zp
+2 2let  Or, X X X Z  E
+960var   zpz Z XZ
+zEDiscrete Uniform Random Variable
+Mean and Variance of  Linear Functions of  
+Random Variables (1/2)
+•Let   Xbe a random variable and let                      
+where   aand   bare given scalars
+Then, 
+•If            is a linear function of   X, then
+Probability & Statistics -8
+Y=aX+b
+EY[]=aEX[]+b
+varY()=a2varX()
+EgX()éëùû=gEX[] ( )a linear function of  X
+gX()
+How to verify it ?
+Mean and Variance of  Linear Functions of  
+Random Variables ( 2/2)
+Probability & Statistics -9
+EY[]= ax+b ( )pXx()
+xå =axpXx()
+xåé
+ëêù
+ûú+bpXx()
+xåé
+ëêù
+ûú=aEX[]+b1
+   
+  
+
+X axpX x axpbXabaxxpb aX bax Y
+X
+xxXxX
+varvar
+22222
+
+
+EEE
+varX()
+
+Linear Functions of  Random Variables
+•If   Xis a random variable, and aand bare constants, 
+then                      
+Probability & Statistics -10
+X b aXX b aXX b aX
+aab a
+
+
+
+22 2
+More Linear Functions
+•If   Xand  Yare random variables, and aand bare 
+constants, then
+•More generally, if X1, …, Xnare random variables and c1, …, 
+cnare constants, then the mean of the linear combination 
+c1X1, …, cnXnis given by
+Probability & Statistics -12
+Y X bY aX bY aX b a 
+n nn Xn X X Xc XcXc c c c     2 1 22 11 2 1
+Variance Properties
+•If X and Y are independent random variables with 
+variances , then the variance of the sum X + Y is
+•The variance of the difference X –Y is
+Probability & Statistics -13
+2 2 2
+Y X YX  
+2 2 2
+Y X YX  
+More Variance Properties
+•If X1, …, Xnare independent random variables, then the 
+variance of the sum X1+ …+ Xnis given by
+•If X1, …, Xnare independent random variables and c1, …, cn
+are constants, then the variance of the linear combination 
+c1X1+ …+ cnXnis given by
+Probability & Statistics -14
+2 2 2 2
+2 1 2 1 n n X X X X XX     
+22 22
+222
+12
+2 1 22 11 n nn Xn X X Xc XcXc c c c     
+Independence and Simple Random Samples
+•Definition: If is a simple random sample , then 
+may be treated as independent random 
+variables, all from the same population
+–Phrased another way ,        are independent, and 
+identically distributed (i.i.d.)
+–Sample Mean:
+–Sample Variance:
+Probability & Statistics -15
+nX XX ,,,2 1
+nX XX ,,,2 1
+nX XX ,,,2 1
+
+n
+iiX Xns
+12 2
+11
+
+n
+iiXnX
+11
+
+ n
+iiX Xns
+12 21
+
+Properties of      (1/4)
+•If         is a simple random sample from a 
+population with mean μand variance σ2, then the sample 
+mean       is a random variable with
+The standard deviation of       is
+Probability & Statistics -16
+X
+nX XX ,,,2 1
+X
+X
+X
+nX2
+2mean of sample mean
+variance of sample mean
+nX
+Properties of      (2/4)
+Probability & Statistics  -17
+ nX X XnX  2 11
+X
+)8.37(1xXparameters (, 2) Population X
+37 40 35… 39X1X2X3 Xn
+sample mean
+simple random sample mean of size n
+41 38 42… 38.5
+sample mean
+)2.40(2xX
+simple random sample mean of size n
+37.5 38 42… 40.2
+sample mean
+)6.38(3xX
+simple random sample mean of size n
+sample mean can be viewed 
+as a random variable
+with values
+can be represented as 
+X
+X
+ ,,,,2 1 kx xxX1, X2,…, Xnare i.i.d. 
+and follow the same distribution X
+
+ 
+nn n nn n nnn
+X X XX XXnX
+22
+22
+22
+22
+22
+22
+22
+12
+1 1 11 1 1
+2 12 1
+  
+
+
+Properties of      (3/4)
+Probability & Statistics -18
+X
+ 
+ 
+
+
+n n nn n nnn
+X X XX XXnX
+1 1 11 1 1
+2 12 11
+X1, X2,..., Xnare i.i.d.
+and follow the same distribution Xwith mean 
+X1, X2,..., Xnare independent
+X1, X2,..., Xnare identically distributed
+(follow the same distribution  X with variance
+2)
+
+Properties of      (4/4)
+Probability & Statistics -19
+Xmean of sample mean          (equal to population mean           )
+sample mean 
+The spread of sample mean is determined by the variance of sample 
+mean           (equal to          where          is the population variance)
+
+ixX
+sample mean 
+jxX
+X
+2
+X
+n2
+2
+
+INDEPENDENCE –BASICS
+Independence of  a Random Variable from an Event
+•A random variable   Xis independent of an event Aif 
+–Require two events                  and   Abe independent for all x
+•If a random variable  Xis independent of an event A 
+and
+Probability & Statistics -21
+PA()>0
+X=x { }
+PX=x and A ( )=PX=x ( )PA(),    for all x
+pX|Ax()=PX=x and A ( )
+PA()
+=PX=x ( )PA()
+PA()
+=PX=x ( )
+=pXx(), for all x
+Example
+•Example 2.19. Consider two independent tosses of a fair coin .
+–Let random variable   Xbe the number of heads
+–Let random variable   Ybe 0 if the first toss is head, and 1 if the first 
+toss is tail
+–Let   Abe the event that the number of head is even
+•Possible outcomes (T,T), (T,H), (H,T), (H,H)
+Probability & Statistics -22
+
+
+
+
+2 if   ,4/11 if   ,2/10 if   ,4/1
+xxx
+xpX
+
+
+1y if   ,2/10y if   ,2/1ypY
+ 2/1AP
+pYAy()=PY=y and A ( )
+PA()=1/2,   if y=0
+1/2,   if y=1ì
+íï
+îï
+pXAx()=1/2,   if x=0
+0,       if x=1
+1/2,   if x=2ì
+íï
+îï
+ t! independennot  are  and A X xp x pX AX 
+ t! independen are  and A Y yp y pY AY 
+The Prove on Variance Properties
+•If   Xand  Yare independent random variables, then
+–As shown by the following calculation
+Probability & Statistics -23
+varX+Y[ ]=varX[]+varY[]
+    
+      
+    
+
+  
+
+   Y X Y Y X XY X Y Xyx xyp yx py yx pxY Y X XY Y X X Y X yx pyxY X Y X YX YXYX YX YX
+yxYX
+yxYX
+yxYXyxYX
+var var2    , 2 , ,2    2 2 ,2var
+2 2 2 22 2,,
+,,2
+,,22 2,,22 22
+ 
+
+
+
+
+
+
+
+
+  
+
+
+ 
+  
+E E E EEE E EE EE EEE E EE EE E E E EE E
+?2YX
+2 2 2
+Y X YX  is equal to
+
+================== Reference/FCU_Classes/機率與統計pdf\Prob_Stat_06-Probability(III).pdf ==================
+Probability –III
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 2
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 4
+-William Navidi , Statistics for Engineers and Scientists, Ch. 2.6
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+JOINT DISTRIBUTED RANDOM 
+VARIABLES
+Motivation
+•Given an experiment, e.g., a medical diagnosis
+–The results of blood test is modeled as numerical values of a 
+random variable X
+–The results of magnetic resonance imaging (MRI, 核磁共振攝影 ) 
+is also modeled as numerical values of a random variable Y
+We would like to consider probabilities of events involving 
+simultaneously the numerical values of these two variables and to 
+investigate their mutual couplings
+Probability & Statistics -3
+  ?yY xX P
+Joint Discrete Random Variables
+•If X and Y are jointly discrete random variables:
+–The joint probability mass function of X and Y is the function
+–The marginal probability mass functions of X and Y can be 
+obtained from the joint probability mass function as follows:
+where the sums are taken over all the possible values of Y and of 
+X, respectively
+–The joint probability mass function has the property that 
+where the sum is taken over all the possible values of X and Y
+Probability & Statistics -4
+ yYxX yx pYX  , ,, P
+ 
+x yYX yx p 1 ,,
+   
+y xYX Y YX X yx p yY yp yx p xX xp ,         ,,, , P P
+Tabular Method
+•Tabular Method : Given the joint PMF of random variables  X
+and  Yis specified in a two -dimensional table , the marginal 
+PMF of  Xand  Yat a given value is obtained by adding the 
+table entries along a corresponding column or row, respectively
+Probability & Statistics -5
+
+Example
+Probability & Statistics -6•Example 2.52 , 2.53 :
+1. Find the probability that a CD cover has a length of 129 mm.
+2. Find the probability that a CD cover has a width  of 16 mm.
+  
+20.0 08.012.016 ,129 15 ,129 129
+ Y X Y X X P P P
+  
+ 
+40.0 04.028.008.016 ,13116 ,130 16 ,129 16
+
+Y XY X Y X Y
+PP P P
+Example (1/2)
+Probability & Statistics -7•Two ballpoint are selected at random from a box that contain 3 blue pens, 
+2 red pens, and 3 green pens. If Xis the number of blue pens selected and 
+Yis the number of red pens selected, find (a) the joint probability mass 
+function                   (b)                           , where A is the region {( x,y) | x 
++ y 1}
+–Solution :
+(a)
+(b)
+
+
+149
+289
+143
+2830,1 1,0 0,01 ,
+, , ,,
+  
+YX YX YXYX
+p p pYX yx p P
+ 2 0 and ;2,1,0 ;2,1,0 for     ,
+2823 23
+,,  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ yx y xyx yxyx pYX
+yx pYX ,,
+AyxYX},{,P
+
+Example (2/2)
+Probability & Statistics -8•Show that the column and row totals of Table give the marginal 
+distribution of Xalone and of Yalone.
+–Solution:
+
+
+
+283002832,2 1,2 0,2 228150143
+2892,1 1,1 0,1 1145
+281
+143
+2832,0 1,0 0,0 0
+, , ,, , ,, , ,
+      
+YX YX YXYX YX YXYX YX YX
+p p p Xp p p Xp p p X
+PPP
+
+
+
+yYXyX
+yx pyYxXxX xp
+,) , (
+,PP
+
+
+
+281002812,2 2,1 2,0 21460143
+1431,2 1,1 1,0 12815
+283
+289
+2830,2 0,1 0,0 0
+, , ,, , ,, , ,
+      
+YX YX YXYX YX YXYX YX YX
+p p p Yp p p Yp p p Y
+PPP
+Joint Continuous Random Variables
+•If X and Y are jointly continuous random variables, with 
+joint probability density function fX,Y(x,y), and a < b, c < d, 
+then
+•The joint probability density function has the property 
+that
+Probability & Statistics -9
+
+
+1 ,, dydxyxfYX
+  b
+ad
+cYX dydxyxf dYcbXa , ,, P
+Marginals of  Xand Y
+•If X and Y are jointly continuous with joint probability 
+density function fX,Y(x,y), then the marginal probability 
+density functions of X and Y are given, respectively, by
+–Such a process is called “marginalization”
+Probability & Statistics -10
+
+
+
+
+
+
+dxyxf yfdyyxf xf
+YX YYX X
+,,
+,,
+Example
+Probability & Statistics -11•Example 2.54 : Assume that for a certain type of washer, both the 
+thickness and the hole diameter vary from item to item. Let X 
+denote the thickness in millimeters and let Y denote the hole 
+diameter in millimeters, for a randomly chosen washer. Assume 
+the joint PDF of X and Y is given by
+Find the probability that a randomly chosen washer has a thickness 
+between 1.0 and 1.5 mm, and a hole diameter between 4.5 and 5 mm.
+
+ 
+                     otherwise              0   5 4 and 2 1if       61
+,,y x yxyxfYX
+Answer
+Probability & Statistics -12•Example 2.54 :
+We integrate the joint probability density 
+function over the indicated region:
+ 
+414819
+12126615 5.4 ,5.1 1
+5.1
+15.1
+15
+5.425.1
+15
+5.4
+
+
+
+
+
+
+ 
+
+dxxdxy xydydxyx Y XP
+What are the marginal PDFs of  Xand Y ?
+Probability & Statistics -13•Example 2.54 :
+
+
+2 1for          29
+6161,
+5
+4
+ 
+
+
+
+
+x xdyyxdyyxf xfX
+
+
+5 4for            23
+6161,
+2
+1
+ 
+
+
+
+
+y ydxyxdxyxf yfY
+
+ 
+                     otherwise              0   5 4 and 2 1if       61
+,,y x yxyxfYX
+More than Two Random Variables
+•If the random variables X1, …, Xnare jointly discrete , the 
+joint probability mass function is
+•If the random variables X1, …, Xnare jointly continuous , 
+they have a joint probability density function f(x1, x2,…, xn), 
+where 
+for any constants a1≤ b1, …, an≤ bn
+Probability & Statistics -14
+    n
+nb
+ab
+an n n n n dx dxx xf b X a b Xa1
+11 1 1 1 1 ,, ,,     P
+ n n n x X x X x xp   ,, ,,1 1 1   P
+Means of  Functions of  Random Variables
+•Let X be a random variable, and let h(X) be a function of X. 
+Then:
+–If X is a discrete with probability mass function p(x), then mean of 
+h(X) is given by
+where the sum is taken over all the possible values of X
+–If X is continuous with probability density function f(x), the mean 
+of h(x) is given by
+Probability & Statistics -15
+ Xh xpxh
+xXh E as denoted also,      
+ Xh dxxfxhXh E as denoted also,      
+
+Functions of  Joint Random Variables
+•If X and Y are jointly distributed random variables, and 
+h(X,Y) is a function of X and Y, then
+–If X and Y are jointly discrete with joint probability mass function 
+p(x,y), 
+where the sum is taken over all possible values of X and Y
+–If X and Y are jointly continuous with joint probability density 
+function f(x,y),
+Probability & Statistics -16
+ 
+x yYXh yxpyxh , ,,
+ 
+
+ dxdyyxfyxhYXh , ,,
+Example
+•Given the random variables Xand  Ywhose joint is given in 
+the following figure, and a new random variable  Zis defined 
+by  Z= X+ 2Y, calculated
+–Method 1:  ( using linearity )
+–Method 2:
+Probability & Statistics -17
+2051
+2034208320622031 XE
+EZ[]
+
+55.72011220111            20210203920382047            2026202520142013
+ZE
+ 
+ 
+
+zyxyxYX Z yx p zp
+2 ,,,
+2050
+2034207320722031 YE
+ 55.720151
+2050220512  Y X Z E E E
+pZ3()=1
+20,pZ4()=1
+20,pZ5()=2
+20,pZ6()=2
+20
+pZ7()=4
+20,pZ8()=3
+20,pZ9()=3
+20,pZ10()=2
+20
+pZ11()=1
+20,pZ12()=1
+20
+Example
+Probability & Statistics -18•Example 2.56 : The article “Performance Comparison of Two Location 
+Based Routing Protocols for Ad Hoc Networks” (T. Camp, J. Boleng , et al., 
+Proceedings of the Twenty -first Annual Joint Conference of IEEE 
+Computer and Communications Societies 2002:1678 -1687) describes a 
+model for the movement of a mobile computer. Assume that a mobile 
+computer moves within the region Abounded by the xaxis, the line x=1, 
+and the line y= xin such a way that if ( X,Y) denotes the position of the 
+computer at a given time, the joint density of X and Y is given by 
+Find P(X>0.5 and Y<0.5).
+
+
+  )(    0     )(     8,,A x,y  A x,y xyyxfYX
+Answer
+Probability & Statistics -19•Example 2.56 :
+We integrate the joint probability density 
+function over the indicated region:
+ 
+
+375.048 5.0 and 5.0
+1
+5.01
+5.05.0
+021
+5.05.0
+0
+ 
+
+
+
+xdxdx xyxydydx Y X
+y
+yP
+
+Answer
+Probability & Statistics -20•Example 2.56 :
+Find the marginal density of X.
+To compute fX(x), the marginal density of 
+X, we fix xand integrate the joint density 
+along the vertical line through x, as 
+shown in Figure. The integration is with 
+respect to y, and the limitation are y= 0
+to y= x.
+
+1 0for          448
+3020
+ 
+
+
+x xxyxydy xf
+xy
+yx
+X
+Answer
+Probability & Statistics -21•Example 2.56 :
+Find the marginal density of Y.
+To compute fY(y), the marginal density of 
+Y, we fix y and integrate the joint density 
+along the horizontal line through y, as 
+shown in Figure. The integration is with 
+respect to x, and the limitation are x=y
+tox= 1.
+
+1 0for          4 448
+3121
+ 
+
+
+y y yyxxydx yf
+x
+yxyY
+
+Conditioning
+•Recall that conditional probability provides us with a way 
+to reason about the outcome of an experiment, based on 
+partial information
+•In the same spirit, latter, we can define conditional 
+distribution function (a PMF or a PDF) , given the 
+occurrence of a certain event or given the value of 
+another random variable
+Probability & Statistics -22
+Conditioning a Random Variable on an Event (1/2)
+•The conditional PMF of a random variable  X, 
+conditioned on a particular event  Awith               , is 
+defined by (where  Xand  Aare associated with the same experiment)                     
+•Normalization Property
+–Note that the events                             are disjoint for different 
+values of   X, their union is  A
+Probability & Statistics -23
+ 
+AA xXAxX x pAXPPPTotal probability theorem
+PA()>0
+ A xXP
+    
+xA xX A P P
+ 
+ 
+
+1
+ 
+AA
+AA xX
+AA xXx px
+x xAXPP
+PP
+PP
+Conditioning a Random Variable on an Event (2/2)
+•A graphical illustration
+Probability & Statistics -24
+
+A xXx pAX
+event  ng conditioni  the to belong and   torise givethat  outcomes  theof ies probabilit  the addingby  obtained is 
+
+Example
+•Example 2.12. Let  Xbe the roll of a fair six -sides die and   A
+be the event that the roll is an even number
+Probability & Statistics -25
+ 
+ 
+
+ 
+   otherwise     ,06,4,2 if  ,3/1even is even is  and even is roll
+xXX xXxX x pAX
+PPP
+Discrete Conditional Distributions (1/2)
+•Let  Xand  Y be jointly discrete random variables, with 
+joint probability density function pX,Y(x,y), let pX(x) denote 
+the marginal probability mass function of X and let xbe 
+any number for which pX(x) > 0 .
+–The conditional probability mass function of Y given X = xis
+–Note that for any particular values of xand y, the value of pY|X(y|x) 
+is just the conditional probability P(Y=y|X=x)
+Probability & Statistics -26
+  
+
+
+xpyx pxXyYxXxXyY xy p
+XYXXY
+,,
+,PPP
+Discrete Conditional Distributions (2/2)
+•The conditional PMF can also be used to calculate the 
+marginal PMFs
+•Visualization of the conditional PMF 
+Probability & Statistics -27
+pXY
+   
+yYX Y
+yYX X yx pyp yx p xp ,,
+
+
+
+
+xYXYXYYX
+YX
+yx pyx pypyx pyx p
+,,,
+,,,
+Continuing Example 2.52, 2.53
+Probability & Statistics -28•Compute the conditional probability mass 
+function                  .
+The possible values for Yare y= 15 and y= 16.
+ 
+ 
+
+60.070.042.0130130 ,15130 |15 130|15|
+
+XX YX Y pXY
+PPP
+130y pXY
+
+40.060.01130|15 1 130|16| |
+XY XY p p
+Continuous Conditional Distributions
+•Let  Xand  Y be jointly continuous random variables, 
+with joint probability density function fX,Y(x,y), let fX(x) 
+denote the marginal density function of X and let xbe any 
+number for which fX(x) > 0.
+–The conditional probability function of Y given X = xis
+Probability & Statistics -29
+
+xfyxfxyf
+XYX
+XY,,
+Continuing Example 2.54
+Probability & Statistics -30•Marginal PDFs
+•Example 2.61 :
+1. Find the conditional probability density function of Ygiven X=1.2.
+2. Find the probability that the hole diameter is less than or equal to 
+4.8 mm given that the thickness is 1.2 mm.
+ 2 1for        5.461  x x xfX
+ 5 4for          5.161  y y yfY
+
+ 
+                     otherwise              0   5 4 and 2 1if       61
+,,y x yxyxfYX
+Answer
+Probability & Statistics -31•Marginal PDFs
+1. 2.
+ 2 1for        5.461  x x xfX
+ 5 4for          5.161  y y yfY
+
+ 
+                     otherwise              0   5 4 and 2 1if       61
+,,y x yxyxfYX
+
+
+
+
+
+
+
+
+ otherwise                 05 4 if       7.52.1  otherwise                          05 4 if       5.42.16/12.16/12.1 ,2.12.1||
+yyyyfy fyf
+XXY
+ 
+786.07.52.12.1| 2.1 |8.4
+8.4
+48.4
+|
+
+
+dyydy yf X YXY P
+Conditional Expectation
+•Expectation is another term for mean 
+•A conditional expectation is an expectation, or mean , 
+calculated using the conditional probability mass function 
+or conditional probability density function
+•The conditional expectation of Y given X = xis denoted by 
+E(Y|X = x) or μY|X=x
+Probability & Statistics -32
+More on Conditional Expectation
+•Let  Xand  Y be two random variables associated with 
+the same experiment.
+–The conditional expectation of  Xgiven event   A
+with                    , is defined by
+•For a function             , it is given by
+Probability & Statistics -33
+EgX()Aéëùû=gx()pXAx()
+xå
+PA()>0
+gX()
+EXAéëùû=xpXAx()
+xå
+
+ dxx xf AXAX E
+
+ dxxfxg AXgAX E
+Total Expectation Theorem (1/2)
+•The conditional expectation of   Xgiven a value  yof   Y 
+is defined by
+–We have
+•Let                  be disjoint events that form a partition of 
+sample space, and assume that                , for all  i.        
+Then,
+Probability & Statistics -34
+  
+yY yYXyp X ] [E E
+PAi()>0
+nA A ,,1
+
+xYX yx xp yYXE
+EX[]=PAi()
+i=1n
+å EXAiéëùû
+dxyx xf yYXYX
+ E
+ 
+  dyyfyYX XY E E
+in
+ii AXg A Xg EP E
+
+1
+Total Expectation Theorem (2/2)
+•Let                 be disjoint events that form a partition of the 
+sample space, and for any event  Bwith                     , for 
+all  i. Then,
+•Verification of total expectation theorem
+Probability & Statistics -35
+0B APi
+nA A ,,1
+EXBéëùû=PAiB( )
+i=1n
+å EXAiÇBéëùû
+ 
+
+
+yYXypyx xp ypyx pypxyx px x xp X
+yYy xYX Yx yYX Yx yYX
+xX
+  
+ 
+EE ,,
+Example (1/4)
+Probability & Statistics -36•Chunk will go shopping for probability books for Khours. Here, Kis a 
+random variable and is equally likely to be 1, 2 ,3, or 4. The number of 
+books Nthat he buys is random and depends on how long he shops. We 
+are told that 
+a.Find the join PMF of Kand N.
+b.Find the marginal PMF of N.
+c.Find the conditional PMF of Kgiven that N= 2.
+d.We are now told that he bought at least 2 but no more than 3 books. 
+Find the conditional mean and variance of K, given this piece of 
+information.
+ .,,1 for         ,1k nkkn pKN  
+Example
+Probability & Statistics -37•Solutions
+–a.
+
+        otherwise       ,0;,,1 for    ,/1 k n kkn pKN
+
+        otherwise       ,0;4,,1 for    ,4/1  kkpK
+
+                              otherwise            ,0;,...,1 and 4,3,2,1 if   ),(4/1,k n k kkn pN,K
+ : PMF joint  following at the arrive  to ,, kpkn p kn pK KN KN  
+
+Example
+Probability & Statistics -38•Solutions
+–b.
+–c.
+
+
+
+
+    
+
+ otherwise                                                     ,0       ;4                                     ,48/3 16/1       ;3                          ,48/7 16/112/1       ;2               ,48/13 16/112/18/1       ;1      ,48/25 16/112/18/14/1
+nnnn
+npN
+
+ 
+k nkKN Nkkn p np4
+,41,
+
+
+
+
+
+
+ 
+otherwise          ,0      ;4    ,13/3      ;3    ,13/4      ;2    ,13/6
+2,22,
+kkk
+pk pk p
+NKN
+NK
+Example
+Probability & Statistics -39•Solutions
+–d. Let Abe the event 2 N3. 
+We first find the conditional PMF of Kgiven A.
+
+
+
+
+
+
+  otherwise             ,0         ;4    ,161
+161         ;3    ,121
+121        ;2             ,81
+,
+kkk
+AkKP
+
+AAkKk pAKPP ,
+1253 2 N N p p AP
+
+
+
+
+
+
+   otherwise         ,0          ;4       ,103         ;3        ,52         ;2       ,103
+kkk
+k pAK
+ 3
+kAKk pk AKE
+ 
+5334103335232103var
+2 2 22
+ AAK K AK E E
+MORE ON INDEPENDENCE
+Two Independent Random Variables (1/2)
+•Two random variables   Xand  Yare independent if 
+or
+•If a random variable  Xis independent of an random 
+variable Y 
+Probability & Statistics -41
+PX=x and Y=y ( )=PX=x ( )PY=y ( ),    for all x,y
+
+
+
+
+    all 0  with  allfor     ,,,
+|
+x yp y xpypypxpypyx pyx p
+XYY XYYX
+YX
+ 
+pX,Yx,y()=pXx()pYy(),    for all x,y
+pXYxy()=pXx(),  for all y with pYy()>0 all x
+Two Independent Random Variables (2/2)
+•Random variables   Xand  Yare said to be conditionally
+independent , given a positive probability event  A, if
+–Or equivalently,
+•Note here that, as in the case of events, conditional 
+independence may not imply unconditional independence 
+and vice versa 
+Probability & Statistics -42
+pX,YAx,y()=pXAx()pYAy(),    for all x,y
+pXY,Axy()=pXAx(),  for all y with pYAy()>0 and all x
+Example (1/2)
+•Example 2.15. Example illustrating that conditional 
+independence may not imply unconditional independence
+–For the PMF shown, the random variables  Xand  Yare not 
+independent
+•To show  Xand  Yare not independent, we only have to find 
+a pair of values            of   Xand  Ythat
+–For example,  Xand  Yare not
+independent
+Probability & Statistics -43
+x,y( )
+xp yx pX YX
+2031 011 X YX p p
+Example (2/2)
+•To show  Xand  Yare not dependent, we only have to 
+find all pair of values           of  Xand  Ythat
+–For example,  Xand  Yare independent, conditioned on the 
+event 
+Probability & Statistics -44
+x,y( )
+ 3 ,2 Y X A
+pXY,A13()=2/20
+6/20=1
+3,
+  
+AyYAyYxXyx p AAYX PPP,    ,209
+pXY,A14()=1/20
+3/20=1
+3
+pXY,A23()=4/20
+6/20=2
+3,
+pXY,A24()=2/20
+3/20=2
+3
+pXA1()=3/20
+9/20=1
+3
+pXA2()=6/20
+9/20=2
+3
+pXYxy()=pXx()
+Functions of  Two Independent Random Variables
+•Given   Xand  Ybe two independent random variables, 
+let           and            be two functions of  Xand  Y, 
+respectively. Show that           and           are independent.
+Probability & Statistics -45
+Let   U=gX() and V=hY(), then
+ 
+ 
+
+ 
+
+ 
+vpupyp xpypxpyx p vu p
+V Uuxgx vyhyY XvyhuxgyxY XvyhuxgyxYX VU
+
+
+ 
+)( )()( ,)(),()( ,)(),(, , , ,
+gX()
+hY()
+gX()
+hY()
+Summary on Independence (1/2)
+•Random variables X1, …, Xnare independent , provided that:
+–If X1, …, Xnare jointly discrete , the joint probability mass function 
+is equal to the product of the marginals :
+–If X1, …, Xnare jointly continuous , the joint probability density 
+function is equal to the product of the marginals :
+Probability & Statistics -46
+n X X n xp xp x xp
+n 1 11,,
+n X X n xf xf x xf
+n 1 11,,
+Summary on Independence (2/2)
+•If X and Y are independent random variables, then:
+–If X and Y are jointly discrete , and xis a value for which 
+pX(x) > 0, then
+–If X and Y are jointly continuous , and xis a value for 
+which
+Probability & Statistics -47
+yp xy pY XY||
+yf xyfY XY||
+Means of  Two Independent Random Variables
+•If   Xand  Yare independent random variables, then
+–As shown by the following calculation
+•Similarly, if   Xand  Yare independent random variables, 
+then
+Probability & Statistics -48
+EXY[]=EX[]EY[]
+ 
+
+
+Y Xyyp x xpypx xypyx xyp XY
+x yY XY
+x yXx yYX
+EEE
+
+
+
+
+ ,,
+EgX()hY() éëùû=EgX()éëùûEhY()éëùûby independence
+Covariance
+•Let X and Y be random variables with means μXand μY
+–The covariance of X and Y is
+–An alternative formula is
+Probability & Statistics -49
+Y XY X YX Cov,
+Y X XY YX Cov ,
+measure of the linear relationship
+between Xand Y
+Example
+Probability & Statistics -50•Example 2.67 : Continue Example 2.56, a mobile computer is moving in 
+the region Abounded by the xaxis, the line x=1, and the line y= x. If 
+(X,Y) denotes the position of the computer at a given time, the joint 
+density of X and Y is given by 
+Find Cov(X,Y).
+
+
+  )(    0     )(     8,,A x,y  A x,y xyyxfYX
+
+Answer
+Probability & Statistics -51•Example 2.67 :
+We will use the formula 
+To compute the integral over this region, 
+we fix a value of xas shown. We compute 
+the inner integral by integrating with 
+respect to yalong the vertical line 
+through x. The limits of integration along 
+this line are y= 0to y= x. Then we 
+compute the outer integral by integrating 
+with respect to xover all possible values 
+of x, so the limits of integration on the 
+outer integral are x= 0to x= 1.
+
+94
+188
+383888
+1
+061
+0501
+0321
+0 0221
+00
+ 
+
+
+
+xdxxdxyxdxdyyxdydxxyxy
+xy
+yxx
+XY
+Y X XY YX Cov ,
+Answer (continue)
+Probability & Statistics -52•Example 2.67 :
+2254
+158
+54
+94, 
+
+
+
+Y X XY YX Cov 
+
+
+   
+  otherwise         0     1 0      4 4  otherwise         0     1 0      4
+33
+y y yyfx xxf
+YX
+
+54
+5441
+051
+04 
+
+
+xdxxdxxxfX X
+
+158
+54
+344 41
+05 31
+04 2
+
+
+y ydyy ydyyyfY Y
+Correlation
+•Let X and Y be jointly distributed random variables with 
+standard deviations σX and σY
+–The correlation between X and Y is denoted ρX,Yand is given by
+•For any two random variables X and Y
+Probability & Statistics -53
+
+Y XYXYX Cov
+,
+,
+1 1,YX
+Covariance, Correlation, and Independence
+•If Cov(X,Y) = ρX,Y= 0, then X and Y are said to be 
+uncorrelated
+•If X and Y are independent , then X and Y are uncorrelated
+•It is mathematically possible for X and Y to be 
+uncorrelated without being independent . This rarely 
+occurs in practice
+Probability & Statistics -54
+Example
+•The pair of random variables ( X, Y ) takes 
+the values (1 , 0), (0 , 1), (−1, 0), and (0 ,−1), 
+each with probability ¼  
+Thus , the marginal PMFs of X and Y are symmetric around 
+0, and E[X] = E[Y ] = 0
+•Furthermore, for all possible value pairs ( x, y), either x or y 
+is equal to 0, which implies that XY = 0 and E[XY ] = 0 . 
+Therefore, Cov(X, Y ) = E[XY ]− E[X]E[Y ] = 0, and X and Y 
+are uncorrelated
+•However, Xand Yare not independent since, for example, 
+a nonzero value of Xfixes the value of Yto zero
+Probability & Statistics -55
+
+Variance of  a Linear Combination of  
+Random Variables (1/2)
+•If X1, …, Xnare random variables and c1, …, cnare constants, 
+then
+Probability & Statistics -56
+n nn Xn X Xc Xc c c     1 11 1
+ 
+ 1
+1 122 22
+12, 2
+1 11n
+in
+ijj i ji Xn X Xc Xc XX Covcc c c
+n nn   
+Variance of  a Linear Combination of  
+Random Variables (2/2 )
+•If X1, …, Xnare independent random variables and c1, …, cn
+are constants, then
+–In particular,
+Probability & Statistics -57
+22 22
+12
+1 11 n nn Xn X Xc Xc c c     
+2 2 2
+1 1 n n X X X X    
+Summary
+•Random variables: discrete and continuous
+•Probability mass functions  (PMF, pmf)
+•Probability density functions (PDF, pdf)
+•Cumulative distribution functions (CDF, cdf)
+•Means and variances for random variables ( , 2)
+•Linear functions of random variables
+•Mean and variance of a sample mean
+•Jointly distributed random variables
+Probability -58
+
+================== Reference/FCU_Classes/機率與統計pdf\Prob_Stat_08-Commonly Used Distributions(I).pdf ==================
+Commonly Used Distribution –I
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 3
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 5
+-William Navidi , Statistics for Engineers and Scientists, Chapter 4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+How to Estimate Population (Distribution ) 
+Parameters?
+Probability & Statistics -2
+-Unbiased Estimate ?
+-Estimation Uncertainty ?
+Propagation Error
+Probability & Statistics -3•Any measuring procedure contains error
+–This causes measured values to differ from the true values that are 
+measured
+•Errors in measurement produce error in calculated values 
+(like the mean )
+•Definition : When error in measurement produces error in 
+calculated values, we say that error is propagated from the 
+measurements to the calculated value
+•Having knowledge concerning the sizes of the errors in 
+measurement → Obtaining knowledge concerning the likely 
+size of the error in a calculated quantity
+from Ch.3 Propagation Error
+Measurement Error
+Probability & Statistics -4•A geologist weighs a rock on a scale and gets the following 
+measurements:
+251.3 252.5  250.8  251.1  250.4
+•None of the measurements are the same and none are 
+probably the actual measurement
+•The error in the measured value is the difference between a 
+measured value and the true value
+Parts of  Error
+Probability & Statistics -5•We think of the error of the measurement as being 
+composed of two parts :
+–Systematic error (or bias)
+–Random error
+•Bias is error that is the same for every measurement
+–E.g., a imperfectly calibrated scale always gives you a reading that is 
+too low
+•Random error is error that varies from measurement to 
+measurement and averages out to zero in the long run
+–E.g., Parallax ( 視差 ) error
+•The difference in the position of dial indicator when observed 
+from different angles
+Measured Value = True Value + Bias + Random Error
+random variable constant        constant random variable
+ 0 Error Random  E
+from Ch.3 Propagation Error
+Two Aspects of  the Measuring Process (1/4)
+Probability & Statistics -6•We are interested in accuracy
+–Accuracy is determined by bias
+•The bias in the measuring process is the difference between the mean 
+measurement μand the true value : 
+bias = μ-true value
+–The smaller the bias, the more accurate the measuring process
+•Unbiased : the mean measurement is equal to the true value
+•The other aspect is precision
+–Precision refers to the degree to which repeated measurements of 
+the same quantity tend to agree with each other
+–If repeated measurements come out nearly the same every time, 
+the precision is high
+–The uncertainty in the measuring process is the standard deviation σ
+•The smaller the uncertainty, the more precise the measuring process
+from Ch.3 Propagation Error
+Two Aspects of  the Measuring Process (2/4)
+Probability & Statistics -7•Example: Figures 3.1 and 3.2
+How about bias? (True value is often unknown in real life)bias is large;
+uncertainty is small
+both b ias and 
+uncertainty are largeboth b ias and 
+uncertainty are small
+bias is small;
+uncertainty is large
+uncertainty 
+is small
+uncertainty 
+is largeuncertainty 
+is small
+uncertainty 
+is large
+Two Aspects of  the Measuring Process (3/4)
+Probability & Statistics -8•Let X1,…,Xnbe independent measurements, all made by the 
+same process on the same quantity
+–The sample standard deviation s can be used to estimate the 
+uncertainty
+–Estimates of uncertainty are often crude, especially when based on 
+small samples
+–If the true value is known, the sample mean ,      , can be used to 
+estimate the bias :
+–If the true value is unknown, the bias cannot be estimated from 
+repeated measurements
+X
+ valuetrue biasX
+from Ch.3 Propagation Error
+Two Aspects of  the Measuring Process (4/4)
+Probability & Statistics -9•From now on, we will describe measurements in the form
+–Where         is the uncertainty in the process that produced the 
+measured value
+–Assume that bias has reduced to a negligible level
+
+  value Measured
+from Ch.3 Propagation Error
+Linear Combinations of  Measurements
+Probability & Statistics -10•Each measurement can be viewed as a random variable
+–Its standard deviation represents the uncertainty for it
+•How to compute uncertainties in scaled measurements or 
+combinations of independent measurements?
+–If Xis a measurement and cis a constant, then
+–If X1,…,Xnare independent measurements and c1,…,cnare constants, 
+then
+X cX c
+22 22
+11 11 n nn X n X Xc Xc c c     
+from Ch.3 Propagation Error
+Example
+Probability & Statistics -11•Example 3.6: A surveyor is measuring the perimeter of a 
+rectangular lot. He measures two adjacent sides to be 50.11 ±
+0.05m and 75.21 ±0.08m. These measurements are independent. 
+Estimate the perimeter of the lot and find the uncertainty in the 
+estimate .
+–Solution:
+Let X = 50.11 and Y = 75.21 be the two measurements. The 
+perimeter is estimated by P= 2X + 2Y = 250.64m, and the
+uncertainty in Pis
+So the perimeter is 250.64 ±0.19m.
+ m19.0 08.04 05.04 4 42 2 2 2
+2 2    Y X Y X P  
+from Ch.3 Propagation Error
+Repeated Measurements
+Probability & Statistics -12•One of the best ways to reduce uncertainty is to take 
+independent measurements and average them ( why? )
+–The measurements can be viewed as a simple random sample from 
+a population
+–Their average is therefore the sample mean
+•If X1,…,Xnare independent measurements, each with mean 
+and standard deviation , then the sample mean ,      , is a 
+measurement with mean ( cf. Sections 2.5 & 2.6) 
+and with uncertainty
+X
+X
+nX
+The uncertainty is reduced by a factor equal 
+to the square root of the sample size
+from Ch.3 Propagation Error
+Example
+Probability & Statistics -13•Example 3.8: A length of a component is to be measured by 
+a process whose uncertainty is 0.05 cm. If 25 independent 
+measurements are made and the average of these is used to 
+estimate the length, what will the uncertainty be? How 
+much more precise is the average of 25 measurements than 
+a single measurement ?
+–Solution:
+The uncertainty is cm. The average of 25 
+independent measurements is five times more precise than a 
+single measurement .
+01.0 25/05.0 
+Sample Mean and Variance
+Probability & Statistics -14•Point estimation is the attempt to estimate some fixed but 
+unknown quantity of a random variable by using sample data
+•Let 𝕏={𝑥1,…,𝑥𝑛}= be a set of ni.i.d. samples of a random 
+variable X, a point estimator or statistic is a function of the data:
+–The value       is called estimate of 
+•Sample mean:  
+•Sample variance: 
+•How good are these estimators?
+
+ii
+X xnX)( 1ˆ
+)( )1(,, ˆ n
+n x xg
+2)( 2 2ˆ1ˆ 
+iXi
+X xns  
+from Prof. Wu, Shan -Hung’s slide
+nˆ
+Bias & Variance
+Probability & Statistics -15•Bias of an estimator
+E𝕏෠𝜃𝑛−𝜃
+–Here, the expectation is defined over all possible 𝕏’s of size n, i.e., 
+E𝕏መ𝜃𝑛=׬መ𝜃𝑛𝑑P𝕏
+•We call a statistic unbiased estimator iffit has zero bias
+•Variance of an estimator: 
+Var𝕏෠𝜃𝑛=E𝕏෠𝜃𝑛−E𝕏෠𝜃𝑛2
+•Is                         an unbiased estimator of X(population mean) ?
+•What much is Var𝕏Ƹ𝜇X
+
+ii
+X xn)( 1ˆ
+nˆ bias
+from Prof. Wu, Shan -Hung’s slideYes
+Variance of  
+Probability & Statistics -16Var𝕏ො𝜇𝑋=E𝕏ො𝜇−E𝕏ො𝜇2=Eො𝜇2−𝜇2
+•The variance of        diminishes as n 
+Xˆ
+from Prof. Wu, Shan -Hung’s slide
+Xˆ
+
+  
+  
+       
+
+  
+ 
+2 2 2 2 22 )( )( 2)(
+22 )()( )()(
+22
+,)()(
+22
+,)()(
+2
+E1 )1(E1E E1 E1E E1E1 1E
+  
+Xn nnXnx x nn xnxx xxnxxnxxn
+j i
+iijij i
+jij ijij i
+jij i1
+𝑛𝜎𝑋2
+nX
+uncertainty of
+Xˆ
+
+Unbiased Estimator of        (population variance)      
+Probability & Statistics -17•Is                                       an unbiased estimator of         ? 
+E𝕏
+•What’s the unbiased estimator of          ? 
+ i Xi
+X xn2)( 2ˆ1ˆ  
+from Prof. Wu, Shan -Hung’s slide
+2
+X
+ 
+   
+
+2 2 2 2 222 2)( 2 2)(2 )( 2)(2)(
+1 1                   ˆE                                                                   ˆE E1ˆ1Eˆ ˆ 21E ˆ1E
+  
+nn
+nn xnn xnx xnxn
+ii
+iii ii
+ii
+ii
+   
+ 
+  
+ 
+  ≠𝜎2
+2
+X
+2
+X
+    i Xi
+i Xi
+X x xn nn 2)(2)( 2ˆ              )ˆ1(1ˆ   
+1
+𝑛−1E𝑋2E𝑋−𝜇2+2𝑋𝜇−𝜇2Eො𝜇2
+𝜎2+𝜇2Varො𝜇+Eො𝜇2
+
+n
+iiX Xns
+12 2
+11
+2ˆX
+The Bernoulli Distribution
+Probability & Statistics -18•We use the Bernoulli distribution when we have an 
+experiment which can result in one of two outcomes
+–One outcome is labeled “s uccess ,” and the other outcome is labeled 
+“failure ”
+–The probability of a success is denoted by p. The probability of a 
+failure is then 1 –p
+•Such a trial is called a Bernoulli trial with success probability 
+p
+Examples
+Probability & Statistics -19•The simplest Bernoulli trial is the toss of a coin . The two 
+outcomes are heads and tails. If we define heads to be the 
+success outcome, then p is the probability that the coin 
+comes up heads. For a fair coin, p = ½
+•Another Bernoulli trial is a selection of a component from a 
+population of components , some of which are defective . If 
+we define “success” to be a defective component , then p is 
+the proportion of defective components in the population
+from Ch.3 Propagation Error
+X~ Bernoulli( p)
+Probability & Statistics -20•For any Bernoulli trial, we define a random variable X as 
+follows:
+–If the experiment results in a success, then X = 1. Otherwise, X = 0. It 
+follows that X is a discrete random variable, with probability mass 
+function p(x)defined by
+
+
+   0 =  if    1 =  if
+        , 1           ,
+xx
+ppxpX
+
+Mean and Variance of  Bernoulli
+Probability & Statistics -21•If X ~ Bernoulli( p), then
+–
+–
+p p p x xp X
+xX X   10 1 E
+ 
+ p p pp X Xp p p xpx X
+X X XxX X
+ 
+110 1
+2 2 2 2 22 2 2 2
+22
+E EE
+
+The Binomial Distribution
+Probability & Statistics -22•If a total of n Bernoulli trials are conducted, and The trials 
+are independent
+–Each trial has the same success probability p
+–X is the number of successes in the n trials
+•Then X has the binomial distribution with parameters n and 
+p, denoted X ~ Bin( n,p)
+Bin(10, 0.4) Bin(20, 0.1)
+pmf, Mean and Variance of  Binomial (1/2)
+Probability & Statistics -23•If X ~ Bin( n, p), the probability mass function of X is
+–Mean:
+
+ 
+                              otherwise             ,0,2,1,0      , 1)! (!!
+) (n x p pxnxn
+x X xpxn x
+XP
+)! (!!
+xnxn
+xn
+
+
+
+
+   
+  np p px nxnnp p pxn xnnpp pxnxnx p pxnx p pxnx x xp
+n
+xx n xn
+xxn xn
+xxn xn
+xxn xn
+xxn x
+xX X
+
+
+
+
+
+
+ 
+   
+
+
+ 
+
+
+1
+0''1 '
+111 1 0
+1)!'1(!')!1(1)! ()!1()!1(1)! (!!1 1 
+1
+ 
+
+
+
+
+n
+kkn kn
+kX p pknxp
+0 01 1
+pmf, Mean and Variance of  Binomial (2/2)
+Probability & Statistics -24•If X ~ Bin( n, p), the probability mass function of X is
+–Variance:
+
+ 
+                              otherwise             ,0,2,1,0      , 1)! (!!
+) (n x p pxnxn
+x X xpxn x
+XP
+ )on! later   verifiedbe (to 2 2X X X X E E E 
+ 
+ 
+
+ p np pn np p nnX X X X X Xp nn p pxn xnp nnp pxnxnxx p pxnxx XX X X
+Xn
+xxn xn
+xxn xn
+xxn x
+
+
+
+
+ 
+ 
+
+1 11 1)! ()!2()!2(11)! (!!1 1 1 1
+22 22 2 2 2 22
+22 22 02
+E E E E EE E
+
+1
+Examples (1/2)
+Probability & Statistics -25•The probability that a certain kind of component will survive a shock test 
+is 3/4. Find the probability that exactly 2 of the next 4 components tested 
+survive. ( 某種元件將在某撞擊測試中通過的機率為 3/4，請找出在測
+試的 4 個元件中有兩個通過的機率。 )
+–Solution:
+12827
+43
+!2 !2!4
+41
+43
+24242 2 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+ X xpX P
+ n k p pknk X xpkn k
+X ,,1,0     , 1  
+
+
+P
+Examples (2/2)
+Probability & Statistics -26•The probability that a patient recovers from a rare blood disease is 0.4. If 
+15 people are known to have contracted this disease, what is the 
+probability that (a) at least 10 survive, (b) 3 to 8 survive, and (c) exactly 
+5 survive ?(患者從某種罕見的血液疾病中復原的機率為 0.4，如果有
+15個人已知患有這種疾病，則 (a) 至少 10 人存活； (b) 3 至8人存
+活； (c) 恰好 5人存活的機率是多少 ?)
+–Solution:
+(a)
+(b) 
+(c)
+ 
+0338.09662.01 4.014.0151 10 1 109
+015
+
+
+
+ 
+
+kk k
+XkX X xp P P
+ 
+ 
+8779.0 0271.0 9050.04.014.0154.014.0154.014.0158 3
+8
+02
+015 158
+315
+
+
+
+
+
+
+
+
+
+
+ 
+  
+k kk k k kkk k
+X
+k kkX xp P
+  1859.0 4.014.05155515 5
+
+
+X xpX P
+Another Use of  the Binomial
+Probability & Statistics -27•Assume that a finite population contains items of two types , 
+successes and failures, and that a simple random sample is 
+drawn from the population. Then if the sample size is no 
+more than 5% of the population, the binomial distribution 
+may be used to model the number of successes
+–Sample items can be therefore assumed to be independent of each 
+other
+–Each sample item is a Bernoulli trial
+More on the Binomial
+Probability & Statistics -28•Assume n independent Bernoulli trials are conducted
+•Each trial has probability of success p
+•Let Y1, …, Ynbe defined as follows: Yi= 1 if the i-thtrial 
+results in success, and Yi= 0 otherwise (Each of the Yihas 
+the Bernoulli( p) distribution)
+•Now , let X represent the number of successes among the n 
+trials. So, X = Y1+ …+ Yn
+This shows that a binomial random variable can be 
+expressed as a sum of Bernoulli random variables
+Estimate of  p
+Probability & Statistics -29•If X ~ Bin( n, p), then the sample proportion 
+is used to estimate the success probability p
+•Note:
+–Bias is the difference
+– is unbiased
+–The uncertainty in      is
+–In practice, when computing        , we substitute for p, since p is 
+unknown
+) ( trialsof number sucesses of number ˆ2 1
+nY YY
+nXpn 
+ppˆ
+pˆ
+0ˆpp
+pˆ
+ 
+np p
+np np
+n Y YY pn 1 1
+/ ˆ2 1
+pˆ
+pˆ
+The Poisson Distribution
+Probability & Statistics -30•One way to think of the Poisson distribution is as an 
+approximation to the binomial distribution when n is large 
+and p is small
+•It is the case when n is large and p is small the mass function 
+depends almost entirely on the mean np, very little on the 
+specific values of n and p
+•We can therefore approximate the binomial mass function 
+with a quantity λ= np ; this λis the parameter in the Poisson 
+distribution
+pmf, Mean and Variance of  Poisson (1/2)
+•If X ~ Poisson(), the probability mass function of X is
+•Note: Xmust be a discrete random variable and λmust be a 
+positive constant
+
+
+              otherwise     ,02,1,0 for      ,!) ( xxe
+x X xpx
+X
+P
+Probability Histogram
+Probability & Statistics -31
+pmf, Mean and Variance of  Poisson (2/2)
+Probability & Statistics -32•If X ~ Poisson(), the probability mass function of X is
+–Mean:
+–Variance:
+
+
+              otherwise     ,02,1,0 for      ,!) ( xxe
+x X xpx
+X
+P
+         
+
+
+
+ 
+0''
+0 11
+!' !1 ! xx
+x xx x
+xXxexxxexxe x xp XE1
+ 
+ 
+    
+    
+
+
+
+
+
+
+
+
+
+
+   
+   
+
+
+
+
+
+
+
+
+
+2 2 2 22
+0''
+0''
+0''1
+1 11
+02 2 2
+var1!' !''!'1'!1 !1 !
+X X XXxexexxe xxexxxxexxex xpx X
+xx
+xx
+xxx
+x xx
+xx
+xX
+E EEE
+X
+2
+X
+1
+Examples (1/3)
+Probability & Statistics -33•During a laboratory experiment, the average number of radioactive 
+particles passing through a counter in 1 millisecond is 4. What is the 
+probability that 6 particles enter the counter in a given millisecond? ( 在
+某實驗室的實驗程序中，在一毫秒內通過某個計數器的放射粒子的
+平均數量為 4，在一個給定的毫秒內有 6 個粒子進入計數器的機率
+是多少 ?)
+–Solution:
+
+1042.0 7851.0 8893.0!4
+!4
+!6465
+06
+06
+4
+  
+
+ 
+kk
+k
+kk
+k
+Xkeke e X xp P
+
+
+              otherwise     ,02,1,0 for      ,!) ( xxe
+x X xpx
+X
+P
+Examples (2/3)
+Probability & Statistics -34•Ten is the average number of oil tankers arriving each day at a certain 
+port. The facilities at the port can handle at most 15 tankers per day. 
+What is the probability that on a given day tankers have to be turned 
+away? (每天到達某個港口的油輪平均數量為 10艘。該港口的設施
+單位每天最多可處理 15 艘油輪，在任意的某一天，油輪必須被迫
+趕離的機率是多少 ?)
+–Solution:
+ 0487.0 9513.01!101 1515
+010  
+
+kk
+Xke X xp P
+
+
+              otherwise     ,02,1,0 for      ,!) ( xxe
+x X xpx
+X
+P
+Examples (3/3)
+Probability & Statistics -35•Example 4.18 : Particles are suspended in a liquid medium at a 
+concentration of 6 particles per mL. A large volume of the suspension is 
+thoroughly agitated, and then 3 mL are withdrawn.  What is the 
+probability that exactly 15 particles are withdrawn?
+–Solution: X ~ Poisson()
+ 0786.0!15181518)(  18. is  volumemL 3 a of particles of number mean  The
+15
+18 
+e X xpX P
+
+
+              otherwise     ,02,1,0 for      ,!) ( xxe
+x X xpx
+X
+P
+Relation between Binomial and Poisson
+Probability & Statistics -36•The Poisson PMF with parameter λis a good approximation 
+for a binomial PMF with parameters nand p, provided that λ 
+= np , nis very large and pis very small
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+ekenx
+n nkn
+nn
+nn
+kn nkn nn
+kn n kkn nnnp np p pkknnp pkn
+k
+nxn
+nkn k
+nkn
+kk
+nkn k
+nkn k
+nkn k
+n
+!lim) 1lim(      11 1
+!lim11 1
+!lim1!1 1lim) (     1!!!lim1 lim
+ 
+Poisson Distribution to Estimate Rate
+Probability & Statistics -37•Let λdenote the mean number of events that occur in one 
+unit of time or space. Let X denote the number of events 
+that are observed to occur in t units of time or space
+•If X ~ Poisson( λt), we estimate λwith
+•Note:
+– is unbiased
+–The uncertainty in      is
+–In practice, we substitute      for λ, since λ is unknown
+tXˆ
+ˆ
+  )1 1ˆ (ˆ  
+ ttXt tXE E E
+ˆ
+ttt tX
+tX 22
+2 ˆ1 1
+ˆ
+Example
+Probability & Statistics -38•Example 4.24 : A 5 mL sample of a suspension is withdrawn, and 47 
+particles are counted. Estimate the mean number of particles per mL, 
+and find the uncertainty in the estimate ?
+–Solution: 
+If X ~ Poisson( λt), we estimate λwith
+The uncertainty in the estimate is 
+4.154.9ˆ
+t
+tXˆ
+4.9547ˆ
+Some Other Discrete Distributions
+Probability & Statistics -39•Consider a finite population containing two types of items, 
+which may be called successes and failures
+–A simple random sample is drawn from the population
+–Each item sampled constitutes a Bernoulli trial
+–As each item is selected, the probability of successes in the 
+remaining population decreases or increases, depending on 
+whether the sampled item was a success or a failure
+–For this reason the trials are not independent , so the number of 
+successes in the sample does not follow a binomial distribution
+•The distribution that properly describes the number of 
+successes is the hypergeometric distribution
+pmfof  Hypergeometric
+Probability & Statistics -40•Assume a finite population contains N items, of which R are 
+classified as successes and N –R are classified as failures
+–Assume that n items are sampled from this population, and let X 
+represent the number of successes in the sample
+–Then X has a hypergeometric distribution with parameters N, R, and 
+n, which can be denoted X ~ H(N,R,n ). The probability mass 
+function of X is
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                         otherwise                     0, , min ,0 max if  , Rn x NnR
+nNxnRN
+xR
+x X xpX P
+Binomial PMF: sampling 
+with replacement of 
+each item to ensure 
+independence between 
+trials
+Example
+Probability & Statistics -41•Lots of 40 components each are deemed unacceptable if they contain 3 or 
+more defectives. The procedure for sampling a lot is to select 5 
+components at random and to reject the lot if a defective is found. What 
+is the probability that exactly 1 defective is found in the sample if there 
+are 3 defectives in the entire lot? ( 每批貨有 40 個元件，如果含有 3個
+或更多個瑕疵品，則該批貨被認為是不可接受的，抽樣的程序是隨
+機選擇 5個元件，如果發現有瑕疵，則拒絕該批貨。如果一批貨中
+有3 個瑕疵，那麼在樣本中發現正好有 1 個瑕疵的機率是多少 ?)
+–Solution:
+ 3 0  , 3011.0
+540437
+13
+1  
+
+
+
+
+
+
+
+
+
+
+
+ x X xpX P
+How about P(X1)?
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                         otherwise                     0, , min ,0 max if  , Rn x NnR
+nNxnRN
+xR
+x X xpX P
+Mean and Variance of  Hypergeometric
+Probability & Statistics -42•If X ~ H(N, R, n ), then
+–Mean of X:
+–Variance of X:
+NnR
+X
+
+
+
+
+
+
+
+112
+NnN
+NR
+NRnX
+Geometric Distribution
+Probability & Statistics -43•Assume that a sequence of independent Bernoulli trials is 
+conducted, each with the same probability of success , p
+•Let X represent the number of trials up to and including the 
+first success
+–Then X is a discrete random variable, which is said to have the 
+geometric distribution with parameter p.
+–We write X ~ Geom (p).
+pmf, Mean and Variance of  Geometric
+Probability & Statistics -44•If X ~ Geom (p), then
+–The pmf of Xis 
+–Mean of Xis
+–Variance of Xis
+pX1
+221
+pp
+X
+
+  
+              otherwise     ,02,1      , 1) (1 x p px X xpx
+X P
+
+Mean and Variance of  the Geometric
+•Consider a geometric random variable with a PMF
+Probability -45
+ ,2,1      , 11 x p p xpx
+X
+
+ p qpdqqd
+pdqq d
+pp q xq pp p x x xp X
+xxxx
+xx
+xX
+1
+11 11)1 1 (let  1
+2011
+01
+
+
+
+
+
+
+
+
+  
+ 
+
+
+
+E
+ 
+
+
+ 
+2 2 22 2 2 22 3 22
+2222
+01 2
+1 1 1 12var12
+12 11
+1)1 1 (let   1 11 1
+pp
+pp ppX X X X X X Xpp
+qpqqdqd
+pq q xx pqp q q xx pqp p xx XX X X
+xxxx
+xx
+
+
+
+
+
+   
+ 
+
+
+
+
+E E E E EE E
+ )on! later   verifiedbe (to 2 2X X X X E E E 
+1 for     ,11 :  that Note
+0
+rrr
+kk
+Example
+Probability & Statistics -48•At a “busy time,” a telephone exchange is very near capacity, so callers 
+have difficulty placing their calls.  It may be of interest to know the 
+number of attempts necessary in order to make a connection. Suppose 
+that we let p= 0.05 be the necessary in order to make a connection 
+during a busy time. We are interested in knowing the probability that 5 
+attempts are necessary for a successful call. ( 在「繁忙時間」中電話交
+換機非常接近滿載，因此打電話者要打通電話可能會有困難。我們
+想知道成功通話所需要嘗試的次數。假設我們令 p= 0.05 是繁忙時
+間連接成功的紀律，則成功通話需要 5次嘗試的機率為何 ?)
+–Solution:
+ 041.0 05.0 95.0 05.0 05.01 54 15  X xpX P
+
+  
+              otherwise     ,02,1      , 1) (1 x p px X xpx
+X P
+Negative Binomial Distribution
+Probability & Statistics -49•The negative binomial distribution is an extension of the 
+geometric distribution. Let r be a positive integer.
+•Assume that independent Bernoulli trials, each with success 
+probability p, are conducted, and let X denote the number 
+of trials up to and including the r-thsuccess
+–Then X has the negative binomial distribution with parameters r and 
+p. We write X ~ NB(r,p)
+•Note : If X ~ NB( r,p), then X = Y1+…+Yrwhere Y1,…,Yrare 
+independent random variables, each with Geom (p) 
+distribution
+0,…, 1 , 0,…, 1 , 0,…, 1, ……, 0,….., 1 x trials in total
+y1 y2 yr
+pmf, Mean and Variance of  Negative Binomial
+Probability & Statistics -50•If X ~ NB ( r, p), then
+–The pmf of Xis 
+–Mean of Xis
+–Variance of Xis
+pr
+X
+
+22 1
+pp r
+X
+
+ 
+
+
+
+
+
+                           otherwise       ,01,      , 111
+) (rrx p prx
+x X xprx r
+X P
+Example
+•In an NBA championship series, the team that wins four games out of seven is 
+the winner. Suppose that teams Aand Bface each other in the championship 
+games and that team Ahas probability 0.55 of winning a game over team B.
+(a) What is the probability that team Awill win the series in 6 games?
+(b) What is the probability that team Awill win the series?
+(c) If team Aand Bwere facing each other in a regional playoff series, which 
+is decided by winning three out of five games, what is the probability that 
+tea Awould win the series?
+–Solution:
+(a) 
+(b)
+(c)
+ 1853.0 55.01 55.01416646 4
+
+
+
+X xpX P
+
+6083.0 1668.0 1853.0 1647.0 0915.07 6 5 4 7 47
+4
+  
+X X X X xp X xp
+xX X P P P P P
+
+5931.0 2021.0 2246.0 1664.05 4 3 5 35
+3
+  
+X X X xp X xp
+xX X P P P P
+
+ 
+
+
+
+
+
+                           otherwise       ,01,      , 111
+) (rrx p prx
+x X xprx r
+X P
+Probability & Statistics -51
+Multinomial Distribution
+Probability & Statistics -52•Bernoulli trial is a process that results in one of two possible 
+outcomes. A generalization of the Bernoulli trial is the 
+multinomial trial , which is a process that can result in any of 
+k outcomes, where k ≥ 2. We denote the probabilities of the 
+k outcomes by p1,…,pk(p1+…+pk=1 )
+•Now assume that n independent multinomial trials are 
+conducted each with k possible outcomes and with the 
+same probabilities p1,…,pk. Number the outcomes 1, 2 , …, k. 
+For each outcome i, let Xidenote the number of trials that 
+result in that outcome. Then X1,…,Xkare discrete random 
+variables. The collection X1,…,Xkis said to have the 
+multinomial distribution with parameters n,p1,…,pk. We 
+write X1,…,Xk~ MN( n,p1,…,pk)
+
+pmfof  Multinomial
+Probability & Statistics -53•If X1,…,Xk~ MN( n, p1,…,pk), then the pmf of X1,…,Xkis
+•Note that if X1,…,Xk~ MN( n, p1,…,pk), then for each i, Xi~ 
+Bin(n, pi)
+
+
+
+ 
+
+                                    otherwise                   0,  and ; 210   ,! !!!2 1
+2 1
+2 1nx ,n,,, x p ppx xxn
+x X xpi ix
+kx x
+k
+Xk PCan be viewed as a joint probability mass function of X1,…,Xk
+Example
+Probability & Statistics -54•For a certain airport containing three runways it is known that in the 
+ideal setting the following are the probabilities that the individual 
+runways are accessed by a randomly arriving commercial jet:
+Runway 1: p1= 2/9, Runway 2: p2= 1/6, Runway 3: p3= 11/18
+What is the probability that 6 randomly arriving airplanes are   
+distribution in the following fashion?
+Runway 1: 2 airplanes, 
+Runway 2: 1 airplane, 
+Runway 3: 3 airplanes
+–Solution:
+ 1127.01811
+61
+92
+!3!1!2!6
+1811
+61
+92
+3,1,263 1 2 3 1 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+xpX
+
+
+
+ 
+
+                                    otherwise                   0,  and ; 210   ,! !!!2 1
+2 1
+2 1nx ,n,,, x p ppx xxn
+x X xpi ix
+kx x
+k
+Xk P
+
+================== Reference/FCU_Classes/機率與統計pdf\Prob_Stat_09-Commonly Used Distributions(II).pdf ==================
+Commonly Used Distribution –II
+Yi-Fen Liu
+Department of IECS, FCU
+References:
+-Dimitri P. Bertsekas and John N. Tsitsiklis , Introduction to Probability , Chapter 3
+-Walpole R. E., Myers R. H., Myers S. L. and Ye K., Probability & Statistics for Engineers & Scientists , Ch. 5
+-William Navidi , Statistics for Engineers and Scientists, Chapter 4
+-Slides are credited from Prof. Berlin Chen, NTNU. 
+CONTINUOUS DISTRIBUTION
+The Normal Distribution
+Probability & Statistics -3•The normal distribution (also called the Gaussian 
+distribution ) is by far the most commonly used distribution 
+in statistics. This distribution provides a good model for 
+many, although not all, continuous populations
+•The normal distribution is continuous rather than discrete. 
+The mean of a normal population may have any value, and 
+the variance may have any positive value
+pdf, Mean and Variance of  Normal
+Probability & Statistics -4•The probability density function of a normal population with 
+mean μand variance σ2is given by
+•If X ~ N(μ, σ2), then the mean and variance of X are given by
+X
+
+ 
+x - e xfx
+X    ,
+21 22
+2
+
+2 2X
+bell shape
+68-95-99.7% Rule
+Probability & Statistics -5•The above figure represents a plot of the normal probability 
+density function with mean μand standard deviation σ. 
+Note that the curve is symmetric about μ, so that μis the 
+median as well as the mean. It is also the case for the 
+normal population
+–About 68% of the population is in the interval μ±σ
+–About 95% of the population is in the interval μ±2σ
+–About 99.7% of the population is in the interval μ±3σ
+
+Standard Units
+Probability & Statistics -6•The proportion of a normal population that is within a given 
+number of standard deviations of the mean is the same for 
+any normal population
+•For this reason, when dealing with normal populations, we 
+often convert from the units in which the population items 
+were originally measured to standard units
+•Standard units tell how many standard deviations an 
+observation is from the population mean
+Standard Normal Distribution
+Probability & Statistics -7•In general, we convert to standard units by subtracting the 
+mean and dividing by the standard deviation. Thus, if x is an 
+item sampled from a normal population with mean μand 
+variance σ2, the standard unit equivalent of x is the number 
+z, where
+•The number z is sometimes called the “z-score” of x. The z-
+score is an item sampled from a normal population with 
+mean 0 and standard deviation of 1. This normal 
+distribution is called the standard normal distribution
+–pdf
+/xz
+  z - e zfz
+Z    ,
+2122
+
+The Proof
+•Mean and Variance of the Normal Random Variable X
+Probability & Statistics -8
+
+  
+  
+
+
+
+00
+21
+212 22 2
+Y Xe dye y Yy y
+E EE
+2
+2varvarvar  XXY
+
+ 
+x - e xfx
+X    ,
+21 22
+2
+
+  
+y - e yfXy
+Y    ,
+21YLet  22
+ ?(see the end of Sec. 4.5)
+ 
+11021
+21
+2121var
+2 2 2 222
+2 2 22
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+dye ey dyeydye Y y Y
+y y yy
+  E
+
+
+
+
+
+
+
+
+
+ 
+2 2 22
+2 22
+y yy
+e eydyye d
+
+1
+Examples
+Probability & Statistics -91.Q: Aluminum sheets used to make beverage cans have 
+thicknesses (in thousandths of an inch) that are normally 
+distributed with mean 10 and standard deviation 1.3. A 
+particular sheet is 10.8 thousandths of an inch thick. Find 
+the z-score :
+2.Q: Use the same information as in 1. The thickness of a 
+certain sheet has a z -score of -1.7. Find the thickness of the 
+sheet in the original units of thousandths of inches :Ans.: z = (10.8 –10)/1.3 = 0.62
+Ans.: -1.7 = ( x –10)/1.3 x = -1.7(1.3) + 10 = 7.8
+Finding Areas Under the Normal Curve
+Probability & Statistics -10•The proportion of a normal population that lies within a 
+given interval is equal to the area under the normal 
+probability density above that interval. This would suggest 
+integrating the normal pdf; this integral have no closed form 
+solution
+•So, the areas under the curve are approximated numerically 
+and are available in Table A.2 (Z-table ). This table provides 
+area under the curve for the standard normal density. We 
+can convert any normal into a standard normal so that we 
+can compute areas under the curve
+–The table gives the area in the left-hand tail of the curve
+–Other areas can be calculated by subtraction or by using the fact 
+that the total area under the curve is 1
+Z-Table (1/2)
+Probability & Statistics -11
+
+Z-Table (2/2)
+Probability & Statistics -12
+
+Examples
+Probability & Statistics -131.Q: Find the area under normal curve to the left of z = 0.47
+2.Q: Find the area under the curve to the right of z = 1.38Ans.: From the z table, the area is 0.6808
+Ans.: From the z table, the area to the left of 1.38 is 0.9162.
+Therefore the area to the right is 1 –0.9162 = 0.0838
+
+More Examples
+Probability & Statistics -141.Q: Find the area under normal curve between z = 0.71 and 
+z = 1.28 
+2.Q: What z -score corresponds to the 75th percentile of a 
+normal curve? The 25th percentile?Ans.: The area to the left of z = 1.28 is 0.8997. The area to the
+left of z = 0.71 is 0.7611. So the area between is 0.8997 –
+0.7611 = 0.1386
+Ans.: To answer this question, we use the z table in reverse.
+We need to find the z-score for which 75% of the area of curve
+is to the left. From the body of the table, the closest area to
+75% is 0.7486, corresponding to a z-score of 0.67
+
+zz z
+ allfor   , 1
+Estimating the Parameters of  Normal
+Probability & Statistics -15•X1,…,Xnare a random sample from a N(μ,σ2)distribution , μ
+is estimated with the sample mean       and σ2is estimated 
+with the sample variance 
+•As with any sample mean, the uncertainty in       is             
+which we replace with , if σis unknown. The mean 
+is an unbiased estimator of μ
+
+n
+iiXnX
+11
+
+n
+iiX Xns
+12 2
+11unbiased estimator asymptotically unbiased estimator?
+X
+n/
+ns/
+X
+2s
+Sample Variance is an Asymptotically 
+Unbiased Estimator (1/3)
+Probability & Statistics -16•Sample variance       is an asymptotically unbiased estimator 
+of the population variance σ2
+
+ 
+
+nX n XnXn XnXn Xn XXXX XnX Xns
+n
+iin
+iin
+iin
+ii in
+ii
+2
+122
+122 2
+1212 212 2
+2211
+E EEEEE E
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+2s
+
+Xn XX Xns
+n
+iin
+ii
+
+
+
+112 2
+11
+Sample Variance is an Asymptotically 
+Unbiased Estimator (2/3)
+Probability & Statistics -17
+
+
+2 222
+2 22
+12
+2
+                   1 
+
+
+
+
+
+
+
+
+
+nnnnn nnX n X
+sn
+ii E E
+E
+
+2222
+22 22
+Var
+ 
+
+nXnXX XnX
+E EE E
+
+2 2 2 2 22 2 2Var
+ 
+ 
+i ii i i
+X XX X X
+E EE Ewhenn= 
+The size of the observed sample
+Sample Variance is an Asymptotically 
+Unbiased Estimator (3/3)
+Probability & Statistics -18The size of the observed sample
+(a kind of uncertainty)
+The Lognormal Distribution
+Probability & Statistics -19•For data that contain outliers ( on the right of the axis ), the 
+normal distribution is generally not appropriate. The 
+lognormal distribution , which is related to the normal 
+distribution , is often a good choice for these data sets
+•If X ~ N(μ,σ2), then the random variable Y = eXhas the 
+lognormal distribution with parameters μand σ2
+•If Y has the lognormal distribution with parameters μand σ2, 
+then the random variable X = lnYhas the N(μ,σ2) 
+distribution
+Probability Density Function
+1 ,0alognormal distribution with parameters
+pdf, Mean and Variance of  Lognormal
+Probability & Statistics -20•The pdf of a lognormal random variable with parameters μ
+and σ2is
+•The mean E[Y]and variance Var(Y) are given by
+–Can be shown by advanced methods (?)
+
+
+ 
+                              otherwise             ,00      , ln21exp
+21 2
+2y y
+y yfY
+2/2e YE
+2 22 2 2Var    e e Y
+pdf, Mean and Variance of  Lognormal
+Probability & Statistics -21•Recall “Derived Distributions”
+
+
+
+   
+2
+2log21exp
+211loglog
+loglog
+y
+yyy fdyy d
+y dy dF
+dyy dFyf
+XX Y
+Y
+
+
+
+y Fy x y e yY yFNXeY
+XX
+YX
+log log )(, ~,2
+P P P
+Test of  “ Lognormality ”
+Probability & Statistics -22•Transform the data by taking the natural logarithm ( or any 
+logarithm) of each value
+•Plot the histogram of the transformed data to determine 
+whether these logs come from a normal population
+Probability Histogram
+taking the natural logarithm on the 
+values of the data
+The Exponential Distribution
+Probability & Statistics -23•The exponential distribution is a continuous distribution 
+that is sometimes used to model the time that elapses 
+before an event occurs
+–Such a time is often called a waiting time
+•The probability density of the exponential distribution 
+involves a parameter, which is a positive constant λwhose 
+value determines the density function’s location and shape
+•We write X ~ Exp(λ)
+pdf, cdf, Mean and Variance of  Exponential
+Probability & Statistics -24•The pdf of an exponential r.v. is
+•The cdfof an exponential r.v. is
+•The mean of an exponential r.v. is
+•The variance of an exponential r.v. is
+
+ 
+ otherwise   ,00      ,x exfx
+X
+ /1X
+Probability Density Function
+2 2/1X
+
+
+ 0 , 1   0 ,0
+x exxFx X 
+The Proof
+•Mean and Variance of the Exponential Random Variable X
+Probability & Statistics -25 Integration by parts, c.f. http://en.wikipedia.org/wiki/Integration_by_parts
+ dxdxduv uv dxdxdvu
+
+ 
+  otherwise,           ,0      ,0 if    , x exfx
+X
+
+ 
+ 
+1 10
+00 00 0
+
+
+ 
+xx xx
+X
+edxe exdxex dxxfx XEIntegration by parts
+
+200 0202 2
+2 22102
+
+ 
+ 
+
+
+X dxexdx xe exdxe x X
+xx xx
+EE
+
+
+
+
+ 
+x xx
+e xedxxed 
+ 
+
+
+
+
+ 
+x xx
+xe exdxexd 
+ 222
+
+22 2 1var X X X E E
+The Exponential Distribution and the 
+Poisson Process
+Probability & Statistics -26•If events follow a Poisson process with rate parameter , 
+and if Trepresents the waiting time from any starting point 
+until the next event, then T ~ Exp(λ)
+Example
+Probability & Statistics -27•Example 4.58 : A radioactive mass emits particles according to a Poisson 
+process at a mean rate of 15 particles per minute.  At some point, a 
+clock is started.
+–What is the probability that more than 5 seconds will elapse before 
+the next emission?
+–What is the mean waiting time until the next particle is emitted?
+The mean waiting time is                             seconds.
+
+
+2865.0115 15
+25.1525.0
+
+
+eeT T P P
+425.01TThe mean rate of emission is 0.25 
+per second, so the rate parameter 
+is = 0.25 , and T~Exp (0.25).
+Example
+Probability & Statistics -28•Suppose that a system contains a certain type of component whose time, 
+in years, to failure is given by T. The random variable is Tmodeled 
+nicely by the exponential distribution with mean time to failure equal to 
+5 . If 5 of theses components are installed in different systems, what is 
+the probability that at least 2 are still functioning at the end of 8 years? 
+(假設某系統包含某種類型的元件，該類型元件在故障前使用的時間
+T以年作為計算單位，該連續隨機變數 T為指數函數，該類型元件
+平均故障時間為 5 年，如果這些元件有 5個分別安裝在不同的系統
+中，在 8 年結束時至少還有 2 個仍在運行的機率是多少 ?)
+–Solution:
+•= 1/t=1/5 
+   2627.0 7373.01 2.012.0 1 2.012.0 21
+055
+25
+
+
+
+
+
+  
+
+
+xx x
+xx x
+xn
+xnXP
+ a a
+a ax xe e e dxe aX      0 P-the average # of 
+outcomes per unit time 
+(arrival rate) 
+-Also could be per unit 
+length, area, or volume, 
+rather than time
+ 2.0 0 858
+58
+885 5
+
+
+  
+ 
+e e e dte Tt t
+ P
+Lack of  memory Property for Exponential
+Probability & Statistics -29•The exponential distribution has a property known as the 
+lack of memory property: If T ~ Exp(λ), and t and s are 
+positive numbers, then
+ tT sTstT  P P |
+   
+
+
+
+
+
+
+tTtF eeesFstF
+sTstTsTsT stTsTstT
+Tt
+sstTT
+
+
+
+PPPPPP
+111|
+
+
+Example
+Probability & Statistics -30•Example 4.59 : The lifetime of a particular integrated circuit has an 
+exponential distribution with mean 2 years . 
+–Find the probability that the circuit lasts longer than three years?
+•Example 4.60 : Assume the circuit is now four years old and is still 
+functioning. 
+–Find the probability that it functions for more than three additional 
+years. Compare this probability with the probability that a new 
+circuit functions for more than three years, which calculated in 
+above example.
+
+
+223.0113 13
+5.135.0
+
+
+eeT T P P
+5.0 ,25.01 TT~Exp (0.5).
+Solution to Example 4.60
+Probability & Statistics -31–Solution : 
+–The probability that a 4 -year -old circuit lasts 3 additional years is 
+exactly the same as the probability that a new circuit lasts 3 years.
+ 223.03TPA new circuit
+   
+
+
+
+
+
+223.04 17 1
+4744 74 |34
+5.1 35.0
+45.075.0
+
+ 
+
+e eeeFF
+TTTT TT T
+TT
+PPPPP
+Estimating the Parameter of  Exponential
+Probability & Statistics -32•If X1,…,Xnare a random sample from Exp(λ), then the 
+parameter λis estimated with                    This estimator is 
+biased . This bias is approximately equal to         . The 
+uncertainty in       is estimated with
+•This uncertainty estimate is reasonably good when the 
+sample size n is more than 20
+nX1ˆ
+X/1ˆ
+ˆ
+n/
+The Gamma Distribution (1/2)
+Probability & Statistics -33•Let’s consider the gamma function
+–For r > 0, the gamma function is defined by
+–The gamma function has the following properties:
+•If r is any integer, then 
+•For any r, 
+•
+rr r 1
+
+01dtet rt r
+! 1 r r
+2/1
+The Gamma Distribution (2/2)
+Probability & Statistics -34•The pdf of the gamma distribution 
+with parameters r > 0 and λ> 0 is
+•The mean and variance of Gamma distribution are given by
+– , respectively
+•If X1,…,Xrare independent random variables, each 
+distributed as Exp(λ), then the sum X1+…+Xris distributed as 
+a gamma random variable with parameters r and λ, denoted 
+as
+
+
+
+         0    ,00,1
+xxrex
+xfx r
+X
+2 2/   and  /  r rX X  
+,r
+
+Example
+Probability & Statistics -35•Example 4.65 : Assume that arrival times at a drive -through window 
+follow a Poisson process with mean λ= 0.2 arrivals per minute.  Let Tbe 
+the waiting time until the third arrival .
+–Find the mean and variance of T. Find P(T20).
+
+
+  
+ 
+7619.08 4 1!24
+!14
+!0412 1 0 12 13 20
+4 4 42
+41
+40
+4
+
+
+
+
+    
+e e ee e eX X XXX T
+P P PPP P
+752.03             152.03
+2 22 r r
+T T
+T 20 means that the third event occurs within 
+20 minutes. This is the same as saying that the 
+number of events that occurs within 20 minute 
+is greater or equal to 3. 
+Now, the mean of Xis (20)(0.2) = 4, and Xhas 
+a Poisson distribution, so X ~ Poisson(4) .
+3 20  X T P P
+The Weibull Distribution (1/2)
+Probability & Statistics -36•The Weibull distribution is a continuous random variable 
+that is used in a variety of situations
+•A common application of the Weibull distribution is to 
+model the lifetimes of components
+•The Weibull probability density function has two 
+parameters , both positive constants, that determine the 
+location and shape. We denote these parameters αand β
+•If α= 1, the Weibull distribution is the same as the 
+exponential distribution with parameter λ= β
+The Weibull Distribution ( 2/2)
+Probability & Statistics -37•The pdf of the Weibull distribution is
+•The mean of the Weibull is
+•The variance of the Weibull is
+
+
+
+                0    ,00,1
+xx exxfx
+X
+
+
+111
+X
+
+
+
+
+
+
+
+2
+22 11211
+  X
+
+Some Principles of  Point Estimation
+Probability & Statistics -38•We collect data for the purpose of estimating some numerical 
+characteristic of the population from which they come .
+•A quantity calculated from the data is called a statistic, and a 
+statistic that is used to estimate an unknown constant, or 
+parameter, is called a point estimator .  Once the data has 
+been collected, we call it a point estimate .  
+•Let X~ Bin(10, p) where pis unknown, and we observed X= 
+3, then the number                 is a point estimate of the 
+unknown parameter p.
+10/3ˆp
+Questions of  Interest
+Probability & Statistics -39•Given a point estimator, how do we determine how good it 
+is?
+•What methods can be used to construct good point 
+estimators?
+Notation : is used to denote an unknown parameter, and     
+to denote an estimator of .
+ˆ
+Measuring the Goodness of  an Estimator
+Probability & Statistics -40•The accuracy of an estimator is measured by its bias, and the 
+precision is measured by its standard deviation, or 
+uncertainty.
+•To measure the overall goodness of an estimator, we used 
+the mean squared error (MSE ) which combines both bias and 
+uncertainty.
+Mean Squared Error
+Probability & Statistics -41•Let be a parameter, and       an estimator of .  The mean 
+squared error (MSE) of        is
+An equivalent expression for the MSE is 
+ˆ
+ˆ
+2
+ˆ2
+ˆˆ MSE 
+2ˆˆ MSE
+
+The bias of the estimator 
+ˆ
+Example
+Probability & Statistics -42•Example 4.67 : Let X~ Bin( n, p) where pis unknown.  Find the MSE of the 
+estimator                 .
+–Solution:
+We compute the bias and variance of      using above equation. As    
+shown in Section 4.2 (Binomial distribution), the bias of       is 0 , and 
+the variance is                      . Therefore the MSE is                          .
+nXp /ˆ
+2
+ˆ2
+ˆˆ MSE 
+pˆ
+pˆ
+np p / 1
+np p / 1 0
+The Method of  Maximum Likelihood
+Probability & Statistics -43•The idea is to estimate a parameter with the value that 
+makes the observed data most likely .
+•When a probability mass function (pmf) or probability 
+density function (pdf) is considered to be a function of the 
+parameters, it is called a likelihood function .
+•The maximum likelihood estimate is the value of the 
+estimators that when substituted in for the parameters 
+maximizes the likelihood function.
+Desirable Properties
+Probability & Statistics -44•Maximum likelihood is the most commonly used method of 
+estimation.  The main reason for this is that in most cases 
+that arise in practice, MLEs have two very desirable 
+properties,
+1. In most cases, as the sample size nincreases, the bias of the MLE 
+converges to 0.
+2. In most cases, as the sample size nincreases, the variance of the 
+MLE converges to a theoretical minimum .  
+Let X~ Bin(20, p) where pis unknown . Suppose we observe the value X
+= 7. The pmf is 
+13 71!13!7!20;7 p p pf   Note: the quantity that 
+maximizes the logarithm of 
+a function is always the 
+same quantity that 
+maximize the function itself.
+ p p pf  1ln13 ln7!13ln!7ln!20ln ;7 ln
+207ˆ           0113 7;7 ln  pp ppfdpd
+Probability (Quantile -Quantile) Plots for 
+Finding a Distribution
+Probability & Statistics -45•Scientists and engineers often work with data that can be 
+thought of as a random sample from some population
+–In many cases, it is important to determine the probability 
+distribution that approximately describes the population
+•More often than not, the only way to determine an 
+appropriate distribution is to examine the sample to find a 
+sample distribution that fits
+Finding a Distribution (1/4)
+Probability & Statistics -46•Probability plots are a good way to determine an appropriate 
+distribution
+•Here is the idea: Suppose we have a random sample X1,…,Xn
+–We first arrange the data in ascending order
+–Then assign increasing, evenly spaced values between 0 and 1 to 
+each Xi
+•There are several acceptable ways to this; the simplest is to 
+assign the value ( i–0.5)/ n to Xi
+•The distribution that we are comparing the X’s to should have a 
+mean and variance that match the sample mean and variance
+–We want to plot ( Xi, F(Xi)), if this plot resembles the cdfof the 
+distribution that we are interested in, then we conclude that that is 
+the distribution the data came from
+Finding a Distribution (2/4)
+Probability & Statistics -47•Example: Given a sample Xi’s arranged in increasing order
+sample mean       = 5.00
+sample standard deviation s = 2.003.01, 3.35, 4.79, 5.96, 7.89
+The curve is the cdfof N(5, 22).
+If the sample point Xi’s came 
+from the distribution, they are 
+likely to lie close to the curve. 
+XQ5
+Q4
+Q3
+Q2
+Q1
+Finding a Distribution (3/4)
+Probability & Statistics -48•When you use a software package, then it takes the ( i–
+0.5)/n assigned to each Xiand calculates the quantile ( Qi) 
+corresponding to that number from the distribution of 
+interest . Then it plots each ( Xi, Qi), 
+–E.g., for the previous example (normal probability plot)
+–If this plot is a reasonably straight line then you may conclude that 
+the sample came from the distribution that we used to find 
+quantilesor (Empirical Quantile, Quantile) 
+Qi Percentile
+
+Finding a Distribution (4/4)
+Probability & Statistics -49•A good rule of thumb is to require at least 30 points before 
+relying on a probability plot
+–E.g., a plot of the monthly productions of 255 gas wells
+•The monthly productions follow a lognormal distribution!natural logs of monthly productions
+ monthly productions
+The Central Limit Theorem (1/3)
+Probability & Statistics -50•The Central Limit Theorem
+–Let X1,…,Xnbe a random sample from a population with mean μand 
+variance σ2(n is large enough)
+–Let                                     be the sample mean
+–Let Sn= X1+…+Xnbe the sum of the sample observations. Then if n is 
+sufficiently large,
+•
+•And                                    approximately
+nX XXn1
+
+
+
+nNX2
+,sample mean is approximately normal !
+2, ~nnN Sn
+The Central Limit Theorem (2/3)
+Probability & Statistics -51•Example
+•Rule of Thumb
+–For most populations, if the sample size is greater than 30, the 
+Central Limit Theorem approximation is good
+Solid lines: real distribution of 
+sample mean
+Dashed lines: normal distributions
+The Central Limit Theorem (3/3)
+Probability & Statistics -52•Example 4.70 : Let X denotes the flaws in an 1 in. length of 
+copper wire, and its corresponding pmf, mean and variance 
+are
+–One hundred wires are sampled from this population. What is the 
+probability that the average number of flaws per wire in this sample 
+is less than 0.5 ?
+5244.066.0
+2
+
+  005244.0,66.0 ~ mean  sample      the known that  werem, limit theo central  the Following
+NX
+ 0136.0 21.2 5.0       21.2
+005244.066.05.05.0  of score- The
+
+Z X zX z
+P P
+Normal Approximation to the Binomial
+Probability & Statistics -53•X ~ Bin( n,p) and if np > 10, and n(1-p) >10, then
+–X ~ N(np, np (1-p)) approximately
+–And                                       approximately
+
+
+
+  p npnpN Xnp ppNnY YY
+nXpnp Y YYY YYXX pn X
+nnn
+
+
+ 
+1, by  ed approximat becan      and1, by  ed approximat be ˆ     n enough the large is  if rem, limit theo central  the FollowingBernoulli from sample a is ,,, where      as d represente be can  then ,, Bin~  that Recall
+2 12 12 1
+
+
+
+np ppNp1,ˆ
+Bin(100, 0.2) approximated by N(20, 16)
+Normal Approximation to the Poisson
+Probability & Statistics -54•Normal Approximation to the Poisson: If X ~ Poisson(λ), 
+where λ> 10, then X ~ N(λ, λ)
+–The Poisson can be first approximated by Binomial and then by 
+Normal
+1  if    1 12  p p p np  
+Note that variance of binomial
+Continuity Correction
+Probability & Statistics -55•The binomial distribution is discrete, while the normal 
+distribution is continuous
+•The continuity correction is an adjustment, made when 
+approximating a discrete distribution with a continuous one , 
+that can improve the accuracy of the approximation
+–If you want to include the endpoints in your probability 
+calculation , then extend each endpoint by 0.5. 
+Then proceed with the calculation
+–If you want exclude the endpoints in your probability
+calculation, then include 0.5 less from each endpoint
+in the calculation
+ 55 45   e.g., X P
+ 55 45   e.g., X P
+
+Summary
+Probability & Statistics -56•We considered various discrete distributions: Bernoulli, 
+Binomial , Poisson, Hypergeometric, Geometric, Negative 
+Binomial , and Multinomial
+•Then we looked at some continuous distributions: Normal , 
+Exponential, Gamma, and Weibull
+•We learned about the Central Limit Theorem
+•We discussed Normal approximations to the Binomial and 
+Poisson distributions
