@@ -17,7 +17,7 @@ When the user triggers this skill (e.g., by asking "幫我掃題", "排查章節
 
 ### 2. Generate the "Sweep Exam" (掃題考卷)
 1. Generate an exhaustive exam specifically for the target chapter. 
-2. Save the generated exam as a Markdown file inside the `c:\Users\Cupid\Downloads\Study-space\Exam_paper\Sweeps\<Subject Name>` directory (e.g., `Sweeps\微積分`, `Sweeps\計算機概論`). Create the subdirectory if it does not exist.
+2. Save the generated exam as a Markdown file inside the `./Exam_paper/Sweeps/<Subject Name>` directory (e.g., `Sweeps/微積分`, `Sweeps/計算機概論`). Create the subdirectory if it does not exist.
 3. The exam **MUST** cover every single common and advanced question type (題型) typically found in that chapter.
 4. The difficulty and scale MUST align with the standard of the target exam (e.g., 台聯大模擬考).
 5. Present the exam to the user and wait for them to provide their answers. 
@@ -34,6 +34,6 @@ When the user triggers this skill (e.g., by asking "幫我掃題", "排查章節
    - 🟡 尚可 (Okay - Understands concepts, but makes careless mistakes)
    - 🔴 弱點 (Weakness - Concepts unclear, stuck frequently)
 2. Update the newly assessed status, along with specific "易錯觀念 / 常錯題型" (Common pitfalls / Weak question types) into the **unified learning status file**:
-   `c:\Users\Cupid\Downloads\台聯大模擬\Exam_paper\Consolidated_Learning_Status.md`.
+   `./Exam_paper/Consolidated_Learning_Status.md`.
 3. If the user specifies updating the subject-specific `Learning_Status.md` as well, do so to keep everything synchronized.
 4. Conclude by summarizing the updated status and suggesting the next chapter to sweep.

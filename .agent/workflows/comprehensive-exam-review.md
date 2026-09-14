@@ -19,7 +19,7 @@ description: 完整模擬考與錯題檢討流程，包含自動出題、檢討�
 
 ## Step 3: 觀念萃取與 Dashboard 分類同步 (Dashboard Synchronization)
 - 檢討完成後，將剛才解說過的核心知識點、易錯陷阱或比較表格進行「精華萃取」。
-- 將這些萃取出的概念，寫入並分類到 `c:\Users\Cupid\Downloads\Study-space\Review_Dashboard` 目錄下對應的科目檔案中。
+- 將這些萃取出的概念，寫入並分類到 `./Review_Dashboard` 目錄下對應的科目檔案中。
   - **計算機概論**的內容請附加到 `CS_Review.md`。
   - **微積分**的內容請附加到 `Calculus_Review.md`。
   - 若遇到新科目，請依照 `[Subject]_Review.md` 的命名規則在同目錄下建立新檔案。
