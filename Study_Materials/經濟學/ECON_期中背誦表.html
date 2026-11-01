@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>經濟學 Ch1-Ch9 期中背誦表 | Active Recall</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+:root {
+    --bg-primary: #0f0f1a;
+    --bg-card: rgba(26, 26, 46, 0.85);
+    --bg-card-hover: rgba(36, 36, 66, 0.9);
+    --accent-blue: #4f8cff;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #a78bfa;
+    --text-primary: #e8e8f0;
+    --text-secondary: #9ca3af;
+    --text-dim: #6b7280;
+    --border-subtle: rgba(255,255,255,0.06);
+    --glass: rgba(255,255,255,0.03);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
+    --radius: 16px;
+    --radius-sm: 10px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.7;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(79,140,255,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(34,197,94,0.04) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.container {
+    position: relative; z-index: 1;
+    max-width: 900px; margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+header {
+    text-align: center; margin-bottom: 2.5rem;
+}
+header h1 {
+    font-size: 2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+header p { color: var(--text-secondary); font-size: 0.95rem; }
+
+.stats-bar {
+    display: flex; gap: 1rem; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 2rem;
+}
+.stat-chip {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--glass); border: 1px solid var(--border-subtle);
+    padding: 0.5rem 1rem; border-radius: 999px;
+    font-size: 0.85rem; color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+}
+.stat-chip .num { font-weight: 700; color: var(--accent-blue); font-size: 1.1rem; }
+.stat-chip.done .num { color: var(--accent-green); }
+
+.filter-bar {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 2rem;
+}
+.filter-btn {
+    background: var(--glass); border: 1px solid var(--border-subtle);
+    color: var(--text-secondary); padding: 0.4rem 1rem;
+    border-radius: 999px; cursor: pointer; font-size: 0.8rem;
+    transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+    background: rgba(79,140,255,0.15); border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+.card:hover { border-color: rgba(79,140,255,0.2); transform: translateY(-1px); }
+.card.mastered { border-left: 3px solid var(--accent-green); opacity: 0.7; }
+.card.mastered .card-header { text-decoration: line-through; text-decoration-color: var(--accent-green); }
+
+.card-header {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    user-select: none;
+}
+.card-header:hover { background: var(--bg-card-hover); }
+
+.card-tag {
+    flex-shrink: 0;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.15rem 0.5rem; border-radius: 4px;
+    margin-top: 0.15rem;
+}
+.tag-p0 { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.tag-p1 { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.tag-p2 { background: rgba(79,140,255,0.15); color: var(--accent-blue); }
+
+.card-q { flex: 1; font-size: 0.95rem; font-weight: 500; }
+.card-ch { flex-shrink: 0; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+.card-body {
+    display: none;
+    padding: 0 1.25rem 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+    animation: slideDown 0.25s ease;
+}
+.card-body.open { display: block; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+.card-body .answer {
+    background: rgba(34,197,94,0.06);
+    border-left: 3px solid var(--accent-green);
+    padding: 0.75rem 1rem; margin-top: 0.75rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 0.9rem; line-height: 1.8;
+}
+
+.card-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+.btn-master {
+    font-size: 0.78rem; padding: 0.3rem 0.8rem;
+    border-radius: 6px; cursor: pointer; border: none;
+    background: rgba(34,197,94,0.12); color: var(--accent-green);
+    transition: all 0.2s;
+}
+.btn-master:hover { background: rgba(34,197,94,0.25); }
+.btn-master.is-mastered { background: var(--accent-green); color: #000; }
+
+.progress-bar-outer {
+    width: 100%; height: 6px; background: var(--border-subtle);
+    border-radius: 3px; margin-top: 1rem; overflow: hidden;
+}
+.progress-bar-inner {
+    height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    border-radius: 3px; transition: width 0.5s ease;
+}
+
+.reset-btn {
+    display: block; margin: 2rem auto 0;
+    background: rgba(239,68,68,0.1); color: var(--accent-red);
+    border: 1px solid rgba(239,68,68,0.2); padding: 0.5rem 1.5rem;
+    border-radius: var(--radius-sm); cursor: pointer;
+    font-size: 0.85rem; transition: all 0.2s;
+}
+.reset-btn:hover { background: rgba(239,68,68,0.2); }
+code { background: rgba(79,140,255,0.1); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.88em; color: var(--accent-blue); }
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📚 經濟學 期中背誦表</h1>
+        <p>Chapter 1~9 ｜ 45 核心考點 ｜ 主動回憶 Active Recall</p>
+    </header>
+    <div class="stats-bar">
+        <div class="stat-chip"><span>📝 總題數</span><span class="num" id="totalCount">45</span></div>
+        <div class="stat-chip done"><span>✅ 已背熟</span><span class="num" id="masteredCount">0</span></div>
+        <div class="stat-chip"><span>📊 進度</span><span class="num" id="progressPct">0%</span></div>
+    </div>
+    <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="p0">🔴 最高優先</button>
+        <button class="filter-btn" data-filter="p1">🟡 高優先</button>
+        <button class="filter-btn" data-filter="p2">🔵 基礎</button>
+        <button class="filter-btn" data-filter="ch1">Ch1</button>
+        <button class="filter-btn" data-filter="ch2">Ch2</button>
+        <button class="filter-btn" data-filter="ch3">Ch3</button>
+        <button class="filter-btn" data-filter="ch4">Ch4</button>
+        <button class="filter-btn" data-filter="ch5">Ch5</button>
+        <button class="filter-btn" data-filter="ch6">Ch6</button>
+        <button class="filter-btn" data-filter="ch7">Ch7</button>
+        <button class="filter-btn" data-filter="ch8">Ch8</button>
+        <button class="filter-btn" data-filter="ch9">Ch9</button>
+    </div>
+    <div id="cardContainer"></div>
+    <button class="reset-btn" onclick="resetProgress()">🗑️ 重置所有背熟進度</button>
+</div>
+<script>
+const DATA=[{id:1,ch:"Ch1",pri:"p0",q:"機會成本 (Opportunity Cost) 的完整公式？",a:"<b>機會成本 = 外顯成本 (Explicit) + 隱含成本 (Implicit)</b><br>= 為得到某物所必須放棄的「最高價值替代方案」。<br>⚠️ 會計成本只算外顯成本，經濟成本必須加上隱含成本！"},{id:2,ch:"Ch1",pri:"p0",q:"邊際決策準則？沉沒成本應如何處理？",a:"<b>當且僅當 MB ≥ MC 時採取行動</b>。<br>沉沒成本 (Sunk Cost) 是過去已發生且不可收回的成本，<b>在邊際決策中必須完全忽略</b> (Bygones are bygones)。"},{id:3,ch:"Ch1",pri:"p1",q:"效率 (Efficiency) vs. 平等 (Equality) 的定義差異？",a:"<b>效率</b>：社會從稀少資源中獲取最大利益 (把經濟大餅做大)。<br><b>平等</b>：繁榮福祉在成員間均勻分配 (把餅切均勻)。<br>推動平等的政策 (如累進稅) 會降低努力工作的誘因 → 經濟大餅縮小。"},{id:4,ch:"Ch1",pri:"p1",q:"市場失靈的兩大根源？",a:"1. <b>外部性 (Externalities)</b>：一人行為影響旁觀者福利但未付代價。<br>2. <b>市場力量 (Market Power)</b>：單一主體操控市場價格的能力 (獨占)。"},{id:5,ch:"Ch1",pri:"p2",q:"佩茲曼效應 (Peltzman Effect) 的核心教訓？",a:"安全帶法案降低了車禍傷亡成本 → 理性人開車更魯莽 → 駕駛死亡率微降但<b>行人死亡率反升</b>。<br>教訓：政策必須考慮「人們對誘因改變的行為反應」(非預期後果)。"},{id:6,ch:"Ch2",pri:"p0",q:"循環流向圖：在生產要素市場中，誰是買方？誰是賣方？",a:"<b>家計單位是賣方</b> (提供勞動、土地、資本)。<br><b>廠商是買方</b> (僱用勞工、租用土地)。<br>金錢 (工資、地租、利潤) 由廠商流向家計單位。<br>⚠️ 在商品市場中則相反！"},{id:7,ch:"Ch2",pri:"p0",q:"PPF 斜率 = ？水平軸商品與垂直軸商品的機會成本如何得出？",a:"PPF 斜率 = ΔY/ΔX (負值)。<br><b>水平軸商品 X 的機會成本 = |斜率| = MRT</b>。<br><b>垂直軸商品 Y 的機會成本 = 1/|斜率|</b>。"},{id:8,ch:"Ch2",pri:"p0",q:"PPF 上/內/外的點各代表什麼？",a:"<b>線上</b>：充分就業且具效率 (Efficient)。<br><b>線內</b>：資源閒置或配置不當 (Inefficient)。<br><b>線外</b>：現有技術下不可行 (Unattainable)。"},{id:9,ch:"Ch2",pri:"p1",q:"PPF 為什麼通常是凹向原點的外凸弧形？",a:"因為生產要素具有<b>專用性 (Resource Specialization)</b>。<br>最先轉移的資源是該部門效率最低的 (代價小)，最後轉移的是最擅長的 (代價巨大) → <b>邊際機會成本遞增法則</b>。"},{id:10,ch:"Ch2",pri:"p1",q:"實證性陳述 (Positive) vs. 規範性陳述 (Normative) 的分辨法則？",a:"<b>實證性</b>：描述「世界是什麼 (What is)」，可用數據檢驗/證偽 (即使內容錯誤也是實證性)。<br><b>規範性</b>：主張「世界應該是什麼 (What ought to be)」，涉及價值判斷，無法用數據裁決。<br>關鍵詞：「應該、必須、過高、不公平」→ 規範性。"},{id:11,ch:"Ch3",pri:"p0",q:"絕對利益 vs. 比較利益的衡量指標差異？",a:"<b>絕對利益 (Adam Smith)</b>：比投入要素數量 (工時)，誰少誰有絕對優勢。<br><b>比較利益 (David Ricardo)</b>：比機會成本，誰低誰有比較優勢。<br>⚠️ <b>貿易分工方向完全取決於比較利益！</b>"},{id:12,ch:"Ch3",pri:"p0",q:"比較利益三大鐵律？",a:"1. 一國<b>可以</b>在所有產品皆有絕對優勢。<br>2. 一國<b>絕不可能</b>在所有產品皆有比較優勢！<br>3. 兩商品機會成本互為倒數：OC_X = 1/OC_Y。"},{id:13,ch:"Ch3",pri:"p0",q:"互利貿易價格 (Terms of Trade) 的合理區間公式？",a:"<b>出口國的機會成本 < 成交價格 < 進口國的機會成本</b>。<br>賣方要求價格 > 自身成本；買方要求價格 < 自產成本。"},{id:14,ch:"Ch4",pri:"p0",q:"需求量變動 vs. 需求變動的區別？",a:"<b>自身價格變動</b> → 線上點移動 (Change in Qty Demanded)。<br><b>非價格外生變數</b> (所得、偏好、相關品價格、預期、買者人數) → <b>整條曲線平移 (Change in Demand)</b>。"},{id:15,ch:"Ch4",pri:"p0",q:"均衡變動之三步驟分析法？",a:"<b>Step 1</b>：判斷事件影響 D、S 或兩者？<br><b>Step 2</b>：判斷曲線右移或左移？<br><b>Step 3</b>：比較新舊均衡的 P* 和 Q* 變化。"},{id:16,ch:"Ch4",pri:"p1",q:"D 和 S 同時移動時，哪些變數不確定？",a:"<b>同向平移</b> (D↑S↑ 或 D↓S↓)：Q 確定，<b>P 不確定</b>。<br><b>反向平移</b> (D↑S↓ 或 D↓S↑)：P 確定，<b>Q 不確定</b>。"},{id:17,ch:"Ch4",pri:"p1",q:"需求移動的五大外生變數？",a:"1. 買者人數<br>2. 所得 (正常財↑→D右移；劣等財↑→D左移)<br>3. 相關品價格 (替代品↑→D右移；互補品↑→D左移)<br>4. 偏好/嗜好<br>5. 未來預期"},{id:18,ch:"Ch5",pri:"p0",q:"中點法 (Midpoint Method) 彈性計算公式？",a:"E_d = |(%ΔQ_D) / (%ΔP)|<br>百分比變化以<b>兩點平均數為分母</b>：<br>%ΔQ = (Q₂−Q₁)/[(Q₁+Q₂)/2]<br>%ΔP = (P₂−P₁)/[(P₁+P₂)/2]<br>目的：消除計算方向歧異。"},{id:19,ch:"Ch5",pri:"p0",q:"總收益測試 (TR Test) 的完整準則？",a:"<b>富有彈性 (E_d > 1)</b>：降價 → TR ↑ (薄利多銷)。<br><b>缺乏彈性 (E_d < 1)</b>：漲價 → TR ↑ (穀賤傷農)。<br><b>單一彈性 (E_d = 1)</b>：價格變動 → TR 不變。"},{id:20,ch:"Ch5",pri:"p0",q:"直線需求曲線上，彈性如何隨位置變化？",a:"斜率固定，但<b>彈性由左上 (富有彈性) 隨價格下跌朝右下 (缺乏彈性) 持續遞減</b>。<br>中點為單一彈性 (E_d = 1)。<br>⚠️ 斜率 ≠ 彈性！"},{id:21,ch:"Ch5",pri:"p1",q:"所得彈性和交叉價格彈性的正負號含義？",a:"<b>所得彈性</b>：> 0 正常財 (> 1 奢侈品)；< 0 劣等財。<br><b>交叉價格彈性</b>：> 0 替代品；< 0 互補品。"},{id:22,ch:"Ch5",pri:"p1",q:"穀賤傷農的經濟學推導？",a:"農產品需求<b>缺乏彈性</b>。<br>豐收 → S 右移 → P ↓↓ 大幅下跌，Q ↑ 但增幅有限。<br>因 E_d < 1，<b>降價使 TR 下降</b> → 農民總收入反而減少。"},{id:23,ch:"Ch6",pri:"p0",q:"價格上限有拘束力的條件和後果？",a:"<b>P_c < P*</b> 時具拘束力。<br>後果：<b>短缺 (Shortage = Q_D − Q_S)</b>。<br>衍生：排隊、歧視、黑市、品質下降。"},{id:24,ch:"Ch6",pri:"p0",q:"價格下限有拘束力的條件和後果？",a:"<b>P_f > P*</b> 時具拘束力。<br>後果：<b>過剩 (Surplus = Q_S − Q_D)</b>。<br>最低工資高於均衡工資 → <b>失業</b>。"},{id:25,ch:"Ch6",pri:"p0",q:"租稅等價性原理：向買方 vs. 賣方課稅結果？",a:"<b>經濟實質完全相同！</b><br>P_B、P_S、Q_T 均相同。P_B − P_S = T。<br><b>租稅負擔取決於相對彈性，非法定課稅對象。</b>"},{id:26,ch:"Ch6",pri:"p0",q:"租稅歸宿的彈性法則：誰承擔較多稅賦？",a:"<b>相對缺乏彈性的一方承擔較多稅賦！</b><br>缺乏彈性 = 不容易逃避稅負。"},{id:27,ch:"Ch7",pri:"p0",q:"CS 和 PS 的公式？",a:"<b>CS = WTP − P</b>（需求曲線以下、價格線以上）。<br><b>PS = P − Cost</b>（價格線以下、供給曲線以上）。"},{id:28,ch:"Ch7",pri:"p0",q:"總剩餘公式？競爭均衡為何使其極大化？",a:"<b>TS = CS + PS = 買者總評價 − 賣者總成本</b>。<br>均衡使 Q* 恰好 MB = MC → 總剩餘極大化。"},{id:29,ch:"Ch7",pri:"p1",q:"價格下跌時 CS 增加的兩個組成？",a:"1. <b>矩形</b>：原有買者少付錢。<br>2. <b>三角形</b>：新買者進場。"},{id:30,ch:"Ch8",pri:"p0",q:"課稅的無謂損失 (DWL) 是什麼？",a:"<b>DWL = 因課稅使交易量縮減而蒸發的社會福利</b>。<br>兩塊三角形：D (過量生產) + F (消費不足)。"},{id:31,ch:"Ch8",pri:"p0",q:"DWL 與稅額的定量關係？",a:"<b>DWL 與稅額的平方成正比！</b><br>稅額翻倍 → DWL 擴大 4 倍。"},{id:32,ch:"Ch8",pri:"p0",q:"拉弗曲線 (Laffer Curve) 的核心主張？",a:"稅率由 0 上升時，<b>稅收先增後減</b>。<br>稅率過高 → 稅基縮減 → <b>減稅反而增收</b>。"},{id:33,ch:"Ch8",pri:"p1",q:"DWL 的大小取決於什麼？",a:"<b>供需價格彈性</b>。<br>彈性越大 → DWL 越大。彈性越小 → DWL 越小。"},{id:34,ch:"Ch9",pri:"p0",q:"如何判定出口國 vs. 進口國？",a:"<b>P_W > P_D</b> → 國內具比較利益 → <b>出口國</b>。<br><b>P_W < P_D</b> → 外國具比較利益 → <b>進口國</b>。<br>兩種情況國家總福利都增加。"},{id:35,ch:"Ch9",pri:"p0",q:"關稅的完整福利分析？",a:"國內價 = P_W + T。<br>CS 損失 = C+D+E+F<br>PS 增益 = C<br>政府稅收 = E<br><b>DWL = D + F</b>"},{id:36,ch:"Ch9",pri:"p0",q:"關稅 vs. 進口配額的關鍵差異？",a:"<b>相同</b>：都使國內價↑、都造成 DWL。<br><b>差異</b>：關稅收入歸政府；配額租歸配額持有者。<br>若政府拍賣許可證 → 兩者等價。"},{id:37,ch:"Ch9",pri:"p1",q:"出口國的福利變動？",a:"國內價↑至 P_W → CS↓ PS↑↑。<br><b>總剩餘增加</b> (PS增量 > CS減量)。"},{id:38,ch:"Ch1",pri:"p0",q:"通貨膨脹的根本原因 (原理九)？",a:"<b>貨幣數量的過度增長</b>。<br>Milton Friedman：「通膨在何時何地都是貨幣現象。」"},{id:39,ch:"Ch1",pri:"p1",q:"菲利浦曲線短期 vs. 長期？",a:"<b>短期</b>：通膨↑ → 失業↓ (負相關)。<br><b>長期</b>：無權衡 (垂直線)，印鈔只推物價。"},{id:40,ch:"Ch5",pri:"p0",q:"需求價格彈性的五大決定因素？",a:"1. 替代品數量 2. 必需/奢侈 3. 市場界定 4. 支出佔比 5. 時間長短"},{id:41,ch:"Ch2",pri:"p1",q:"GDP 三面等價原則與循環流向圖？",a:"總產出 ≡ 總支出 ≡ 總所得 → GDP 三面等價。"},{id:42,ch:"Ch6",pri:"p1",q:"奢侈品稅 (Luxury Tax) 的悲劇？",a:"富人彈性高→大幅減購。遊艇工人彈性零→<b>稅負轉嫁給工人</b>。→ 1993 撤銷。"},{id:43,ch:"Ch4",pri:"p2",q:"完全競爭市場的兩大特徵？",a:"1. <b>產品同質</b> 2. <b>價格接受者</b>（個體無法影響市場價格）"},{id:44,ch:"Ch7",pri:"p1",q:"看不見的手為何使市場達效率？",a:"價格同時傳遞買者邊際價值與賣者邊際成本。<br>自利行為在價格引導下使資源流向最高價值用途。"},{id:45,ch:"Ch8",pri:"p2",q:"補貼也會產生 DWL 嗎？",a:"<b>會！</b>補貼使 Q > Q*，政府支出 > 福利增量 → DWL。"}];
+
+const STORAGE_KEY="econ_mastered_v1";
+function getMastered(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch{return[]}}
+function setMastered(a){localStorage.setItem(STORAGE_KEY,JSON.stringify(a))}
+let currentFilter="all";
+
+function render(filter){
+    filter=filter||"all";
+    const c=document.getElementById("cardContainer"),m=getMastered();
+    let f=DATA;
+    if(filter.startsWith("ch"))f=DATA.filter(d=>d.ch.toLowerCase()===filter);
+    else if(filter.startsWith("p"))f=DATA.filter(d=>d.pri===filter);
+    c.innerHTML=f.map(d=>{
+        const im=m.includes(d.id);
+        return`<div class="card ${im?'mastered':''}" data-id="${d.id}"><div class="card-header" onclick="toggleCard(${d.id})"><span class="card-tag tag-${d.pri}">${d.pri==='p0'?'🔴 P0':d.pri==='p1'?'🟡 P1':'🔵 P2'}</span><span class="card-q">Q${d.id}. ${d.q}</span><span class="card-ch">${d.ch}</span></div><div class="card-body" id="body-${d.id}"><div class="answer">${d.a}</div><div class="card-actions"><button class="btn-master ${im?'is-mastered':''}" onclick="toggleMaster(${d.id})">${im?'✅ 已背熟':'📌 標記為背熟'}</button></div></div></div>`;
+    }).join("");
+    updateStats();
+}
+
+function toggleCard(id){document.getElementById(`body-${id}`).classList.toggle("open")}
+function toggleMaster(id){let m=getMastered();if(m.includes(id))m=m.filter(x=>x!==id);else m.push(id);setMastered(m);render(currentFilter)}
+function updateStats(){const m=getMastered(),t=DATA.length,d=m.length,p=Math.round(d/t*100);document.getElementById("totalCount").textContent=t;document.getElementById("masteredCount").textContent=d;document.getElementById("progressPct").textContent=p+"%";document.getElementById("progressBar").style.width=p+"%"}
+function resetProgress(){if(confirm("確定要重置所有背熟進度嗎？")){localStorage.removeItem(STORAGE_KEY);render(currentFilter)}}
+
+document.getElementById("filterBar").addEventListener("click",e=>{if(!e.target.classList.contains("filter-btn"))return;document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));e.target.classList.add("active");currentFilter=e.target.dataset.filter;render(currentFilter)});
+render();
+</script>
+</body>
+</html>

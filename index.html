@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Study Space · 期中背誦與複習導航</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(18, 24, 39, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.4);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --accent-ds: #38bdf8;
+      --accent-econ: #34d399;
+      --radius: 20px;
+      --shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 20px 48px;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.25), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(56, 189, 248, 0.1), transparent);
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+
+    header {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-size: 13px;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .tip-box {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #94a3b8;
+      backdrop-filter: blur(8px);
+    }
+
+    .tip-box span.icon {
+      font-size: 18px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .study-card {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 22px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .study-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .study-card.card-ds::before {
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+    }
+
+    .study-card.card-econ::before {
+      background: linear-gradient(90deg, #34d399, #10b981);
+    }
+
+    .study-card:hover, .study-card:active {
+      transform: translateY(-2px);
+      border-color: var(--card-hover-border);
+      box-shadow: 0 16px 40px -4px rgba(99, 102, 241, 0.25);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-ds {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .tag-econ {
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+    }
+
+    .tag-scope {
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.35;
+    }
+
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .card-arrow {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #cbd5e1;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .study-card:hover .card-arrow {
+      background: var(--primary);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .meta-features {
+      display: flex;
+      gap: 12px;
+    }
+
+    .meta-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 24px 16px 40px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      .study-card {
+        padding: 18px;
+      }
+      .card-title {
+        font-size: 17px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-pill">
+        <span>⚡</span> Study Portal · 隨身背誦庫
+      </div>
+      <h1>期中核心複習導航</h1>
+      <p class="subtitle">針對手機瀏覽最佳化 · 隨點隨背 · 離線可讀</p>
+    </header>
+
+    <div class="tip-box">
+      <span class="icon">📲</span>
+      <div>
+        <strong>手機加到主畫面</strong>：在 Safari 點「分享」或 Chrome 點選單，選擇「加到主畫面」，即可像 App 一樣全螢幕開啟。
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>已發布背誦表 (2 科)</span>
+      <span>ACTIVE RECALL</span>
+    </div>
+
+    <div class="cards-list">
+      <!-- 資料結構 -->
+      <a href="./Study_Materials/資料結構/DS_期中背誦表.html" class="study-card card-ds">
+        <div class="card-top">
+          <div class="card-info">
+            <div class="card-tags">
+              <span class="tag tag-ds">資料結構</span>
+              <span class="tag tag-scope">Ch1 - Ch3</span>
+            </div>
+            <div class="card-title">DS 期中核心考點速記卡</div>
+            <div class="card-desc">時間複雜度 Big-O、遞迴公式解法、陣列與鏈結串列對比、Stack & Queue 經典考題。</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-features">
+            <span class="meta-feature-item">✓ 核心速記</span>
+            <span class="meta-feature-item">✓ 考點提問</span>
+            <span class="meta-feature-item">✓ 答題 Checklist</span>
+          </div>
+          <span>點擊開始背誦</span>
+        </div>
+      </a>
+
+      <!-- 經濟學 -->
+      <a href="./Study_Materials/經濟學/ECON_期中背誦表.html" class="study-card card-econ">
+        <div class="card-top">
+          <div class="card-info">
+            <div class="card-tags">
+              <span class="tag tag-econ">經濟學</span>
+              <span class="tag tag-scope">Ch1 - Ch9 全</span>
+            </div>
+            <div class="card-title">ECON Ch1-Ch9 期中背誦表</div>
+            <div class="card-desc">供需彈性計算、效用理論、生產成本函數、完全與不完全競爭市場、市場失靈與總經指標。</div>
+          </div>
+          <div class="card-arrow">→</div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-features">
+            <span class="meta-feature-item">✓ 主動回想</span>
+            <span class="meta-feature-item">✓ 摺疊卡片</span>
+            <span class="meta-feature-item">✓ 計算公式精華</span>
+          </div>
+          <span>點擊開始背誦</span>
+        </div>
+      </a>
+    </div>
+
+    <footer>
+      Study-AI Workspace · 隨身複習系統
+    </footer>
+  </div>
+</body>
+</html>
