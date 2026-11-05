@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DS 期中背誦表 · 資料結構核心考點速記卡</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --accent-ch1: #3b82f6;
+      --accent-ch2: #0d9488;
+      --accent-ch3: #8b5cf6;
+      --badge-bg: #f1f5f9;
+      --badge-text: #475569;
+      --code-bg: #0f172a;
+      --code-text: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 32px 16px 80px 16px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .breadcrumbs {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .description {
+      font-size: 14.5px;
+      color: #475569;
+      line-height: 1.6;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+
+    /* Sticky Controls Toolbar */
+    .toolbar-wrapper {
+      position: sticky;
+      top: 12px;
+      z-index: 50;
+      background: rgba(248, 250, 252, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 12px 0 16px 0;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      margin-bottom: 24px;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 13.5px;
+      font-weight: 500;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: #f1f5f9;
+      border-color: var(--border-hover);
+    }
+
+    .btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-ch.active[data-ch="Ch1"] { background: var(--accent-ch1); border-color: var(--accent-ch1); }
+    .btn-ch.active[data-ch="Ch2"] { background: var(--accent-ch2); border-color: var(--accent-ch2); }
+    .btn-ch.active[data-ch="Ch3"] { background: var(--accent-ch3); border-color: var(--accent-ch3); }
+
+    .search-box {
+      flex: 1;
+      min-width: 180px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 7px 14px 7px 32px;
+      font-size: 13.5px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      outline: none;
+      transition: border 0.15s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+    }
+
+    .progress-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      border-radius: 999px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-reset {
+      font-size: 12px;
+      color: #64748b;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0 4px;
+    }
+    .btn-reset:hover { color: #dc2626; }
+
+    /* Sections */
+    .section-block {
+      margin-bottom: 36px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .section-badge-counter {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #e2e8f0;
+      color: #475569;
+      margin-left: auto;
+    }
+
+    /* Card List */
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .card.memorized {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      opacity: 0.85;
+    }
+
+    .card.memorized .card-question {
+      color: #64748b;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .ch-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      letter-spacing: 0.3px;
+    }
+
+    .ch-badge.Ch1 { background: #dbeafe; color: #1e40af; }
+    .ch-badge.Ch2 { background: #ccfbf1; color: #0f766e; }
+    .ch-badge.Ch3 { background: #ede9fe; color: #5b21b6; }
+
+    .card-question {
+      flex: 1;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.4;
+      user-select: text;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .reveal-btn {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--primary);
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .reveal-btn:hover {
+      background: #dbeafe;
+    }
+
+    .check-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      padding: 0;
+      color: transparent;
+    }
+
+    .check-btn:hover {
+      border-color: #10b981;
+    }
+
+    .card.memorized .check-btn {
+      background: #10b981;
+      border-color: #10b981;
+      color: #ffffff;
+    }
+
+    /* Answer Box */
+    .card-answer {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #e2e8f0;
+      font-size: 13.5px;
+      color: #334155;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .card-answer.visible {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-answer ul, .card-answer ol {
+      padding-left: 20px;
+      margin: 6px 0;
+    }
+
+    .card-answer li {
+      margin-bottom: 4px;
+    }
+
+    .card-answer code {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 12.5px;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .card-answer pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      line-height: 1.45;
+    }
+
+    .card-answer pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+
+    /* Source Tag Styling */
+    .source-tag {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #f8fafc;
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      padding: 7px 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #334155;
+    }
+
+    .source-tag.warning-source {
+      background: #fffbeb;
+      border-left-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .source-tag .source-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .source-tag .source-label {
+      font-weight: 700;
+      color: #1e293b;
+      flex-shrink: 0;
+    }
+
+    .source-tag .source-text {
+      font-family: inherit;
+      word-break: break-word;
+    }
+
+    /* Print styling */
+    @media print {
+      body { padding: 0; background: #ffffff; }
+      .toolbar-wrapper, .check-btn, .reveal-btn { display: none !important; }
+      .card-answer { display: block !important; }
+      .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; margin-bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="breadcrumbs">資料結構 (Data Structures) · 期中考 · CH1-CH3</div>
+    <h1 class="title">DS 期中背誦表</h1>
+    <div class="description">
+      只放「<strong>要背下來</strong>」的東西：列舉題、考卷上要寫的英文句子、公式、解題步驟和要會畫的圖。由上到下依優先順序排，第一區沒背熟之前不要往下。<br>
+      開啟「<strong>遮住答案</strong>」後，先自己說出答案，再點題目對照；背熟了就按右邊的圓圈打勾。
+    </div>
+
+    <!-- Controls -->
+    <div class="toolbar-wrapper">
+      <div class="controls-row">
+        <button class="btn active" id="btnToggleHide" onclick="toggleHideAll()">遮住答案</button>
+        <button class="btn" id="btnToggleHideMemorized" onclick="toggleHideMemorized()">隱藏已背熟</button>
+        <span style="border-left: 1px solid #cbd5e1; height: 20px; margin: 0 4px;"></span>
+        <button class="btn btn-ch active" data-ch="all" onclick="filterChapter('all')">全部 (<span id="countAll">54</span>)</button>
+        <button class="btn btn-ch" data-ch="Ch1" onclick="filterChapter('Ch1')">Ch1 (<span id="countCh1">14</span>)</button>
+        <button class="btn btn-ch" data-ch="Ch2" onclick="filterChapter('Ch2')">Ch2 (<span id="countCh2">21</span>)</button>
+        <button class="btn btn-ch" data-ch="Ch3" onclick="filterChapter('Ch3')">Ch3 (<span id="countCh3">19</span>)</button>
+        
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="searchInput" placeholder="搜尋考點、英文或演算法..." oninput="filterSearch()">
+        </div>
+      </div>
+
+      <div class="progress-container">
+        <span id="progressText">0 / 54 背熟</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <button class="btn-reset" onclick="resetChecks()">清除打勾</button>
+      </div>
+    </div>
+
+    <!-- Priority 1 -->
+    <div class="section-block" id="secP1">
+      <div class="section-header">
+        <h2 class="section-title">第一優先：高頻考點、核心演算與必考圖解</h2>
+        <span class="section-desc">配分最高、歷屆必考大題、關鍵演算法步驟與指標順序</span>
+        <span class="section-badge-counter" id="badgeP1">0 / 15</span>
+      </div>
+      <div class="card-list" id="listP1">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- Priority 2 -->
+    <div class="section-block" id="secP2">
+      <div class="section-header">
+        <h2 class="section-title">第二優先：簡答出過的定義題與專有名詞</h2>
+        <span class="section-desc">必背英文原句、名詞解釋、單行定義題</span>
+        <span class="section-badge-counter" id="badgeP2">0 / 17</span>
+      </div>
+      <div class="card-list" id="listP2">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- Priority 3 -->
+    <div class="section-block" id="secP3">
+      <div class="section-header">
+        <h2 class="section-title">第三優先：其他核心列舉題、公式與特性對比</h2>
+        <span class="section-desc">講義中可能出現「Please list N...」的地方與關鍵觀念分析</span>
+        <span class="section-badge-counter" id="badgeP3">0 / 22</span>
+      </div>
+      <div class="card-list" id="listP3">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const items = [{"id": "q1", "priority": 1, "ch": "Ch3", "q": "單向鏈結串列插入新節點的「先連後斷」順序為何？若順序顛倒會造成什麼致命問題？", "a": "<strong>【先連後斷黃金法則】</strong><br>\n給定前驅指標 <code>pPre</code> 與待插入新節點 <code>pNew</code>：\n<pre><code>// 1. 先連：新節點先指向後續節點\npNew->next = pPre->next;\n\n// 2. 後斷：前驅節點改指向新節點\npPre->next = pNew;</code></pre>\n⚠️ <strong>顛倒後果（致命錯誤）</strong>：<br>\n若先執行 <code>pPre->next = pNew</code>，原本指向後續節點的指標直接被覆蓋，後續整條鏈結串列將永遠與前面脫鉤，造成 <strong>Memory Leak（記憶體洩漏）</strong> 且資料永久遺失！", "source": "DS_Ch3.pdf 投影片 Slide 32 (PDF p.16) [Add Node in Middle] & Slide 36 (PDF p.18) [Algorithm 3-1 Insert Node]"}, {"id": "q2", "priority": 1, "ch": "Ch3", "q": "雙向鏈結串列在前驅 pPre 與後繼 pSucc 間插入新節點 pNew 的 4 步指標賦值順序？", "a": "<strong>【雙向鏈結串列插入四部曲】</strong>\n<pre><code>// 步驟 1: 新節點向右連後繼\npNew->next = pSucc;\n\n// 步驟 2: 新節點向左連前驅\npNew->prev = pPre;\n\n// 步驟 3: 前驅節點向右連新節點 (注意邊界判斷)\nif (pPre != NULL)\n    pPre->next = pNew;\nelse\n    list->head = pNew; // 插入首端\n\n// 步驟 4: 後繼節點向左連新節點 (注意邊界判斷)\nif (pSucc != NULL)\n    pSucc->prev = pNew;\nelse\n    list->rear = pNew; // 插入尾端</code></pre>", "source": "DS_Ch3.pdf 投影片 Slide 99~100 (PDF p.50) [Doubly Linked Lists / Figure 3-23 Doubly linked list insert]"}, {"id": "q3", "priority": 1, "ch": "Ch3", "q": "雙向鏈結串列刪除節點 pCur 的指標重接步驟與記憶體釋放？", "a": "<strong>【雙向鏈結串列刪除步驟】</strong>\n<pre><code>// 步驟 1: 前驅節點跨過 pCur 向右指\nif (pCur->prev != NULL)\n    pCur->prev->next = pCur->next;\nelse\n    list->head = pCur->next; // 刪除首節點\n\n// 步驟 2: 後繼節點跨過 pCur 向左指\nif (pCur->next != NULL)\n    pCur->next->prev = pCur->prev;\nelse\n    list->rear = pCur->prev; // 刪除尾節點\n\n// 步驟 3: 釋放記憶體\ndelete pCur;</code></pre>", "source": "DS_Ch3.pdf 投影片 Slide 105~106 (PDF p.53) [Doubly Linked Lists / Figure 3-24 Doubly linked list delete]"}, {"id": "q4", "priority": 1, "ch": "Ch2", "q": "雜湊取模除法 h(k) = k mod m 為什麼除數 m 必須選質數 (Prime Number)？選偶數或 2^p 會如何？", "a": "<ul>\n<li><strong>選質數的原因</strong>：質數能打破鍵值數列與表長的公因數週期性，使餘數在 <code>0 ~ m-1</code> 之間呈現最均勻的分佈，極小化碰撞。</li>\n<li><strong>若選偶數</strong>：偶數鍵值必映射至偶數位址，奇數鍵值必映射至奇數位址。若輸入資料偏向某類，將導致一半槽位閒置、另一半槽位嚴重碰撞！</li>\n<li><strong>若選 2^p</strong>：<code>k mod 2^p</code> 在二進位計算中等同於「直接截取鍵值的最低 p 個 bits」，高位元資訊完全未參與運算，大幅增加碰撞機率！</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 56 (PDF p.28) [Modulo-Division Method (Prime)] & Slide 78 (PDF p.39) [Load factor α]"}, {"id": "q5", "priority": 1, "ch": "Ch2", "q": "一次聚集 (Primary Clustering) vs. 二次聚集 (Secondary Clustering) 定義與成因差異？", "a": "<ul>\n<li><strong>一次聚集 (Primary Clustering)</strong>：\n  <ul>\n    <li><strong>成因</strong>：由<strong>線性探測 (Linear Probing)</strong> 引發。</li>\n    <li><strong>現象</strong>：不同主位址的碰撞元素連續佔據相鄰槽位，形成連續大區塊；區塊越大，後續鍵值掉入該區塊的機率越高，造成探測步數雪崩式暴增。</li>\n  </ul>\n</li>\n<li><strong>二次聚集 (Secondary Clustering)</strong>：\n  <ul>\n    <li><strong>成因</strong>：由<strong>二次探測 (Quadratic Probing)</strong> 或偽亂數探測引發。</li>\n    <li><strong>現象</strong>：擁有<strong>相同主位址</strong>的同義詞（Synonyms），其後續探測序列完全相同，沿著同一條路徑競爭。</li>\n  </ul>\n</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 79~80 (PDF p.40) [Collision Resolution: Clustering, Primary & Secondary Clustering]"}, {"id": "q6", "priority": 1, "ch": "Ch2", "q": "鍵值位移 (Key Offset / Double Hashing) 為何能同時解決一次與二次聚集？公式為何？", "a": "<strong>【公式】</strong><br>\n<code>h_i(k) = (h(k) + i × step(k)) mod m</code><br><br>\n<strong>【原理與解決機制】</strong>\n<ul>\n<li><strong>步長相依於鍵值</strong>：<code>step(k)</code> 不再是常數，而是根據鍵值本身計算出的步長（例如 <code>step = 1 + (k mod (m-1))</code> 或 <code>floor(k/m)</code>）。</li>\n<li><strong>消除 Primary Clustering</strong>：步長不是固定的 1，碰撞時以動態跨度跳躍，絕不會在相鄰槽位堆疊成區塊。</li>\n<li><strong>消除 Secondary Clustering</strong>：即使兩個鍵值不幸擁有相同主位址 <code>h(k_1) = h(k_2)</code>，但因鍵值不同，算出的步長 <code>step(k_1) ≠ step(k_2)</code>，探測路徑徹底分流！</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 89~91 (PDF p.45~46) [Open Addressing: Key Offset (Double Hashing)]"}, {"id": "q7", "priority": 1, "ch": "Ch2", "q": "[⚠️ 講義未收錄/延伸題] 開放定址法刪除節點時為什麼絕對不能直接清成 NULL？什麼是 Tombstone？", "a": "<div style=\"background:#fffbeb;border-left:4px solid #f59e0b;padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.9em;color:#92400e;\">⚠️ <strong>講義收錄說明</strong>：授課教師講義 <code>DS_Ch2.pdf</code> 投影片 Slide 82~84 (p.41~42) 僅討論了開放定址法的碰撞插入機制（Linear Probing），完全未收錄刪除操作（Deletion）與 Tombstone 概念。若期中考嚴格以老師投影片文字為唯一範圍，<strong>本題可略過不背</strong>；若作為觀念延伸與實作防斷鏈理解，請參考以下解答。</div>\n<ul>\n<li><strong>原因</strong>：開放定址法的搜尋演算法在遇到空槽位 (NULL) 時會判定「搜尋失敗並終止」。若將刪除槽位直接設為 NULL，會切斷探測路徑，導致後續曾因碰撞而探測到更後方槽位的同義詞永遠無法被找到！</li>\n<li><strong>解決方案（Tombstone / 墓碑值）</strong>：刪除時改為標記為特殊狀態「墓碑 (Deleted)」。\n  <ul>\n    <li><strong>搜尋時</strong>：視為「已佔用」，演算法繼續往後探測。</li>\n    <li><strong>插入時</strong>：視為「可用空槽」，允許覆寫新資料。</li>\n  </ul>\n</li>\n</ul>", "source": "⚠️【講義未收錄／課外延伸題】相關概念見 DS_Ch2.pdf Slide 82~84 (PDF p.41~42) [Linear Probe]，但原投影片完全未提及刪除機制與 Tombstone"}, {"id": "q8", "priority": 1, "ch": "Ch1", "q": "Big-O 的嚴格數學定義 (Formal Definition) 與圖形條件？", "a": "<strong>【嚴格數學定義 (必背英文句子)】</strong><br>\n<code>f(n) = O(g(n))</code> if and only if there exist positive constants <code>c</code> and <code>n_0</code> such that:<br>\n<div style=\"text-align:center;margin:8px 0;font-weight:bold;font-size:1.1em;color:#2563eb;\">\nf(n) ≤ c · g(n), &nbsp; ∀ n ≥ n_0\n</div>\n<strong>【意義】</strong><br>\n當問題規模 <code>n</code> 充分大（大於門檻值 <code>n_0</code>）時，<code>c · g(n)</code> 構成 <code>f(n)</code> 的漸進上界（Asymptotic Upper Bound）。", "source": "DS_Ch1.pdf 投影片 Slide 40 (PDF p.20) [Big-O Notation: Definition & Derivation steps]"}, {"id": "q9", "priority": 1, "ch": "Ch1", "q": "常見演算法複雜度 Big-O 階層由小到大（由快到慢）的排序？", "a": "<div style=\"font-size:1.15em;font-weight:bold;margin-bottom:8px;color:#059669;\">\nO(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(n³) &lt; O(2ⁿ) &lt; O(n!)\n</div>\n<ul>\n<li><strong>常數時間</strong>：O(1)</li>\n<li><strong>對數時間</strong>：O(log n)</li>\n<li><strong>線性時間</strong>：O(n)</li>\n<li><strong>線性對數</strong>：O(n log n)</li>\n<li><strong>多項式時間</strong>：O(n²), O(n³)</li>\n<li><strong>指數時間</strong>：O(2ⁿ)</li>\n<li><strong>階乘時間</strong>：O(n!)</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 43~44 (PDF p.22) [Standard measures of efficiency / Table 1-2 Common Big-O measures]"}, {"id": "q10", "priority": 1, "ch": "Ch1", "q": "迴圈分析陷阱：相依二次迴圈 vs. 幾何收斂迴圈的複雜度差異？", "a": "<ul>\n<li><strong>相依二次迴圈 (Dependent Loop)</strong>：<br>\n  外層 <code>i</code> 從 1 走到 n，內層 <code>j</code> 從 1 走到 <code>i</code>：<br>\n  總執行次數 = <code>1 + 2 + ... + n = n(n+1)/2 = O(n²)</code>。\n</li>\n<br>\n<li><strong>幾何等比收斂迴圈 (Geometric Loop - 經典大考陷阱！)</strong>：<br>\n  外層 <code>i</code> 從 n 開始每次除以 2（<code>i = n; i > 0; i /= 2</code>），內層 <code>j</code> 從 1 走到 <code>i</code>：<br>\n  總次數 = <code>n + n/2 + n/4 + ... ≤ 2n = O(n)</code>！<br>\n  ⚠️ <strong>注意</strong>：絕非 O(n log n)！因為內層總和為等比級數收斂至 2n。\n</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 36 (PDF p.18) [Logarithmic loops] & Slide 38~39 (PDF p.19~20) [Nested loops / Dependent quadratic]"}, {"id": "q11", "priority": 1, "ch": "Ch2", "q": "二分搜尋法 (Binary Search) 的兩大嚴格前提條件？鏈結串列為何無法做二分搜尋？複雜度？", "a": "<ul>\n<li><strong>兩大嚴格前提條件</strong>：\n  <ol>\n    <li>串列資料必須<strong>已經排序 (Sorted)</strong>。</li>\n    <li>資料結構必須支援<strong>常數時間隨機存取 (Random Access: O(1))</strong>，即<strong>陣列 (Array)</strong>。</li>\n  </ol>\n</li>\n<li><strong>鏈結串列為何無法做二分搜尋</strong>：鏈結串列不具隨機存取能力，計算出中點 <code>mid = (low + high)/2</code> 後，必須從頭走訪 O(n) 才能抵達該節點，直接破壞了二分搜尋減半的效益！</li>\n<li><strong>時間複雜度</strong>：<code>O(log₂ n)</code>。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 24~26 (PDF p.12~13) [Binary Search Concept] & Slide 30~33 (PDF p.15~17) [Algorithm 2-5 Binary search]"}, {"id": "q12", "priority": 1, "ch": "Ch3", "q": "單向環狀串列 (Circular List) 只保留尾指標 rear 的設計優勢與操作？", "a": "<strong>【核心優勢】</strong><br>\n透過單一尾指標 <code>rear</code>，即可在 <strong>O(1) 常數時間</strong> 同時存取串列首端與尾端：\n<ul>\n<li><strong>存取尾節點</strong>：<code>rear</code>（O(1)）</li>\n<li><strong>存取首節點</strong>：<code>rear->next</code>（O(1)）</li>\n<li><strong>首端插入</strong>：新節點連向 <code>rear->next</code>，再令 <code>rear->next = new_node</code>（O(1)）</li>\n<li><strong>尾端插入</strong>：同首端插入後，多一行 <code>rear = new_node</code>（O(1)）</li>\n</ul>\n大幅節省表頭結構維護兩個指標（head, tail）的開銷，非常適合作為 Queue 的底層結構。", "source": "DS_Ch3.pdf 投影片 Slide 94~95 (PDF p.47~48) [Circularly Linked Lists / Figure 3-21 & Figure 3-22]"}, {"id": "q13", "priority": 1, "ch": "Ch3", "q": "[⚠️ 講義未收錄/延伸題] 單向鏈結串列原地反轉 (Reverse Linked List) 演算法三指標寫法？", "a": "<div style=\"background:#fffbeb;border-left:4px solid #f59e0b;padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.9em;color:#92400e;\">⚠️ <strong>講義收錄說明</strong>：講義 <code>DS_Ch3.pdf</code> Slide 60~64 僅收錄走訪（Traversal）與附加（Append），反轉鏈結串列（Reverse Linked List）為常見期中程式設計考題，但投影片未直接收錄虛擬碼，列為重要實作延伸。若考題僅限投影片字面，此題為實作補充。</div>\n<strong>【原地反轉（In-place Reverse，空間複雜度 O(1)）】</strong>\n<pre><code>Node* reverseList(Node* head) {\n    Node* pPre = NULL;\n    Node* pCur = head;\n    Node* pNext = NULL;\n    \n    while (pCur != NULL) {\n        pNext = pCur->next; // 1. 先暫存下一個節點，防止斷鏈\n        pCur->next = pPre;  // 2. 指標反轉向左指\n        pPre = pCur;        // 3. 前驅指標前移\n        pCur = pNext;       // 4. 當前指標前移\n    }\n    return pPre; // 全新反轉後的表頭指標\n}</code></pre>", "source": "⚠️【講義未收錄／實作經典大題】相關概念見 DS_Ch3.pdf Slide 60~64 (PDF p.30~32) [Traverse List]，投影片僅有走訪與附加，未收錄反轉演算法虛擬碼"}, {"id": "q14", "priority": 1, "ch": "Ch3", "q": "多重鏈結串列 (Multilinked Lists) 的設計哲學與兩大核心優勢？", "a": "<ul>\n<li><strong>設計哲學</strong>：<strong>單一資料實體僅存一份，節點內包含多組獨立的指標欄位</strong>（如 <code>nextByID</code>, <code>nextByGPA</code>）。</li>\n<li><strong>兩大核心優勢</strong>：\n  <ol>\n    <li><strong>巨幅節省記憶體</strong>：無需為了支援多種排序方式而複製多份龐大記錄。</li>\n    <li><strong>確保資料一致性 (Data Consistency)</strong>：更新某一筆記錄的資料內容時，所有走訪鏈結自動同步更新，絕不會產生多份複本資料不一致的異常。</li>\n  </ol>\n</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 112~115 (PDF p.56~58) [Multilinked Lists / Figure 3-25 & Figure 3-26]"}, {"id": "q15", "priority": 1, "ch": "Ch2", "q": "鏈結串列法 (Separate Chaining) 的負載因子 α 限制與三大優點？", "a": "<ul>\n<li><strong>負載因子限制</strong>：<strong>α 可以大於 1！</strong>（不受限於表長，例如 10 個槽位可容納 100 筆資料，α = 10）。</li>\n<li><strong>三大核心優點</strong>：\n  <ol>\n    <li><strong>徹底杜絕聚集</strong>：不會發生 Primary Clustering 與 Secondary Clustering。</li>\n    <li><strong>記憶體動態彈性</strong>：節點動態配置於 Heap，容量無限擴充。</li>\n    <li><strong>刪除操作單純</strong>：直接釋放節點記憶體，完全無需維護墓碑 (Tombstone)。</li>\n  </ol>\n</li>\n<li><strong>主要缺點</strong>：每個節點多耗費指標空間；快取局部性較差。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 92~94 (PDF p.46~47) [Linked List Resolution / Figure 2-16]"}, {"id": "q16", "priority": 2, "ch": "Ch1", "q": "ADT (Abstract Data Type) 的標準英文定義與兩大要素？", "a": "<strong>【標準英文定義】</strong><br>\n<em>An Abstract Data Type is a data declaration packaged together with all meaningful operations that can be performed on the data.</em><br><br>\n<strong>【兩大核心要素】</strong>\n<ol>\n<li><strong>資料宣告 (Data Declaration)</strong>：內部封裝的資料集合。</li>\n<li><strong>操作方法 (Operations)</strong>：作用於該資料上的一組公開介面操作。</li>\n</ol>\n重點在於 <strong>What it does</strong>（外部使用者關心），而非 <strong>How it is done</strong>（內部實作細節）。", "source": "DS_Ch1.pdf 投影片 Slide 20 (PDF p.10) [The Abstract Data Type: Definition & Atomic/Composite Data]"}, {"id": "q17", "priority": 2, "ch": "Ch1", "q": "資訊隱藏 (Information Hiding) 與封裝 (Encapsulation) 的本質差異？", "a": "<ul>\n<li><strong>封裝 (Encapsulation)</strong>：將資料屬性與對應的操作函式<strong>捆綁打包</strong>成單一模組單元（如 Class 或 ADT）。</li>\n<li><strong>資訊隱藏 (Information Hiding)</strong>：將內部資料結構與演算法細節設為私有（Private），對外界隔離隱藏，調用端只能透過公開介面進行操作，無法直接窺探或竄改內部結構。</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 20 (PDF p.10) [The Abstract Data Type] & Slide 27~28 (PDF p.14) [A Model for an ADT: Encapsulation]"}, {"id": "q18", "priority": 2, "ch": "Ch1", "q": "結構化程式設計的三大基本控制結構 (Control Constructs)？", "a": "根據 <strong>Böhm-Jacopini 定理</strong>，任何可計算之演算法皆僅需以下三種結構：\n<ol>\n<li><strong>循序結構 (Sequence)</strong>：由上而下無分支執行的敘述。</li>\n<li><strong>選擇結構 (Selection)</strong>：依條件決定執行分支（如 <code>if-else</code>, <code>switch</code>）。</li>\n<li><strong>重複結構 (Iteration / Loop)</strong>：依終止條件反覆執行區塊（如 <code>while</code>, <code>for</code>）。</li>\n</ol>", "source": "DS_Ch1.pdf 投影片 Slide 13~14 (PDF p.7) [Statement constructs: Sequence, Selection, Loop]"}, {"id": "q19", "priority": 2, "ch": "Ch1", "q": "何謂原子資料 (Atomic Data) 與複合資料 (Composite Data)？各舉一例。", "a": "<ul>\n<li><strong>原子資料 (Atomic Data)</strong>：被視為單一且不可再分割的實體。<br>\n  <em>範例</em>：整數 <code>int</code>、浮點數 <code>float</code>、單一字元 <code>char</code>。\n</li>\n<li><strong>複合資料 (Composite Data)</strong>：由多個原子資料或其他複合資料組合而成。<br>\n  <em>範例</em>：電話號碼（國碼 + 區碼 + 本碼）、學生結構體（學號 + 姓名 + 成績列表）。\n</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 19~20 (PDF p.10) [The Abstract Data Type: Atomic data & Composite data]"}, {"id": "q20", "priority": 2, "ch": "Ch1", "q": "合格虛擬碼演算法標頭 (Algorithm Header) 的 5 大必備元素？", "a": "<ol>\n<li><strong>Algorithm Name & Parameter List</strong>（註明 <code>val</code> 傳值或 <code>ref</code> 傳參考）</li>\n<li><strong>Purpose</strong>（簡述演算法的核心功能與任務）</li>\n<li><strong>Precondition</strong>（執行前必須滿足的前提條件；若無寫 None）</li>\n<li><strong>Postcondition</strong>（執行完畢後的副作用與外部狀態變更）</li>\n<li><strong>Return Condition</strong>（回傳值的型態與代表意義）</li>\n</ol>", "source": "DS_Ch1.pdf 投影片 Slide 5 (PDF p.3) [Algorithm header] & Slide 8~10 (PDF p.4~5) [Header in Pseudocode]"}, {"id": "q21", "priority": 2, "ch": "Ch2", "q": "哨兵搜尋法 (Sentinel Search) 的原理與優點 (Knuth 單一條件法則)？", "a": "<ul>\n<li><strong>原理</strong>：在陣列長度尾端額外開闢一格（<code>A[n]</code>），放入目標值作為「哨兵」。</li>\n<li><strong>優點</strong>：將迴圈每輪的<strong>雙重條件檢查</strong>（邊界 <code>i &lt; n</code> 且 <code>A[i] != target</code>）縮減為<strong>單一條件檢查</strong>（<code>A[i] != target</code>），免除每次迭代的邊界檢查，大幅降低 CPU 分支預測開銷與指令數。</li>\n<li><strong>判定</strong>：迴圈結束後僅需檢查 <code>if (i &lt; n)</code> 即知是否在真實資料中找到。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 12~14 (PDF p.6~7) [Variations on Sequential Searches: Sentinel search / Algorithm 2-2]"}, {"id": "q22", "priority": 2, "ch": "Ch2", "q": "機率搜尋法 (Probability Search / 80-20 Rule) 的啟發式對調機制？", "a": "<ul>\n<li><strong>背景</strong>：現實世界資料存取強烈遵循 <strong>80/20 法則</strong>（20% 的熱門資料佔據 80% 的查詢量）。</li>\n<li><strong>啟發式對調機制</strong>：每次成功搜尋到目標時，<strong>將該元素與其前一個元素交換位置 (Swap with predecessor)</strong>。</li>\n<li><strong>效果</strong>：高頻被查的熱門元素會逐漸動態遷移至串列最前端，使後續搜尋平均時間顯著趨近於 <code>O(1)</code>。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 16~18 (PDF p.8~9) [Probability Search / Figure 2-3]"}, {"id": "q23", "priority": 2, "ch": "Ch2", "q": "名詞解釋：Home Address、Collision、Synonym。", "a": "<ul>\n<li><strong>主位址 (Home Address)</strong>：鍵值經由雜湊函式 <code>h(k)</code> 初次計算映射產生的陣列槽位索引。</li>\n<li><strong>碰撞 (Collision)</strong>：兩個相異鍵值經雜湊後產生相同的主位址（<code>k₁ ≠ k₂</code> 但 <code>h(k₁) = h(k₂)</code>）。</li>\n<li><strong>同義詞 (Synonyms)</strong>：映射至同一個主位址的鍵值集合（例如 <code>k₁</code> 與 <code>k₂</code> 互為同義詞）。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 46~47 (PDF p.23~24) [Basic Concept of Hash Search: Synonyms, Collision, Home address, Prime Area]"}, {"id": "q24", "priority": 2, "ch": "Ch2", "q": "負載因子 (Load Factor, α) 的公式、意義與建議範圍？", "a": "<strong>【公式】</strong><br>\n<code>α = k / n = 已存入資料筆數 / 雜湊表總槽位數</code><br><br>\n<strong>【意義】</strong><br>\n衡量雜湊表的擁擠程度。α 越大，碰撞機率越高。<br>\n<strong>【建議範圍】</strong><br>\n開放定址法通常將 α 壓制在 <strong>0.5 ~ 0.7</strong> 之間；若超過 0.75 通常需執行 Rehash 擴容。", "source": "DS_Ch2.pdf 投影片 Slide 78 (PDF p.39) [Collision Resolution ─ Three concepts: load factor of a hashed list]"}, {"id": "q25", "priority": 2, "ch": "Ch2", "q": "折疊法 (Folding Method)：Fold Shift vs. Fold Boundary 的操作差異？", "a": "將鍵值切割為固定長度的小段後相加：\n<ul>\n<li><strong>平移折疊 (Fold Shift)</strong>：直接將各小段由左至右對齊相加。</li>\n<li><strong>邊界折疊 (Fold Boundary)</strong>：如手風琴折紙，將<strong>最左段與最右段進行左右鏡像反轉 (Reverse)</strong> 後，再與中間段對齊相加。</li>\n</ul>\n<em>範例</em>：123456789 切成 123, 456, 789<br>\nShift: <code>123 + 456 + 789</code><br>\nBoundary: <code>321(反轉) + 456 + 987(反轉)</code>", "source": "DS_Ch2.pdf 投影片 Slide 62~64 (PDF p.31~32) [Folding Method: Fold shift & Fold boundary / Figure 2-11]"}, {"id": "q26", "priority": 2, "ch": "Ch2", "q": "為什麼平方取中法 (Midsquare Method) 能讓雜湊位址分佈非常均勻？", "a": "<strong>【核心數學原理】</strong><br>\n因為在進行乘法（平方 <code>k²</code>）的直式計算過程中，<strong>鍵值的每一個位數 (Every digit) 都會與其他位數交叉相乘，並全面影響到乘積中間幾個數位的數值</strong>。<br>\n因此擷取中間數位能代表整個鍵值的綜合分佈特性，有效打散原鍵值的規律性。", "source": "DS_Ch2.pdf 投影片 Slide 60 (PDF p.30) [Midsquare Method]"}, {"id": "q27", "priority": 2, "ch": "Ch3", "q": "陣列 vs. 鏈結串列在隨機存取與已知位置插入刪除的複雜度比較？", "a": "<ul>\n<li><strong>隨機存取指定索引 (Random Access)</strong>：\n  <ul>\n    <li>陣列 (Array)：<code>O(1)</code>（記憶體位址連續，<code>Base + i * size</code> 直接計算）</li>\n    <li>鏈結串列 (Linked List)：<code>O(n)</code>（必須從頭沿指標逐一走訪）</li>\n  </ul>\n</li>\n<li><strong>已知位置插入/刪除 (Insert/Delete at known location)</strong>：\n  <ul>\n    <li>陣列 (Array)：<code>O(n)</code>（需搬移後續所有元素）</li>\n    <li>鏈結串列 (Linked List)：<code>O(1)</code>（只需修改相鄰指標賦值，無需搬移任何資料）</li>\n  </ul>\n</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 4~14 (PDF p.2~7) [Linear List Concepts] & Slide 17~19 (PDF p.9~10) [Linked List Concepts]"}, {"id": "q28", "priority": 2, "ch": "Ch3", "q": "鏈結串列表頭結構 (Head Structure) 的三大元數據 (Metadata) 欄位？", "a": "<ol>\n<li><code>count</code>：記錄串列中的節點總數量（使求串列長度由 <code>O(n)</code> 降為 <code>O(1)</code>）。</li>\n<li><code>head</code>：指向串列第一個資料節點的指標。</li>\n<li><code>rear</code>（可選）：指向串列最後一個資料節點的指標（使尾端插入由 <code>O(n)</code> 降為 <code>O(1)</code>）。</li>\n</ol>", "source": "DS_Ch3.pdf 投影片 Slide 20~22 (PDF p.10~11) [Linked List Data Structure: Head structure & metadata]"}, {"id": "q29", "priority": 2, "ch": "Ch3", "q": "雙向環狀鏈結串列 (Doubly Circular List) 的指標對稱性與優勢？", "a": "<ul>\n<li><strong>首尾指標指向</strong>：\n  <ul>\n    <li>首節點的 <code>prev</code> 指向<strong>尾節點 (rear)</strong>。</li>\n    <li>尾節點的 <code>next</code> 指向<strong>首節點 (head)</strong>。</li>\n  </ul>\n</li>\n<li><strong>優勢</strong>：整個結構形成閉合對稱雙向環，<strong>不存在任何 NULL 指標</strong>，消除了所有插入首尾邊界條件的特殊分支判斷。</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 97~98 (PDF p.49) [Doubly Linked Lists: Doubly linked circularly linked list / Figure 3-23]"}, {"id": "q30", "priority": 2, "ch": "Ch2", "q": "有序串列搜尋 (Ordered List Search) 的失敗提前終止機制與比對次數？", "a": "<ul>\n<li><strong>機制</strong>：由於資料已由小到大排序，循序走訪時一旦遇到當前元素數值<strong>已大於目標值 (list[i] &gt; target)</strong>，即可斷定目標絕不可能出現在後續陣列中，立即終止搜尋並宣告失敗。</li>\n<li><strong>效益</strong>：搜尋失敗時不必巡訪完全程 n 個元素，平均比對次數縮短為約 <strong>n / 2 次</strong>。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 20~22 (PDF p.10~11) [Variations on Sequential Searches: Ordered list search / Algorithm 2-4]"}, {"id": "q31", "priority": 2, "ch": "Ch1", "q": "虛擬碼參數傳遞模式：Pass by Value (val) vs. Pass by Reference (ref) 差異？", "a": "<ul>\n<li><code>val</code> (Pass by Value)：函式接收到的是引數的<strong>數值複本</strong>。函式內部的修改只影響區域變數，呼叫端的外部變數不會受影響。</li>\n<li><code>ref</code> (Pass by Reference)：函式接收到的是外部變數的<strong>記憶體位址/別名</strong>。函式內部的修改會直接改變外部變數的值，常用於回傳多個運算結果（Output Parameters）。</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 8 (PDF p.4) [Header in Pseudocode: pass by value (val) & pass by reference (ref)]"}, {"id": "q32", "priority": 2, "ch": "Ch3", "q": "單向鏈結串列走訪 (Traversal) 的標準虛擬碼寫法與終止條件？", "a": "<pre><code>Node* pWalk = head;\nwhile (pWalk != NULL) {\n    // 執行處理操作 (如印出資料)\n    cout << pWalk->data << endl;\n    \n    // 指標前移至下一個節點\n    pWalk = pWalk->next;\n}</code></pre>\n<strong>終止條件</strong>：<code>pWalk == NULL</code>（代表已走訪過尾節點並抵達鏈結末端）。", "source": "DS_Ch3.pdf 投影片 Slide 60~64 (PDF p.30~32) [Traverse List / Algorithm 3-8]"}, {"id": "q33", "priority": 3, "ch": "Ch1", "q": "良好變數命名 (Intelligent Data Names) 的三大禁忌與原則？", "a": "<strong>【三大禁忌】</strong>\n<ol>\n<li><strong>禁止單字母變數</strong>（除慣用的迴圈計數器 <code>i, j, k</code> 外，禁止 <code>a, b, x</code>）。</li>\n<li><strong>禁止空洞通用名稱</strong>（Generic names，如 <code>count, sum, total, row, file</code>）。</li>\n<li><strong>禁止易引發混淆的簡陋縮寫</strong>（如 <code>noStu</code> 易被誤認為「沒有學生」，應寫 <code>numOfStu</code>）。</li>\n</ol>\n<strong>【原則】</strong>：具備具體語意、採用駝峰式命名、陣列預設自索引 0 開始。", "source": "DS_Ch1.pdf 投影片 Slide 11~12 (PDF p.6) [1-1 Pseudocode: Intelligent data names principles]"}, {"id": "q34", "priority": 3, "ch": "Ch1", "q": "程式設計典範的三大階段演進歷史與特點？", "a": "<ol>\n<li><strong>Spaghetti Code（義大利麵條式程式碼）</strong>：早期組合語言/Basic，大量依賴 <code>GOTO</code> 跳躍，流程凌亂難除錯。</li>\n<li><strong>Modular Programming（模組化程式設計，1970s）</strong>：依功能拆解為獨立函式，由上而下結構化分解。</li>\n<li><strong>Object-Oriented Programming（物件導向程式設計，OOP）</strong>：以物件為核心，將資料與方法封裝，強調重用性、多型與繼承。</li>\n</ol>", "source": "DS_Ch1.pdf 投影片 Slide 17~18 (PDF p.9) [1-2 The Abstract Data Type: Spaghetti code, Structured programming, ADT]"}, {"id": "q35", "priority": 3, "ch": "Ch1", "q": "n × n 矩陣相加 vs. 矩陣相乘的時間複雜度比較與推導？", "a": "<ul>\n<li><strong>矩陣相加 (Matrix Addition)</strong>：<br>\n  雙重巢狀迴圈逐一走訪每個元素做相加：<code>n × n</code> 次，複雜度為 <strong>O(n²)</strong>。\n</li>\n<li><strong>矩陣相乘 (Matrix Multiplication)</strong>：<br>\n  三重巢狀迴圈（外兩層定位 <code>C[i][j]</code>，內層計算列與行之內積）：<code>n × n × n</code> 次，複雜度為 <strong>O(n³)</strong>。\n</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 45~50 (PDF p.23~25) [Algorithm Efficiency: Add matrices O(n^2) & Multiply matrices O(n^3)]"}, {"id": "q36", "priority": 3, "ch": "Ch1", "q": "為什麼漸進分析 (Big-O) 要捨棄常數係數與低階次要項？", "a": "<ul>\n<li>漸進分析關注的是問題規模 <code>n → ∞</code> 趨近於無窮大時，演算法運行時間成長的<strong>主導項 (Dominant Term)</strong>。</li>\n<li>例如 <code>3n² + 5n + 100</code> 中，當 <code>n</code> 極大時，<code>n²</code> 的增長速度徹底主宰全域，<code>5n</code> 與 <code>100</code> 的佔比微乎其微。</li>\n<li>常數係數 3 受到硬體執行速度等因素影響，在跨演算法階層對比時不具決定性意義。</li>\n</ul>", "source": "DS_Ch1.pdf 投影片 Slide 40 (PDF p.20) [Big-O Notation: Derivation steps from f(n)]"}, {"id": "q37", "priority": 3, "ch": "Ch1", "q": "ADT 中的泛型實作：C++ Template 的語法及 TYPE 與 KTYPE 涵義？", "a": "<strong>【語法宣告】</strong><br>\n<code>template &lt;class TYPE, class KTYPE&gt;</code><br><br>\n<strong>【代表涵義】</strong>\n<ul>\n<li><code>TYPE</code>：代表節點所儲存的資料型別（Data / Payload）。</li>\n<li><code>KTYPE</code>：代表用於比對與搜尋的鍵值型別（Key Type）。</li>\n</ul>\n允許資料結構與具體資料型態解耦，達成代碼高度重用。", "source": "DS_Ch1.pdf 投影片 Slide 31~32 (PDF p.16) [ADT Class Templates: template <class TYPE, class KTYPE>]"}, {"id": "q38", "priority": 3, "ch": "Ch2", "q": "評估優良雜湊函式 (Hash Function) 的三大黃金指標？", "a": "<ol>\n<li><strong>計算極速 (Easy and Fast to Compute)</strong>：轉換過程必須是低開銷的 O(1) 常數時間運算。</li>\n<li><strong>分佈均勻 (Uniform Distribution)</strong>：將鍵值均勻散佈於所有槽位，避免特定區域群聚。</li>\n<li><strong>最小化碰撞 (Minimize Collisions)</strong>：盡可能減少同義詞的產生。</li>\n</ol>", "source": "DS_Ch2.pdf 投影片 Slide 50 (PDF p.25) [Hashing Method: Three basic requirements for hash function]"}, {"id": "q39", "priority": 3, "ch": "Ch2", "q": "講義所介紹的 8 種雜湊函式方法 (Hashing Methods) 名稱列舉？", "a": "<ol>\n<li><strong>Direct Method</strong>（直接對應法）</li>\n<li><strong>Subtraction Method</strong>（減法對應法）</li>\n<li><strong>Modulo-Division Method</strong>（取模除法）</li>\n<li><strong>Digit-Extraction Method</strong>（數位擷取法）</li>\n<li><strong>Midsquare Method</strong>（平方取中法）</li>\n<li><strong>Folding Method</strong>（折疊法：平移與邊界）</li>\n<li><strong>Rotation Method</strong>（旋轉法）</li>\n<li><strong>Pseudorandom Method</strong>（偽亂數法）</li>\n</ol>", "source": "DS_Ch2.pdf 投影片 Slide 50 (PDF p.25) [Hashing Method: Eight hashing methods list]"}, {"id": "q40", "priority": 3, "ch": "Ch2", "q": "二次探測 (Quadratic Probing) 的探測公式與兩大缺點限制？", "a": "<strong>【探測公式】</strong><br>\n<code>h_i(k) = (h(k) ± i²) mod m</code><br><br>\n<strong>【兩大缺點限制】</strong>\n<ol>\n<li><strong>Secondary Clustering（二次聚集）</strong>：相同主位址的同義詞依然具有完全相同的探測路徑。</li>\n<li><strong>無法探測所有槽位</strong>：若表長 <code>m</code> 未精心設計為 <code>4k+3</code> 型態的質數，二次探測將只能覆蓋部分槽位（例如 m=100 時僅能探測 59 個位址），其餘空槽永遠利用不到。</li>\n</ol>", "source": "DS_Ch2.pdf 投影片 Slide 85~86 (PDF p.43) [Open Addressing: Quadratic Probe / Table 2-2 limitations]"}, {"id": "q41", "priority": 3, "ch": "Ch2", "q": "桶子雜湊法 (Bucket Hashing) 的運作機制與主要缺點？", "a": "<ul>\n<li><strong>運作機制</strong>：每個雜湊位址（Bucket）分配多個槽位（Slots），可存放多筆資料，只有當桶子內部槽位全滿時才會發生溢位。</li>\n<li><strong>主要缺點</strong>：若大部分桶子只存放少數資料，會產生嚴重的<strong>內部空間浪費 (Internal Fragmentation)</strong>。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 95~96 (PDF p.48) [Bucket Hashing / Figure 2-17]"}, {"id": "q42", "priority": 3, "ch": "Ch2", "q": "循序搜尋在最佳、最差與平均情況下的比對次數公式手算？", "a": "假設陣列長度為 n，各元素被搜尋機率均等（1/n）：\n<ul>\n<li><strong>Best Case（最佳情況）</strong>：第 1 筆即命中，比對 <strong>1 次</strong>，O(1)。</li>\n<li><strong>Worst Case（最差情況）</strong>：最後一筆才命中，比對 <strong>n 次</strong>，O(n)。</li>\n<li><strong>Average Case（平均情況）</strong>：<br>\n  <code>(1 + 2 + ... + n) / n = [n(n+1)/2] / n = (n+1) / 2 次</code>，O(n)。\n</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 34~36 (PDF p.17~18) [Analyzing Search Algorithms: Sequential search successful & unsuccessful]"}, {"id": "q43", "priority": 3, "ch": "Ch2", "q": "旋轉法 (Rotation Method) 解決連續流水號群聚的實務操作？", "a": "<ul>\n<li><strong>適用場合</strong>：鍵值為連續流水號，前段號碼均相同、僅末尾 1~2 碼相異（如 <code>980001, 980002, 980003</code>）。</li>\n<li><strong>操作方法</strong>：將最後一位數字循環移至最前端，變為 <code>198000, 298000, 398000</code>，徹底破壞高位連續性，再搭配取模或折疊法均勻散佈。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 65~66 (PDF p.33) [Rotation Method / Figure 2-12 Rotation hashing]"}, {"id": "q44", "priority": 3, "ch": "Ch2", "q": "數位擷取法 (Digit-Extraction Method) 的位數選取原則？", "a": "<ul>\n<li>適用於鍵值結構固定但長度冗長（如身分證字號、學號）。</li>\n<li><strong>選取原則</strong>：預先統計分析各個位數的分佈，<strong>剔除分佈集中或固定的位數</strong>（如入學年碼、性別代碼），僅保留分佈最為均勻發散的位數組成位址。</li>\n</ul>", "source": "DS_Ch2.pdf 投影片 Slide 59 (PDF p.30) [Digit-Extraction Method: Selected digits extracted from key]"}, {"id": "q45", "priority": 3, "ch": "Ch2", "q": "雜湊取模除法若預期容納 70 筆資料且負載因子 α = 0.7，除數 m 應選多少？為什麼？", "a": "<strong>【計算】</strong><br>\n表長需求 <code>n = k / α = 70 / 0.7 = 100</code>。<br><br>\n<strong>【選取原則】</strong><br>\n除數 <code>m</code> 應選取<strong>大於等於 100 且最接近的質數</strong>，即 <strong>101</strong>（或 103）。<br>\n⚠️ 絕對不能選 100（非質數且為偶數），否則與 2 或 5 有公因數的鍵值序列將引發嚴重聚集。", "source": "DS_Ch2.pdf 投影片 Slide 56 (PDF p.28) [Modulo-Division (Prime)] & Slide 78 (PDF p.39) [Load factor α]"}, {"id": "q46", "priority": 3, "ch": "Ch3", "q": "陣列實作串列 vs. 鏈結串列實作串列的 6 大維度全方位對比？", "a": "<ol>\n<li><strong>記憶體配置</strong>：陣列為連續記憶體；串列為動態分散配置 (Heap)。</li>\n<li><strong>容量彈性</strong>：陣列固定大小易溢位；串列動態增刪無容量上限。</li>\n<li><strong>額外開銷</strong>：陣列零指標開銷；串列每節點需 4~8 bytes 指標空間。</li>\n<li><strong>隨機存取</strong>：陣列支援 O(1)；串列需 O(n) 循序走訪。</li>\n<li><strong>插入刪除</strong>：陣列需搬移元素 O(n)；串列僅改指標 O(1)。</li>\n<li><strong>Cache 局部性</strong>：陣列空間局部性極佳；串列指標分散易 Cache Miss。</li>\n</ol>", "source": "DS_Ch3.pdf 投影片 Slide 4~15 (PDF p.2~8) [Linear List Concepts] & Slide 17~22 (PDF p.9~11) [Linked List Concepts]"}, {"id": "q47", "priority": 3, "ch": "Ch3", "q": "鏈結串列刪除首節點的三部曲與常見致命錯誤 (Use-After-Free)？", "a": "<strong>【正確三部曲】</strong>\n<pre><code>Node* pTemp = head;  // 1. 先用暫存指標抓住首節點\nhead = head->next;   // 2. 表頭指標後移指向第二個節點\ndelete pTemp;        // 3. 安全釋放原首節點記憶體</code></pre>\n⚠️ <strong>致命錯誤</strong>：先寫 <code>delete head;</code> 再寫 <code>head = head->next;</code>！此時記憶體已釋放，讀取其 <code>next</code> 是嚴重的 <strong>Undefined Behavior (Use-After-Free)</strong>！", "source": "DS_Ch3.pdf 投影片 Slide 39~40 (PDF p.20) [Delete Node: Delete First Node / Figure 3-12]"}, {"id": "q48", "priority": 3, "ch": "Ch3", "q": "串列附加 (Append Lists) 的步驟與有無尾指標的時間複雜度差異？", "a": "將串列 L2 附加至 L1 尾端：\n<ul>\n<li><strong>無尾指標</strong>：必須走訪 L1 全程找到尾節點，耗時 <strong>O(len(L1))</strong>。</li>\n<li><strong>維護有尾指標 rear</strong>：直接執行 <code>L1->rear->next = L2->head; L1->rear = L2->rear;</code>，耗時僅需 <strong>O(1)</strong>！</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 84~88 (PDF p.42~44) [Append Lists / Algorithm 3-10]"}, {"id": "q49", "priority": 3, "ch": "Ch3", "q": "串列陣列 (Array of Lists) 的定義與兩大應用實例？", "a": "<ul>\n<li><strong>定義</strong>：元素型態為「串列表頭指標」的一維陣列（<code>Node* listArray[MAX];</code>）。</li>\n<li><strong>實例 1</strong>：<strong>雜湊表鏈結法 (Separate Chaining)</strong>，陣列每格為一個桶子，指向同義詞鏈結串列。</li>\n<li><strong>實例 2</strong>：<strong>學校班級學生名冊</strong>，陣列索引代表班級編號，每個槽位指向該班學生資料串列。</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 90~93 (PDF p.45~47) [Array of Lists / Figure 3-27 & Figure 3-28]"}, {"id": "q50", "priority": 3, "ch": "Ch3", "q": "串列銷毀 (Destroy List) 為何不能只寫 head = NULL？正確做法？", "a": "<ul>\n<li><strong>危害</strong>：若只寫 <code>head = NULL</code>，只是斷開表頭指標，已配置在 Heap 上的所有節點實體依然佔用記憶體且永遠無法釋放，造成嚴重的 <strong>Memory Leak</strong>！</li>\n<li><strong>正確做法</strong>：使用 <code>while</code> 迴圈搭配暫存指標逐一走訪並 <code>delete</code> 每個節點，最後再將 <code>head = NULL</code>。</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 65~66 (PDF p.33) [Destroy List / Algorithm 3-9]"}, {"id": "q51", "priority": 3, "ch": "Ch3", "q": "雙向鏈結串列相較於單向鏈結串列的兩大優點與兩大缺點？", "a": "<ul>\n<li><strong>兩大優點</strong>：\n  <ol>\n    <li>支援<strong>雙向走訪</strong>（向前與向後均為 O(1) 前移）。</li>\n    <li>給定節點指標 <code>pCur</code> 時，可在 <strong>O(1)</strong> 內直接取得前驅 <code>pCur->prev</code> 完成刪除，無需重頭搜尋前驅。</li>\n  </ol>\n</li>\n<li><strong>兩大缺點</strong>：\n  <ol>\n    <li>每個節點多耗費一個指標空間（多 4~8 bytes）。</li>\n    <li>插入刪除需維護 4 個指標，程式邏輯較繁複且容易出錯。</li>\n  </ol>\n</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 96~98 (PDF p.48~49) [Doubly Linked Lists: Advantages & Disadvantages]"}, {"id": "q52", "priority": 3, "ch": "Ch3", "q": "單向鏈結串列插入中間節點時，為何必須維護前驅指標 pPre？", "a": "因為單向鏈結串列的指標只有單向向前（<code>next</code>），<strong>無法反向獲取前一個節點</strong>。<br>\n在指定節點前插入新節點時，必須修改前驅節點的 <code>next</code> 指向新節點，因此走訪時必須同時保留前驅指標 <code>pPre</code>。", "source": "DS_Ch3.pdf 投影片 Slide 26 (PDF p.13) [Insert Node] & Slide 32 (PDF p.16) [Add Node in Middle]"}, {"id": "q53", "priority": 3, "ch": "Ch2", "q": "傳統循序搜尋在每次迴圈迭代時，內部進行的兩項條件檢查為何？", "a": "<ol>\n<li><strong>邊界條件檢查 (Boundary Check)</strong>：檢查是否已抵達陣列結尾（<code>index < size</code>）。</li>\n<li><strong>目標比對檢查 (Target Equality Check)</strong>：檢查當前元素是否等於目標值（<code>list[index] == target</code>）。</li>\n</ol>", "source": "DS_Ch2.pdf 投影片 Slide 8~10 (PDF p.4~5) [Sequential Search Algorithm / Algorithm 2-1] (原標籤誤植為 Ch1，已修正為 Ch2)"}, {"id": "q54", "priority": 3, "ch": "Ch3", "q": "雙端操作在單向串列 vs. 維護 rear 的單向環狀串列效能差別？", "a": "<ul>\n<li><strong>一般單向串列</strong>：若無尾指標，尾端操作需 O(n)；即便有尾指標，尾端刪除仍需 O(n) 搜尋倒數第二個節點。</li>\n<li><strong>維護 rear 的單向環狀串列</strong>：尾端與首端均可在 <strong>O(1)</strong> 進行插入與讀取，極度適合作為 FIFO 佇列 (Queue) 的高效率實作結構。</li>\n</ul>", "source": "DS_Ch3.pdf 投影片 Slide 94~95 (PDF p.47~48) [Circularly Linked Lists: Operations with Rear Pointer]"}];
+
+    let checkedState = {};
+    let hideAllAnswers = true;
+    let hideMemorized = false;
+    let currentChapter = 'all';
+    let searchQuery = '';
+
+    // Load from localStorage
+    function loadStorage() {
+      try {
+        const saved = localStorage.getItem('ds_recitation_checks_v1');
+        if (saved) checkedState = JSON.parse(saved);
+      } catch (e) {
+        checkedState = {};
+      }
+    }
+
+    function saveStorage() {
+      try {
+        localStorage.setItem('ds_recitation_checks_v1', JSON.stringify(checkedState));
+      } catch (e) {}
+    }
+
+    function renderCards() {
+      const p1List = document.getElementById('listP1');
+      const p2List = document.getElementById('listP2');
+      const p3List = document.getElementById('listP3');
+
+      p1List.innerHTML = '';
+      p2List.innerHTML = '';
+      p3List.innerHTML = '';
+
+      items.forEach(item => {
+        const isChecked = !!checkedState[item.id];
+        const isWarn = item.source && item.source.includes('⚠️');
+        const card = document.createElement('div');
+        card.className = `card ${isChecked ? 'memorized' : ''}`;
+        card.id = `card-${item.id}`;
+        card.dataset.id = item.id;
+        card.dataset.ch = item.ch;
+        card.dataset.priority = item.priority;
+
+        card.innerHTML = `
+          <div class="card-top" onclick="toggleAnswer('${item.id}')">
+            <span class="ch-badge ${item.ch}">${item.ch}</span>
+            <span class="card-question">${item.q}</span>
+            <div class="card-actions">
+              <button class="reveal-btn" id="rev-${item.id}">點一下看答案</button>
+              <button class="check-btn" onclick="event.stopPropagation(); toggleCheck('${item.id}')" title="標記為背熟">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="card-answer ${hideAllAnswers ? '' : 'visible'}" id="ans-${item.id}">
+            <div class="source-tag ${isWarn ? 'warning-source' : ''}">
+              <span class="source-icon">📍</span>
+              <span class="source-label">講義出處：</span>
+              <span class="source-text">${item.source}</span>
+            </div>
+            <div class="answer-content">
+              ${item.a}
+            </div>
+          </div>
+        `;
+
+        if (item.priority === 1) p1List.appendChild(card);
+        else if (item.priority === 2) p2List.appendChild(card);
+        else p3List.appendChild(card);
+      });
+
+      applyFilters();
+      updateProgress();
+    }
+
+    function toggleAnswer(id) {
+      const ans = document.getElementById(`ans-${id}`);
+      const btn = document.getElementById(`rev-${id}`);
+      if (ans.classList.contains('visible')) {
+        ans.classList.remove('visible');
+        btn.textContent = '點一下看答案';
+      } else {
+        ans.classList.add('visible');
+        btn.textContent = '收合答案';
+      }
+    }
+
+    function toggleCheck(id) {
+      checkedState[id] = !checkedState[id];
+      saveStorage();
+      const card = document.getElementById(`card-${id}`);
+      if (checkedState[id]) {
+        card.classList.add('memorized');
+      } else {
+        card.classList.remove('memorized');
+      }
+      applyFilters();
+      updateProgress();
+    }
+
+    function toggleHideAll() {
+      hideAllAnswers = !hideAllAnswers;
+      const btn = document.getElementById('btnToggleHide');
+      if (hideAllAnswers) {
+        btn.classList.add('active');
+        btn.textContent = '遮住答案';
+        document.querySelectorAll('.card-answer').forEach(el => el.classList.remove('visible'));
+        document.querySelectorAll('.reveal-btn').forEach(b => b.textContent = '點一下看答案');
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = '顯示全部答案';
+        document.querySelectorAll('.card-answer').forEach(el => el.classList.add('visible'));
+        document.querySelectorAll('.reveal-btn').forEach(b => b.textContent = '收合答案');
+      }
+    }
+
+    function toggleHideMemorized() {
+      hideMemorized = !hideMemorized;
+      const btn = document.getElementById('btnToggleHideMemorized');
+      if (hideMemorized) {
+        btn.classList.add('active');
+        btn.textContent = '顯示已背熟';
+      } else {
+        btn.classList.remove('active');
+        btn.textContent = '隱藏已背熟';
+      }
+      applyFilters();
+    }
+
+    function filterChapter(ch) {
+      currentChapter = ch;
+      document.querySelectorAll('.btn-ch').forEach(b => {
+        if (b.dataset.ch === ch) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      applyFilters();
+    }
+
+    function filterSearch() {
+      searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let visibleCountP1 = 0;
+      let visibleCountP2 = 0;
+      let visibleCountP3 = 0;
+
+      items.forEach(item => {
+        const card = document.getElementById(`card-${item.id}`);
+        const isMemorized = !!checkedState[item.id];
+        
+        let matchCh = (currentChapter === 'all' || item.ch === currentChapter);
+        let matchMem = (!hideMemorized || !isMemorized);
+        let matchSearch = true;
+
+        if (searchQuery) {
+          const rawText = (item.q + ' ' + item.a + ' ' + item.ch + ' ' + (item.source || '')).toLowerCase();
+          matchSearch = rawText.includes(searchQuery);
+        }
+
+        const isVisible = matchCh && matchMem && matchSearch;
+        card.style.display = isVisible ? 'block' : 'none';
+
+        if (isVisible) {
+          if (item.priority === 1) visibleCountP1++;
+          else if (item.priority === 2) visibleCountP2++;
+          else visibleCountP3++;
+        }
+      });
+
+      document.getElementById('secP1').style.display = visibleCountP1 > 0 ? 'block' : 'none';
+      document.getElementById('secP2').style.display = visibleCountP2 > 0 ? 'block' : 'none';
+      document.getElementById('secP3').style.display = visibleCountP3 > 0 ? 'block' : 'none';
+    }
+
+    function updateProgress() {
+      const total = items.length;
+      let memorizedCount = 0;
+      let memP1 = 0, totP1 = 0;
+      let memP2 = 0, totP2 = 0;
+      let memP3 = 0, totP3 = 0;
+
+      items.forEach(item => {
+        const isMem = !!checkedState[item.id];
+        if (isMem) memorizedCount++;
+
+        if (item.priority === 1) { totP1++; if (isMem) memP1++; }
+        else if (item.priority === 2) { totP2++; if (isMem) memP2++; }
+        else { totP3++; if (isMem) memP3++; }
+      });
+
+      const pct = Math.round((memorizedCount / total) * 100);
+      document.getElementById('progressText').textContent = `${memorizedCount} / ${total} 背熟 (${pct}%)`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      document.getElementById('badgeP1').textContent = `${memP1} / ${totP1}`;
+      document.getElementById('badgeP2').textContent = `${memP2} / ${totP2}`;
+      document.getElementById('badgeP3').textContent = `${memP3} / ${totP3}`;
+    }
+
+    function resetChecks() {
+      if (confirm('確定要清除所有已背熟的打勾紀錄嗎？')) {
+        checkedState = {};
+        saveStorage();
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('memorized'));
+        applyFilters();
+        updateProgress();
+      }
+    }
+
+    // Init
+    loadStorage();
+    renderCards();
+  </script>
+</body>
+</html>
