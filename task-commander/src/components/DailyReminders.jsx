@@ -22,55 +22,55 @@ export default function DailyReminders({ weeklySchedule = {}, reminders = [], re
   });
 
   return (
-    <div style={{
-      background: 'var(--bg-panel)',
-      border: '1px solid var(--border-color)',
-      borderRadius: '8px',
-      padding: '15px 20px',
-      marginBottom: '20px',
+    <div className="gemini-card" style={{
+      marginBottom: '1.75rem',
       display: 'flex',
       flexDirection: 'column',
-      gap: '15px'
+      gap: '1rem',
+      padding: '1.25rem 1.5rem'
     }}>
       {/* 頂部標題 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: 'bold' }}>
-        <Bell size={18} style={{ color: 'var(--accent-gold)' }} />
-        <span>AGENDA & REMINDERS</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: 800, fontSize: '0.95rem' }}>
+        <Bell size={18} style={{ color: 'var(--gemini-purple)' }} />
+        <span>每日提醒與明日課程 (AGENDA & REMINDERS)</span>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
         
         {/* 日常提醒 */}
         <div style={{ flex: '1 1 300px' }}>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>TODAY'S REMINDERS</h4>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            今日專注叮嚀
+          </h4>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {reminders.length === 0 ? (
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>No reminders for today.</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>今日暫無個人提醒事項</span>
             ) : (
               reminders.map((reminder, idx) => {
                 const isCompleted = reminderCompletions[`${today}:${reminder}`];
                 return (
-                <div key={idx} style={{
-                  background: 'var(--bg-dark)',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.9rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  border: '1px solid var(--border-color)',
-                  cursor: 'pointer',
-                  opacity: isCompleted ? 0.65 : 1,
-                  textDecoration: isCompleted ? 'line-through' : 'none'
-                }} onClick={() => onToggleReminder(reminder)} role="button" tabIndex="0" onKeyDown={event => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    onToggleReminder(reminder);
-                  }
-                }} aria-label={`${isCompleted ? 'Uncomplete' : 'Complete'} reminder: ${reminder}`}>
-                  <CheckCircle2 size={16} color={isCompleted ? 'var(--success)' : 'var(--text-muted)'} />
-                  {reminder}
-                </div>
+                  <div 
+                    key={idx} 
+                    style={{
+                      background: isCompleted ? 'var(--bg-input)' : 'var(--bg-panel)',
+                      padding: '6px 14px',
+                      borderRadius: 'var(--radius-pill)',
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: `1px solid ${isCompleted ? 'var(--border-subtle)' : 'var(--border-color)'}`,
+                      cursor: 'pointer',
+                      opacity: isCompleted ? 0.6 : 1,
+                      textDecoration: isCompleted ? 'line-through' : 'none',
+                      boxShadow: isCompleted ? 'none' : 'var(--shadow-sm)',
+                      transition: 'all 0.2s'
+                    }} 
+                    onClick={() => onToggleReminder(reminder)}
+                  >
+                    <CheckCircle2 size={15} color={isCompleted ? 'var(--gemini-emerald)' : 'var(--text-dim)'} />
+                    <span>{reminder}</span>
+                  </div>
                 );
               })
             )}
@@ -79,10 +79,12 @@ export default function DailyReminders({ weeklySchedule = {}, reminders = [], re
 
         {/* 明日課表與作業提醒 */}
         <div style={{ flex: '1 1 300px' }}>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>TOMORROW'S CLASSES ({tomorrowDayName})</h4>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            明日課堂 ({tomorrowDayName})
+          </h4>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {tomorrowCourses.length === 0 ? (
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>No classes tomorrow! 🎉</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>明天沒有排課，好好衝刺轉學考與專題！🎉</span>
             ) : (
               tomorrowCourses.map((course, idx) => {
                 const badgeCount = courseTasksCount[course];
@@ -95,61 +97,31 @@ export default function DailyReminders({ weeklySchedule = {}, reminders = [], re
                       }
                     }}
                     style={{
-                      background: badgeCount > 0 ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-dark)',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      fontSize: '0.9rem',
+                      background: badgeCount > 0 ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-panel)',
+                      padding: '6px 14px',
+                      borderRadius: 'var(--radius-pill)',
+                      fontSize: '0.85rem',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      border: badgeCount > 0 ? '1px solid #ef4444' : '1px solid var(--border-color)',
+                      border: `1px solid ${badgeCount > 0 ? '#ef4444' : 'var(--border-color)'}`,
                       cursor: badgeCount > 0 ? 'pointer' : 'default',
-                      position: 'relative',
+                      boxShadow: 'var(--shadow-sm)',
                       transition: 'all 0.2s'
                     }}
-                    role={badgeCount > 0 ? 'button' : undefined}
-                    tabIndex={badgeCount > 0 ? 0 : -1}
-                    onKeyDown={event => {
-                      if (badgeCount > 0 && (event.key === 'Enter' || event.key === ' ')) {
-                        event.preventDefault();
-                        setSelectedCourse(course);
-                      }
-                    }}
-                    aria-label={badgeCount > 0 ? `${course}, ${badgeCount} pending tasks` : course}
                   >
-                    <CalendarIcon size={16} color={badgeCount > 0 ? '#ef4444' : 'var(--text-main)'} />
-                    <span style={{ color: badgeCount > 0 ? '#ef4444' : 'var(--text-main)' }}>{course}</span>
-                    {badgeCount > 0 && (
-                      <span
-                        aria-label="Pending task for tomorrow's class"
-                        title="Pending task for tomorrow's class"
-                        style={{
-                          width: '8px',
-                          height: '8px',
-                          borderRadius: '50%',
-                          background: '#ef4444',
-                          boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.15)'
-                        }}
-                      />
-                    )}
+                    <CalendarIcon size={14} color={badgeCount > 0 ? '#ef4444' : 'var(--gemini-blue)'} />
+                    <span style={{ fontWeight: 600, color: badgeCount > 0 ? '#ef4444' : 'var(--text-main)' }}>{course}</span>
                     {badgeCount > 0 && (
                       <span style={{
-                        position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
                         background: '#ef4444',
                         color: 'white',
                         fontSize: '0.7rem',
                         fontWeight: 'bold',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 0 5px rgba(239, 68, 68, 0.5)'
+                        padding: '1px 6px',
+                        borderRadius: 'var(--radius-pill)'
                       }}>
-                        {badgeCount}
+                        {badgeCount} 待辦
                       </span>
                     )}
                   </div>

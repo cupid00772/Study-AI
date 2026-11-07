@@ -1,0 +1,468 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-11-07T19:30:00Z",
+  "courses": [
+    {
+      "id": "course-os",
+      "name": "作業系統",
+      "code": "IM2046",
+      "category": "系訂必修",
+      "instructor": "資訊管理學系",
+      "credits": 3,
+      "schedule": "週二 09:00 - 12:00",
+      "location": "管二館",
+      "color": "#4285F4",
+      "icon": "Cpu",
+      "description": "深入探討程序管理、CPU 排程、記憶體管理、虛擬記憶體與檔案系統架構。"
+    },
+    {
+      "id": "course-ds",
+      "name": "資料結構",
+      "code": "IM2011",
+      "category": "系訂必修",
+      "instructor": "資訊管理學系",
+      "credits": 3,
+      "schedule": "週五 09:00 - 12:00",
+      "location": "管二館",
+      "color": "#9B72CF",
+      "icon": "Binary",
+      "description": "資料組織、陣列、鏈結串列、堆疊、佇列、樹、圖形結構與高階搜尋/排序演算法。"
+    },
+    {
+      "id": "course-econ",
+      "name": "經濟學",
+      "code": "MT1011",
+      "category": "院訂必修",
+      "instructor": "管理學院",
+      "credits": 3,
+      "schedule": "週三 13:00 - 16:00",
+      "location": "管一館",
+      "color": "#D96570",
+      "icon": "TrendingUp",
+      "description": "Mankiw 經濟學原理，涵蓋市場供需、價格彈性、市場福利、租稅無謂損失與國際貿易。"
+    },
+    {
+      "id": "course-stats",
+      "name": "統計學",
+      "code": "MT2041",
+      "category": "院訂必修",
+      "instructor": "管理學院",
+      "credits": 3,
+      "schedule": "週一 14:00 - 17:00",
+      "location": "管一館",
+      "color": "#1BA0E2",
+      "icon": "BarChart3",
+      "description": "敘述統計、機率導論、離散與連續隨機變數分配、抽樣分配與區間估計。"
+    },
+    {
+      "id": "course-geo",
+      "name": "通識地球物理",
+      "code": "GS4508",
+      "category": "通識課程",
+      "instructor": "地球科學學院",
+      "credits": 2,
+      "schedule": "週四 10:00 - 12:00",
+      "location": "科四館 / 校園實地",
+      "color": "#34A853",
+      "icon": "Globe",
+      "description": "地球物理原理與校園實地觀測，包含地電直流電阻率法與暫態電磁法 (TEM) 實習。"
+    },
+    {
+      "id": "course-transfer",
+      "name": "台聯大/台大轉學考",
+      "code": "UST_TRANSFER",
+      "category": "重點專題",
+      "instructor": "自主衝刺",
+      "credits": 0,
+      "schedule": "自主安排",
+      "location": "Study Space",
+      "color": "#FBBC04",
+      "icon": "Award",
+      "description": "微積分(B)、計算機概論、機率與統計歷屆試題檢討與模擬考衝刺。"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "hw-geo-tem",
+      "course": "通識地球物理",
+      "title": "校園地電暫態電磁法 (TEM) 實習心得報告",
+      "dueDate": "2024-11-15",
+      "status": "completed",
+      "description": "整理校園草坪與水井測站之感應電動勢衰減曲線，進行視電阻率反演與分層地質解析。",
+      "difficulty": "Hard",
+      "xp": 800,
+      "promptFile": "Reference/NCU_Classes/通識地球物理/CONTEXT.md",
+      "deliverableFile": "Reference/NCU_Classes/通識地球物理/校園實習/校園地電實習/report/地電交流法實習心得報告.md"
+    },
+    {
+      "id": "hw-geo-dc",
+      "course": "通識地球物理",
+      "title": "校園地電直流電阻率法 (Wenner) 實習心得報告",
+      "dueDate": "2024-11-10",
+      "status": "completed",
+      "description": "四極對稱排列測量接地視電阻率，繪製視電阻率斷面剖面圖並撰寫實習心得。",
+      "difficulty": "Medium",
+      "xp": 600,
+      "promptFile": "Reference/NCU_Classes/通識地球物理/CONTEXT.md",
+      "deliverableFile": "Reference/NCU_Classes/通識地球物理/校園實習/校園地電實習/report/地電直流法實習心得報告.md"
+    },
+    {
+      "id": "hw-econ-ch8",
+      "course": "經濟學",
+      "title": "第八章課稅與無謂損失 (DWL) 習題解析",
+      "dueDate": "2024-11-06",
+      "status": "completed",
+      "description": "計算租稅楔子下的消費者剩餘、生產者剩餘與無謂損失三角形面積變動。",
+      "difficulty": "Medium",
+      "xp": 500,
+      "promptFile": "Reference/NCU_Classes/經濟學/CH8 test.pdf",
+      "deliverableFile": "Reference/NCU_Classes/經濟學/CH8_test_Solution.md"
+    },
+    {
+      "id": "hw-econ-ch1-2",
+      "course": "經濟學",
+      "title": "第一章與第二章作業：十大原理與思考模式",
+      "dueDate": "2024-10-20",
+      "status": "completed",
+      "description": "稀少性、機會成本、看不見的手與 PPF 曲線分析。",
+      "difficulty": "Easy",
+      "xp": 400,
+      "promptFile": "Reference/NCU_Classes/經濟學/作業(CH1~CH2).pdf",
+      "deliverableFile": "Study_Materials/經濟學/Chapter_1_教材.md"
+    },
+    {
+      "id": "hw-os-sync",
+      "course": "作業系統",
+      "title": "作業系統 Chapter 5：Process Synchronization 核心概念",
+      "dueDate": "2024-11-20",
+      "status": "completed",
+      "description": "Critical Section Problem、Mutex Locks、Semaphores 與 Classical Problems of Synchronization 深度筆記。",
+      "difficulty": "Hard",
+      "xp": 700,
+      "promptFile": "Reference/NCU_Classes/作業系統/OS-ch05.ppt",
+      "deliverableFile": "Study_Materials/作業系統/Chapter_5_教材.md"
+    },
+    {
+      "id": "hw-ds-tree",
+      "course": "資料結構",
+      "title": "資料結構 Chapter 3：樹與二元搜尋樹 (BST)",
+      "dueDate": "2024-11-22",
+      "status": "completed",
+      "description": "前中後序樹遍歷演算法、樹高計算與 BST 插入/刪除/平衡特性筆記。",
+      "difficulty": "Hard",
+      "xp": 750,
+      "promptFile": "Reference/NCU_Classes/資料結構/DS_Ch3.pdf",
+      "deliverableFile": "Study_Materials/資料結構/Chapter_3_教材.md"
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam-ds-recite",
+      "course": "資料結構",
+      "title": "資料結構期中 54 核心考點特訓 (DS Recitation)",
+      "date": "2024-11-15",
+      "category": "Midterm_Prep",
+      "description": "涵蓋時間複雜度、指標操作、Linked List、Stack/Queue、二元樹遍歷與圖形表示法 54 道必背卡。",
+      "xp": 1000,
+      "status": "active",
+      "deliverableFile": "Study_Materials/資料結構/DS_期中背誦表.html"
+    },
+    {
+      "id": "exam-econ-recite",
+      "course": "經濟學",
+      "title": "經濟學期中核心考點與圖表速記 (ECON Recitation)",
+      "date": "2024-11-18",
+      "category": "Midterm_Prep",
+      "description": "供需曲線移動、中點法彈性、消費者/生產者剩餘、租稅 DWL 與關稅福利圖形重點卡片。",
+      "xp": 1000,
+      "status": "active",
+      "deliverableFile": "Study_Materials/經濟學/ECON_期中背誦表.html"
+    },
+    {
+      "id": "exam-transfer-cs1",
+      "course": "台聯大/台大轉學考",
+      "title": "計算機概論模擬考卷 (第 1 ~ 8 回詳解全集)",
+      "date": "2024-12-01",
+      "category": "Mock_Exam",
+      "description": "數字系統轉換、浮點數 IEEE 754、作業系統分頁與快取演算法全真模擬題。",
+      "xp": 1200,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Exam_paper/Transfer/計算機概論/Mock_Exam_1.md"
+    },
+    {
+      "id": "exam-transfer-calc",
+      "course": "台聯大/台大轉學考",
+      "title": "台大 112~114 年微積分(B) 歷屆試題詳解",
+      "date": "2024-12-10",
+      "category": "Past_Exam",
+      "description": "極限瑕積分、馬克勞林級數展開、重積分與格林定理題目逐步推理。",
+      "xp": 1500,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Solutions/NTU_113_Calculus_B_Solution.md"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "del-ds-recite-html",
+      "title": "DS 期中背誦表 (54 核心考點速記卡)",
+      "course": "資料結構",
+      "type": "recitation",
+      "path": "Study_Materials/資料結構/DS_期中背誦表.html",
+      "format": "html",
+      "updatedAt": "2026-11-06",
+      "summary": "支援手機/桌面雙端互動背誦、狀態記憶、卡片分類與關鍵公式速查。",
+      "tags": [
+        "期中考",
+        "速記卡",
+        "互動表",
+        "HTML"
+      ]
+    },
+    {
+      "id": "del-econ-recite-html",
+      "title": "ECON 經濟學期中背誦表",
+      "course": "經濟學",
+      "type": "recitation",
+      "path": "Study_Materials/經濟學/ECON_期中背誦表.html",
+      "format": "html",
+      "updatedAt": "2026-11-06",
+      "summary": "Mankiw 經濟學原理重要名詞定義、彈性公式與供需福利分析圖形對照卡。",
+      "tags": [
+        "期中考",
+        "Mankiw",
+        "福利經濟學",
+        "HTML"
+      ]
+    },
+    {
+      "id": "del-geo-tem-report",
+      "title": "校園地電交流法 (TEM) 實習心得報告",
+      "course": "通識地球物理",
+      "type": "report",
+      "path": "Reference/NCU_Classes/通識地球物理/校園實習/校園地電實習/report/地電交流法實習心得報告.md",
+      "format": "md",
+      "updatedAt": "2026-11-05",
+      "summary": "完整紀錄草坪與水井兩處測站之暫態電磁感應衰減資料反演分析與地質分層推論。",
+      "tags": [
+        "實習報告",
+        "地球物理",
+        "TEM",
+        "成果"
+      ]
+    },
+    {
+      "id": "del-geo-dc-report",
+      "title": "校園地電直流法實習心得報告",
+      "course": "通識地球物理",
+      "type": "report",
+      "path": "Reference/NCU_Classes/通識地球物理/校園實習/校園地電實習/report/地電直流法實習心得報告.md",
+      "format": "md",
+      "updatedAt": "2026-11-05",
+      "summary": "Wenner 排列視電阻率測量實習記錄、野外架設圖與地下電性結構探討。",
+      "tags": [
+        "實習報告",
+        "Wenner",
+        "直流法",
+        "成果"
+      ]
+    },
+    {
+      "id": "del-econ-ch8-sol",
+      "title": "經濟學 CH8 課稅成本與無謂損失 試題詳解",
+      "course": "經濟學",
+      "type": "exam",
+      "path": "Reference/NCU_Classes/經濟學/CH8_test_Solution.md",
+      "format": "md",
+      "updatedAt": "2026-11-06",
+      "summary": "中央大學平時測驗第 8 章 10 道原題與詳細考點解析，包含供需彈性與無謂損失關係。",
+      "tags": [
+        "小考",
+        "詳解",
+        "DWL",
+        "Markdown"
+      ]
+    },
+    {
+      "id": "del-os-ch5-notes",
+      "title": "作業系統 Chapter 5：行程同步 (Process Synchronization)",
+      "course": "作業系統",
+      "type": "notes",
+      "path": "Study_Materials/作業系統/Chapter_5_教材.md",
+      "format": "md",
+      "updatedAt": "2026-10-24",
+      "summary": "Race Condition、臨界區三大準則、Peterson 演算法、信號標 (Semaphores) 與哲學家就餐問題全解析。",
+      "tags": [
+        "章節教材",
+        "作業系統",
+        "Synchronization",
+        "Markdown"
+      ]
+    },
+    {
+      "id": "del-ds-ch3-notes",
+      "title": "資料結構 Chapter 3：樹 (Trees) 完整教材",
+      "course": "資料結構",
+      "type": "notes",
+      "path": "Study_Materials/資料結構/Chapter_3_教材.md",
+      "format": "md",
+      "updatedAt": "2026-11-02",
+      "summary": "二元樹、Threaded Binary Trees、Heap 堆積樹與 Huffman 編碼核心演算法與練習題。",
+      "tags": [
+        "章節教材",
+        "資料結構",
+        "二元樹",
+        "Markdown"
+      ]
+    },
+    {
+      "id": "del-calc-ntu113-sol",
+      "title": "台灣大學 113 學年度轉學考微積分(B) 完整解答",
+      "course": "台聯大/台大轉學考",
+      "type": "exam",
+      "path": "Test_Bank/Solutions/NTU_113_Calculus_B_Solution.md",
+      "format": "md",
+      "updatedAt": "2026-07-06",
+      "summary": "完整收錄 113 年台大微積分(B) 所有大題詳解、計算步驟與評分重點。",
+      "tags": [
+        "台大",
+        "轉學考",
+        "微積分B",
+        "歷屆解答"
+      ]
+    },
+    {
+      "id": "del-cs-mock1",
+      "title": "計算機概論 全國模擬試題 (第一回) 試卷與詳解",
+      "course": "台聯大/台大轉學考",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/計算機概論/Mock_Exam_1.md",
+      "format": "md",
+      "updatedAt": "2026-07-06",
+      "summary": "涵蓋布林代數、邏輯閘、CPU 快取、管線化 (Pipeline) 與排程模擬題本。",
+      "tags": [
+        "計算機概論",
+        "模擬考",
+        "刷題",
+        "Markdown"
+      ]
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-1",
+      "course": "經濟學",
+      "title": "113-1 期中考試範圍公告 (CH1 ~ CH9)",
+      "content": "期中考預計於 11 月中旬隨堂舉行，題型為單選題與計算題，請同學熟讀各單元作業與教材概念。",
+      "date": "2024-11-01",
+      "link": "https://eeclass.ncu.edu.tw"
+    },
+    {
+      "id": "ann-2",
+      "course": "通識地球物理",
+      "title": "校園地電實習報告繳交提醒",
+      "content": "請各組於下週實習課前繳交交流法 (TEM) 與直流法兩份心得報告，需附現場架設照片與曲線圖。",
+      "date": "2024-11-04",
+      "link": "https://eeclass.ncu.edu.tw"
+    },
+    {
+      "id": "ann-3",
+      "course": "資料結構",
+      "title": "樹狀結構 (Trees) 線上程式作業已發布",
+      "content": "請於下週三前完成二元搜尋樹 (BST) 之建立與搜尋遞迴函式實作，並提交至 eeclass。",
+      "date": "2024-11-06",
+      "link": "https://eeclass.ncu.edu.tw"
+    }
+  ],
+  "calendar_events": [
+    {
+      "id": "ncu-113-1-midterm",
+      "title": "113-1 期中成績評量週",
+      "category": "Official_Exam",
+      "startDate": "2024-11-11",
+      "endDate": "2024-11-22",
+      "scope": "全校課程",
+      "description": "中央大學 113 學年度第一學期期中評量（由授課教師自行排定日程）",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-113-1-final",
+      "title": "113-1 期末考試週",
+      "category": "Official_Exam",
+      "startDate": "2024-12-16",
+      "endDate": "2024-12-20",
+      "scope": "全校課程",
+      "description": "中央大學 113 學年度第一學期期末考試週（若教師另有訂定從其規定）",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-113-1-flexible",
+      "title": "113-1 彈性教學週 (第17~18週)",
+      "category": "Milestone",
+      "startDate": "2024-12-30",
+      "endDate": "2025-01-10",
+      "scope": "全校",
+      "description": "教師彈性教學與期末綜合評量",
+      "isMajor": false
+    },
+    {
+      "id": "ncu-113-winter-break",
+      "title": "寒假開始",
+      "category": "Holiday",
+      "startDate": "2025-01-13",
+      "endDate": "2025-02-16",
+      "scope": "全校",
+      "description": "113 學年度寒假",
+      "isMajor": false
+    },
+    {
+      "id": "ncu-113-2-start",
+      "title": "113-2 開學日",
+      "category": "Milestone",
+      "startDate": "2025-02-17",
+      "endDate": "2025-02-17",
+      "scope": "全校",
+      "description": "113 學年度第二學期開始上課",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-113-2-midterm",
+      "title": "113-2 期中成績評量週",
+      "category": "Official_Exam",
+      "startDate": "2025-04-14",
+      "endDate": "2025-04-25",
+      "scope": "全校課程",
+      "description": "113 學年度第二學期期中評量（授課教師自行安排）",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-113-2-final",
+      "title": "113-2 期末成績評量週",
+      "category": "Official_Exam",
+      "startDate": "2025-06-02",
+      "endDate": "2025-06-20",
+      "scope": "全校課程",
+      "description": "113 學年度第二學期期末評量與彈性週",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-114-1-start",
+      "title": "114-1 開學上課日",
+      "category": "Milestone",
+      "startDate": "2025-09-01",
+      "endDate": "2025-09-01",
+      "scope": "全校",
+      "description": "114 學年度第一學期開始上課",
+      "isMajor": true
+    },
+    {
+      "id": "ncu-114-1-midterm",
+      "title": "114-1 期中成績評量週",
+      "category": "Official_Exam",
+      "startDate": "2025-10-20",
+      "endDate": "2025-10-23",
+      "scope": "全校課程",
+      "description": "114 學年度第一學期期中評量（各授課教師自行安排）",
+      "isMajor": true
+    }
+  ]
+}

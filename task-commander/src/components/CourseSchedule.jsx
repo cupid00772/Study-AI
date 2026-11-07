@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, GraduationCap, BookOpen } from 'lucide-react';
+import defaultTracker from '../data/defaultTracker.json';
 
 const INITIAL_ITEMS = [
   // 共同必修
@@ -62,7 +63,8 @@ const SEMESTERS = [
   { key: '4-1', label: '四上' }, { key: '4-2', label: '四下' }
 ];
 
-export default function CourseSchedule() {
+export default function CourseSchedule({ currentCourses = [] }) {
+  const displayCourses = currentCourses && currentCourses.length > 0 ? currentCourses : (defaultTracker.courses || []);
   const [courses, setCourses] = useState(() => {
     try {
       const saved = localStorage.getItem('wt_courses_v2');
@@ -73,6 +75,8 @@ export default function CourseSchedule() {
     }
   });
 
+  const [activeTab, setActiveTab] = useState('current'); // 'current' | 'curriculum'
+
   useEffect(() => {
     localStorage.setItem('wt_courses_v2', JSON.stringify(courses));
   }, [courses]);
@@ -81,17 +85,13 @@ export default function CourseSchedule() {
     setCourses(previousCourses => previousCourses.map(c => c.id === id ? { ...c, completed: !c.completed } : c));
   };
 
-  const {
-    completedTotal,
-  } = useMemo(() => {
+  const { completedTotal } = useMemo(() => {
     let completedTotal = 0;
-
     courses.forEach(c => {
       if (c.completed) {
         completedTotal += c.credits;
       }
     });
-
     return { completedTotal };
   }, [courses]);
 
@@ -99,64 +99,110 @@ export default function CourseSchedule() {
   const cats = ["共同必修", "院訂必修", "系訂必修"];
 
   const thStyle = {
-    padding: '12px 8px',
-    borderBottom: '2px solid var(--border-color)',
+    padding: '12px 10px',
+    borderBottom: '1px solid var(--border-color)',
     textAlign: 'center',
-    fontWeight: '600',
-    backgroundColor: 'var(--bg-panel-hover)',
+    fontWeight: '700',
+    backgroundColor: 'var(--bg-input)',
     color: 'var(--text-main)',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    fontSize: '0.88rem'
   };
 
   const tdStyle = {
-    padding: '10px 8px',
-    borderBottom: '1px solid var(--border-color)',
-    borderRight: '1px solid var(--border-color)',
+    padding: '10px 10px',
+    borderBottom: '1px solid var(--border-subtle)',
+    borderRight: '1px solid var(--border-subtle)',
     verticalAlign: 'middle',
+    fontSize: '0.86rem'
   };
 
   return (
-    <div className="course-schedule-container" style={{ animation: 'fadeIn 0.3s ease-out' }}>
-      
-      {/* 頂部進度統計 */}
-      <div className="dashboard-stats" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-        <div className="stat-card" style={{ flex: 1, background: 'var(--bg-panel)', border: '1px solid var(--border-color)', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-          <h4 style={{ color: 'var(--text-muted)', margin: '0 0 10px 0', textTransform: 'uppercase', fontSize: '0.9rem' }}>總抵免/已修學分</h4>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--accent-gold)' }}>
-            {completedTotal} / 128
+    <div className="assignments-container">
+      {/* Tab Switch */}
+      <div className="filter-bar">
+        <div className="nav-pills">
+          <button
+            className={`nav-pill-btn ${activeTab === 'current' ? 'active' : ''}`}
+            onClick={() => setActiveTab('current')}
+          >
+            <BookOpen size={16} /> 本學期修課總覽
+          </button>
+          <button
+            className={`nav-pill-btn ${activeTab === 'curriculum' ? 'active' : ''}`}
+            onClick={() => setActiveTab('curriculum')}
+          >
+            <GraduationCap size={16} /> 畢業學分檢核表 (128學分)
+          </button>
+        </div>
+
+        {/* Credit Progress Chip */}
+        <div className="gemini-card" style={{ padding: '0.5rem 1.25rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>畢業學分進度：</div>
+          <div style={{ fontWeight: 800, fontSize: '1.1rem', background: 'var(--gemini-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            {completedTotal} / 128 學分
           </div>
-          <div style={{ width: '100%', height: '8px', background: 'var(--bg-dark)', borderRadius: '4px', marginTop: '10px', overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(100, (completedTotal / 128) * 100)}%`, height: '100%', background: 'var(--accent-gold)', transition: 'width 0.3s' }}></div>
+          <div style={{ width: '120px', height: '8px', background: 'var(--bg-input)', borderRadius: '9999px', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.min(100, (completedTotal / 128) * 100)}%`, height: '100%', background: 'var(--gemini-gradient)', borderRadius: '9999px' }} />
           </div>
         </div>
       </div>
 
-      {/* 應修科目表 (網格版) */}
-      <div style={{ background: 'var(--bg-panel)', borderRadius: '8px', border: '1px solid var(--border-color)', overflowX: 'auto', marginBottom: '20px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)', minWidth: '900px' }}>
-          <thead>
-            <tr>
-              <th style={{...thStyle, borderRight: '1px solid var(--border-color)'}}>類別</th>
-              <th style={{...thStyle, borderRight: '1px solid var(--border-color)', minWidth: '160px'}}>課名及課號</th>
-              {SEMESTERS.map(sem => (
-                <th key={sem.key} style={{...thStyle, borderRight: '1px solid var(--border-color)'}}>{sem.label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {cats.map(cat => {
-              const catItems = gridItems.filter(i => i.cat === cat);
-              const uniqueNames = [...new Set(catItems.map(i => i.name))];
-              
-              return uniqueNames.map((name, index) => {
-                return (
-                  <tr key={`${cat}-${name}`} style={{ backgroundColor: 'var(--bg-dark)' }}>
+      {/* Tab 1: Current Semester Courses */}
+      {activeTab === 'current' && (
+        <div className="vault-grid">
+          {displayCourses.map(c => (
+            <div key={c.id} className="gemini-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span className="badge-chip badge-blue">{c.code}</span>
+                  <span className="badge-chip badge-purple">{c.category} • {c.credits} 學分</span>
+                </div>
+
+                <h3 style={{ margin: '0 0 0.4rem', fontSize: '1.2rem', fontWeight: 800 }}>{c.name}</h3>
+                <div style={{ fontSize: '0.85rem', color: 'var(--gemini-blue)', fontWeight: 600, marginBottom: '0.5rem' }}>
+                  📍 {c.location} | ⏰ {c.schedule}
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                  {c.description}
+                </p>
+              </div>
+
+              <div style={{ marginTop: '1.25rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <span>教授：{c.instructor}</span>
+                <span className="badge-chip badge-green">修習中</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Tab 2: Curriculum Grid */}
+      {activeTab === 'curriculum' && (
+        <div className="gemini-card" style={{ padding: '0', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '940px' }}>
+            <thead>
+              <tr>
+                <th style={{ ...thStyle, borderRight: '1px solid var(--border-color)', width: '110px' }}>類別</th>
+                <th style={{ ...thStyle, borderRight: '1px solid var(--border-color)', minWidth: '180px', textAlign: 'left' }}>課名及課號</th>
+                {SEMESTERS.map(sem => (
+                  <th key={sem.key} style={{ ...thStyle, borderRight: '1px solid var(--border-color)', width: '80px' }}>{sem.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {cats.map(cat => {
+                const catItems = gridItems.filter(i => i.cat === cat);
+                const uniqueNames = [...new Set(catItems.map(i => i.name))];
+                
+                return uniqueNames.map((name, index) => (
+                  <tr key={`${cat}-${name}`} style={{ background: index % 2 === 0 ? 'var(--bg-panel)' : 'var(--bg-app)' }}>
                     {index === 0 && (
-                      <td rowSpan={uniqueNames.length} style={{ ...tdStyle, fontWeight: 'bold', textAlign: 'center', backgroundColor: 'var(--bg-panel)' }}>
+                      <td rowSpan={uniqueNames.length} style={{ ...tdStyle, fontWeight: '700', textAlign: 'center', background: 'var(--bg-input)' }}>
                         {cat}
                       </td>
                     )}
-                    <td style={{ ...tdStyle, backgroundColor: 'var(--bg-panel)' }}>{name}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600 }}>{name}</td>
                     {SEMESTERS.map(sem => {
                       const cellItems = catItems.filter(i => i.name === name && i.sem === sem.key);
                       return (
@@ -169,72 +215,32 @@ export default function CourseSchedule() {
                                 cursor: 'pointer', 
                                 display: 'inline-flex', 
                                 alignItems: 'center', 
-                                gap: '6px',
-                                color: item.completed ? 'var(--success)' : 'var(--text-muted)',
-                                background: item.completed ? 'rgba(74, 222, 128, 0.1)' : 'transparent',
+                                gap: '5px',
+                                color: item.completed ? '#059669' : 'var(--text-muted)',
+                                background: item.completed ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
                                 padding: '4px 8px',
-                                borderRadius: '4px',
-                                border: `1px solid ${item.completed ? 'var(--success)' : 'transparent'}`,
+                                borderRadius: 'var(--radius-pill)',
+                                border: `1px solid ${item.completed ? 'rgba(16, 185, 129, 0.4)' : 'transparent'}`,
                                 margin: '2px 0',
-                                fontWeight: item.completed ? 'bold' : 'normal',
-                                transition: 'all 0.2s'
+                                fontWeight: item.completed ? '700' : 'normal',
+                                transition: 'all 0.2s',
+                                fontSize: '0.8rem'
                               }}
-                              title="點擊切換狀態"
                             >
-                              {item.completed ? <CheckCircle2 size={16} /> : <Circle size={16} />}
-                              <span>{item.credits}</span>
+                              {item.completed ? <CheckCircle2 size={13} /> : <Circle size={13} />}
+                              <span>{item.credits} 學分</span>
                             </div>
                           ))}
                         </td>
                       );
                     })}
                   </tr>
-                )
-              })
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 通識與選修區塊 */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {["通識課程 (14學分)", "必選修及其他選修"].map(cat => (
-          <div key={cat} style={{ flex: '1 1 300px', background: 'var(--bg-panel)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <h4 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginTop: 0, marginBottom: '15px', color: 'var(--text-main)' }}>{cat}</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {courses.filter(i => i.type === 'other' && i.cat === cat).map(item => (
-                <div 
-                  key={item.id}
-                  onClick={() => toggleCourse(item.id)}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '10px', 
-                    padding: '10px', 
-                    borderRadius: '6px', 
-                    background: item.completed ? 'rgba(74, 222, 128, 0.1)' : 'var(--bg-dark)',
-                    cursor: 'pointer',
-                    border: `1px solid ${item.completed ? 'var(--success)' : 'var(--border-color)'}`,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ color: item.completed ? 'var(--success)' : 'var(--text-muted)' }}>
-                    {item.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '500', color: item.completed ? 'var(--success)' : 'var(--text-main)', textDecoration: item.completed ? 'line-through' : 'none' }}>
-                      {item.name}
-                    </div>
-                  </div>
-                  <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>
-                    {item.credits} 學分
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+                ));
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
