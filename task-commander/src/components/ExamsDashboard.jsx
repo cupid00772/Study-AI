@@ -22,6 +22,29 @@ export default function ExamsDashboard({ exams = [], calendarEvents = [], onPrev
     return diffDays;
   };
 
+  const getEventBadge = (startDate, endDate) => {
+    if (!startDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : start;
+
+    if (today >= start && today <= end) {
+      return <span className="badge-chip badge-pink" style={{ marginTop: '4px' }}>🔥 進行中</span>;
+    }
+    const diffDays = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) {
+      return <span className="badge-chip badge-blue" style={{ marginTop: '4px' }}>已結束</span>;
+    }
+    if (diffDays <= 7) {
+      return <span className="badge-chip badge-pink" style={{ marginTop: '4px' }}>⚡ 倒數 {diffDays} 天</span>;
+    }
+    if (diffDays <= 14) {
+      return <span className="badge-chip badge-amber" style={{ marginTop: '4px' }}>⏳ 距今 {diffDays} 天</span>;
+    }
+    return <span className="badge-chip badge-green" style={{ marginTop: '4px' }}>距今 {diffDays} 天</span>;
+  };
+
   return (
     <div className="assignments-container">
       {/* Top Navigation Tabs */}
@@ -113,13 +136,11 @@ export default function ExamsDashboard({ exams = [], calendarEvents = [], onPrev
               <h3 style={{ margin: 0, fontSize: '1.1rem' }}>國立中央大學官方校曆重要日程</h3>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>來源：NCU 教務處註冊組校曆</span>
             </div>
-            <span className="badge-chip badge-blue">113 ~ 114 學年度</span>
+            <span className="badge-chip badge-blue">115 學年度 (2026 ~ 2027) 最新校曆</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {ncuMilestones.map(event => {
-              const daysLeft = calculateDaysLeft(event.startDate);
-
               return (
                 <div key={event.id} className="gemini-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -141,11 +162,7 @@ export default function ExamsDashboard({ exams = [], calendarEvents = [], onPrev
                     <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>
                       {event.startDate} {event.endDate && event.endDate !== event.startDate ? `~ ${event.endDate}` : ''}
                     </div>
-                    {daysLeft !== null && (
-                      <span className={`badge-chip ${daysLeft < 0 ? 'badge-blue' : daysLeft <= 14 ? 'badge-pink' : 'badge-green'}`} style={{ marginTop: '4px' }}>
-                        {daysLeft < 0 ? '已結束' : `距今 ${daysLeft} 天`}
-                      </span>
-                    )}
+                    {getEventBadge(event.startDate, event.endDate)}
                   </div>
                 </div>
               );

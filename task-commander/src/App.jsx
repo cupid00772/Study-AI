@@ -31,7 +31,7 @@ import {
 
 const INITIAL_TASKS = [
   { id: '1', title: '聯絡清大註冊組', desc: '寄送 Email 詢問轉校事宜', category: 'Main', difficulty: 'Medium', xp: 500, completed: false },
-  { id: '2', title: '整理台聯大微積分考古題', desc: '完成 112~114 年度的錯題檢討', category: 'Challenge', difficulty: 'Hard', xp: 1200, completed: false },
+  { id: '2', title: '整理台聯大微積分考古題', desc: '完成 113~115 年度的錯題檢討', category: 'Challenge', difficulty: 'Hard', xp: 1200, completed: false },
   { id: '3', title: '每日單字複習', desc: '複習 50 個英文單字', category: 'Daily', difficulty: 'Easy', xp: 100, completed: false },
   { id: '4', title: '計算機概論 作業-1', desc: '完成第一章習題', category: 'Main', difficulty: 'Medium', xp: 500, completed: false, relatedCourse: '計算機概論' },
   { id: '5', title: '計算機概論 作業-2', desc: '實作基礎排序演算法', category: 'Main', difficulty: 'Medium', xp: 600, completed: false, relatedCourse: '計算機概論' }
