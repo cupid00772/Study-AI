@@ -2,7 +2,8 @@
 
 ## 填空題 (Fill in the blanks)
 
-### 1. 
+### 1.
+
 **題目：** $\lim_{x\rightarrow0^{+}}\left(1-\frac{\sin x}{x}\right)^{\frac{1}{\ln x}}$
 
 **解析：**
@@ -22,6 +23,7 @@ $$ \ln L = \lim_{x\rightarrow0^{+}} \frac{2\ln x - \ln 6}{\ln x} = \lim_{x\right
 ---
 
 ### 2.
+
 **題目：** $f(x)=\int_{1}^{x-1}e^{-(t-1)^{2}}dt$
 (a) 求 $e^{-x^{2}}$ 在 $a=0$ 的泰勒級數。
 (b) 求 $f(x)$ 在 $a=2$ 的泰勒級數。
@@ -54,6 +56,7 @@ $$ \lim_{u\to 0} \frac{-\frac{1}{10}u^5}{2u^5} = -\frac{1}{20} $$
 ---
 
 ### 3.
+
 **題目：** $e^{x^{2}+y}-\ln\left(\frac{x}{y^{2}}\right)=1$ 在 $(1,-1)$ 附近定義 $y(x)$。
 (a) 求 $y(x)$ 在 $x=1$ 的線性化。
 (b) 求 $y''(1)$。
@@ -78,6 +81,7 @@ $$ 9 + 2 + y'' + 1 - 2y'' - 2 = 0 \implies 10 - y'' = 0 \implies y''(1) = 10 $$
 ---
 
 ### 4.
+
 **題目：** $\int_{0}^{2}\sqrt{\frac{4-x}{x}}dx$
 
 **解析：**
@@ -94,6 +98,7 @@ $$ 4 \int_{0}^{\pi/4} (1+\cos 2\theta) d\theta = 4 \left[ \theta + \frac{1}{2}\s
 ---
 
 ### 5.
+
 **解答 (8)：** $-2x + 3y + 2z = 7$ (詳解同前對話紀錄)
 **解答 (9)：** $-\frac{2\pi}{5\sqrt{17}}$ (詳解同前對話紀錄)
 
@@ -114,8 +119,10 @@ $$ M(0.9) \approx M(1) + \lambda \cdot (0.9 - 1) = 10 + \left(-\frac{1}{6}\right
 ## 計算與證明題 (Computation and Proofs)
 
 ### 6.
+
 *(註：原卷的 (a) 到 (d) 題需要依賴圖形 $y=f'(x)$ 來判斷，以下解答是根據對話中建立的 $f'(x)$ 分段函數特徵所推導的結果。)*
 已知 $f'(x)$ 的分段定義如下：
+
 - $0 < x < 1$: $f'(x) = x$
 - $1 < x < 2$: $f'(x) = -(x-1)^2 - 1$
 - $2 < x < 4$: $f'(x) = \frac{4}{4-x} - 4$
@@ -130,6 +137,7 @@ $$ \lim_{x\rightarrow2^{-}}\frac{f(x)-f(2)}{x-2} = \lim_{d\rightarrow2^{-}} f'(d
 
 **(b) 找出所有臨界點 (Critical numbers) 與局部極值 (Local extrema)**
 臨界點發生在 $f'(x) = 0$ 或 $f'(x)$ 不存在的地方。
+
 1. $f'(x) = 0$ 的點：
    - $(2, 4)$ 區間：$\frac{4}{4-x} - 4 = 0 \implies 4-x = 1 \implies x = 3$。
    - $(4, 6)$ 區間：$\frac{-2(x-5)^2}{x-4} = 0 \implies x = 5$。
@@ -139,6 +147,7 @@ $$ \lim_{x\rightarrow2^{-}}\frac{f(x)-f(2)}{x-2} = \lim_{d\rightarrow2^{-}} f'(d
 故臨界點為 **$x = 1, 3, 4, 5$**。
 
 利用一階導數檢定法判斷極值：
+
 - $x=1$：$f'(x)$ 由正變負，故在 **$x=1$ 有局部極大值 (Local maximum)**。
 - $x=3$：$f'(x)$ 由負變正，故在 **$x=3$ 有局部極小值 (Local minimum)**。
 - $x=4$：$f'(x)$ 由正變負（$\lim_{x\to 4^-}f'(x)=+\infty$, $x>4$ 時 $f'(x)<0$），故在 **$x=4$ 有局部極大值 (Local maximum)**。
@@ -146,18 +155,21 @@ $$ \lim_{x\rightarrow2^{-}}\frac{f(x)-f(2)}{x-2} = \lim_{d\rightarrow2^{-}} f'(d
 
 **(c) 凹凸性與反曲點 (Concavity and Inflection points)**
 計算二次導數 $f''(x)$：
+
 - $0 < x < 1$: $f''(x) = 1 > 0$ （凹向上）
 - $1 < x < 2$: $f''(x) = -2(x-1) < 0$ （凹向下）
 - $2 < x < 4$: $f''(x) = \frac{4}{(4-x)^2} > 0$ （凹向上）
 - $4 < x < 6$: $f''(x) = \frac{-2(x-3)(x-5)}{(x-4)^2}$。在 $(4,5)$ 為正（凹向上），在 $(5,6)$ 為負（凹向下）。
 
 **結論：**
+
 - **Concave upward (凹向上) 區間：** $(0, 1), (2, 4), (4, 5)$
 - **Concave downward (凹向下) 區間：** $(1, 2), (5, 6)$
 - **Inflection points (反曲點)：** 發生在凹凸性改變的點，即 **$x = 1, 2, 5$**。（$x=4$ 雖為分界點，但兩側皆凹向上，故非反曲點）。
 
 **(d) 描繪 $f(x)$ 於 $x \in [0,6]$ 的圖形 (Sketch)**
 *(文字描述繪圖重點)*
+
 - 起點 $(0,0)$ 與終點之一 $(4,0)$ 在 x 軸上。
 - 在 $x=1$ 達到第一個波峰（尖點，不可微）。
 - 在 $x=2$ 反曲點，斜率為 -2。
@@ -190,6 +202,7 @@ $$ \lim_{x\rightarrow\infty}(f(x)-f(6)) = 16\ln\left(\frac{3}{4}\right) - \frac{
 ---
 
 ### 7.
+
 **題目：** 設 $S$ 為曲面 $z=\cos x\sin y$, $0\le y\le\pi$ 且方向向上。向量場 $F(x,y,z)=z\mathbf{i}+yz\mathbf{k}$。
 (a) 參數化 $S$ 並直接計算 $\iint_{S}\text{curl}\mathbf{F}\cdot d\mathbf{S}$。
 (b) 參數化邊界 $C$，計算線積分並驗證 Stokes' Theorem。
@@ -215,17 +228,18 @@ $$ \int_{a}^{b} \frac{1}{2}\sin(2x) \cdot \frac{\pi}{2} dx = \frac{\pi}{4} \int_
 
 **(b) 線積分與驗證 (Line Integral & Stokes' Theorem)**
 邊界 $C$ 包含四個線段（逆時針方向）：
-*   $C_1$: $y=0$, $x$ 從 $a$ 到 $b$。$z = \cos x \sin 0 = 0$。
+
+* $C_1$: $y=0$, $x$ 從 $a$ 到 $b$。$z = \cos x \sin 0 = 0$。
     $\mathbf{r}(x) = \langle x, 0, 0 \rangle$, $d\mathbf{r} = \langle 1, 0, 0 \rangle dx$。
     $\mathbf{F} = \langle 0, 0, 0 \rangle \implies \int_{C_1} \mathbf{F}\cdot d\mathbf{r} = 0$。
-*   $C_2$: $x=b$, $y$ 從 $0$ 到 $\pi$。$z = \cos b \sin y$。
+* $C_2$: $x=b$, $y$ 從 $0$ 到 $\pi$。$z = \cos b \sin y$。
     $\mathbf{r}(y) = \langle b, y, \cos b\sin y \rangle$, $d\mathbf{r} = \langle 0, 1, \cos b\cos y \rangle dy$。
     $\mathbf{F} = \langle z, 0, yz \rangle$。
     $\mathbf{F}\cdot d\mathbf{r} = yz \cos b \cos y = y(\cos b\sin y)\cos b\cos y = \frac{1}{2}y \cos^2 b \sin(2y)$。
     積分：$\int_{0}^{\pi} \frac{1}{2} \cos^2 b (y\sin(2y)) dy = \frac{1}{2} \cos^2 b \left[ -\frac{y}{2}\cos(2y) + \frac{1}{4}\sin(2y) \right]_{0}^{\pi} = \frac{1}{2} \cos^2 b \left(-\frac{\pi}{2}\right) = -\frac{\pi}{4}\cos^2 b$。
-*   $C_3$: $y=\pi$, $x$ 從 $b$ 到 $a$。$z = \cos x \sin \pi = 0$。
+* $C_3$: $y=\pi$, $x$ 從 $b$ 到 $a$。$z = \cos x \sin \pi = 0$。
     與 $C_1$ 同理，$\mathbf{F} = \langle 0, 0, 0 \rangle \implies \int_{C_3} \mathbf{F}\cdot d\mathbf{r} = 0$。
-*   $C_4$: $x=a$, $y$ 從 $\pi$ 到 $0$。$z = \cos a \sin y$。
+* $C_4$: $x=a$, $y$ 從 $\pi$ 到 $0$。$z = \cos a \sin y$。
     $\mathbf{r}(y) = \langle a, y, \cos a\sin y \rangle$。
     $\mathbf{F}\cdot d\mathbf{r} = \frac{1}{2}y \cos^2 a \sin(2y)$。
     積分：$\int_{\pi}^{0} \frac{1}{2} \cos^2 a (y\sin(2y)) dy = - \left(-\frac{\pi}{4}\cos^2 a\right) = \frac{\pi}{4}\cos^2 a$。

@@ -25,3 +25,5 @@ dist-ssr
 
 # Electron build output
 release/
+release-new/
+release*/

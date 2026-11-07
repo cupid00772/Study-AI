@@ -1,10 +1,12 @@
 # 微積分 Chapter 6 掃題測驗 - 積分技巧 - 解答與詳解
 
 ### **Question 1**
+
 **解答：$\frac{1}{3}x^2 e^{3x} - \frac{2}{9}x e^{3x} + \frac{2}{27}e^{3x} + C$**
 **詳解**：
 使用表格法 (Tabular Integration) 或連續兩次分部積分。
 令 $u$ 為多項式，$dv$ 為指數：
+
 | 符號 | 微分 (D) | 積分 (I) |
 | :---: | :---: | :---: |
 | $+$ | $x^2$ | $e^{3x}$ |
@@ -19,6 +21,7 @@ $= \frac{1}{3}x^2 e^{3x} - \frac{2}{9}x e^{3x} + \frac{2}{27}e^{3x} + C$。
 ---
 
 ### **Question 2**
+
 **解答：$\frac{1}{5}e^{2x} (2\sin x - \cos x) + C$**
 **詳解**：
 令 $I = \int e^{2x} \sin(x) dx$。使用分部積分：
@@ -36,6 +39,7 @@ $I = \frac{1}{2}e^{2x}\sin x - \frac{1}{4}e^{2x}\cos x - \frac{1}{4} I$
 ---
 
 ### **Question 3**
+
 **解答：$\frac{2}{15}$**
 **詳解**：
 因為 $\sin(x)$ 的次方為奇數，提出一個 $\sin(x)$：
@@ -48,6 +52,7 @@ $= \left[ \frac{u^3}{3} - \frac{u^5}{5} \right]_0^1 = \frac{1}{3} - \frac{1}{5} 
 ---
 
 ### **Question 4**
+
 **解答：$-\frac{\sqrt{9-x^2}}{x} - \arcsin(\frac{x}{3}) + C$**
 **詳解**：
 看到 $\sqrt{a^2 - x^2}$ 型式，令 $x = 3\sin\theta \implies dx = 3\cos\theta d\theta$。
@@ -64,6 +69,7 @@ $\int (\csc^2\theta - 1) d\theta = -\cot\theta - \theta + C$。
 ---
 
 ### **Question 5**
+
 **解答：$\ln|x| + \frac{1}{2}\ln(x^2+4) - \frac{1}{2}\arctan(\frac{x}{2}) + C$**
 **詳解**：
 分母可因式分解為 $x(x^2+4)$。使用部分分式分解：
@@ -83,6 +89,7 @@ $\int \left( \frac{1}{x} + \frac{x-1}{x^2+4} \right) dx = \int \frac{1}{x} dx + 
 ---
 
 ### **Question 6**
+
 **解答：$2\sqrt{x} - 2\ln(1+\sqrt{x}) + C$**
 **詳解**：
 令 $u = \sqrt{x} \implies x = u^2 \implies dx = 2u du$。

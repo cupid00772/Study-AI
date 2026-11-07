@@ -67,12 +67,14 @@ This skill enables the AI agent to generate high-quality, customized mock exam p
 9. **學習狀態與弱點追蹤機制 (Learning Status & Weakness Tracking)**
    - AI 必須在各科目維護一份 `Learning_Status.md`。
    - **資料結構模板規範**：必須嚴格遵守以下 Markdown 表格範本，確保格式統一不變形：
+
      ```markdown
      # [科目名稱] 學習狀態追蹤 (Learning Status)
      | 章節 (Chapter) | 精熟度 | 上次測驗日期 | 易錯盲點紀錄 (Weaknesses & Pitfalls) |
      | :--- | :---: | :--- | :--- |
      | Ch X. 章節名稱 | 🔴/🟡/🟢 | YYYY-MM-DD | 具體的錯誤觀念或弱點描述 |
      ```
+
    - **出題前**：先讀取 `Learning_Status.md` 了解學習狀態，針對 🔴 (弱點) 或 🟡 (尚可) 強化出題，避開重複考點。
    - **測驗後**：依據作答與檢討結果，自動以上述表格格式覆寫更新 `Learning_Status.md`。
 

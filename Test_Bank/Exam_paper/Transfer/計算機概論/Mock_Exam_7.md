@@ -1,6 +1,7 @@
 # 台灣聯合大學系統 模擬轉學考 計算機概論 (Mock Exam 7)
 
 ## 測驗說明 (Exam Instructions)
+
 - **測驗時間**：80 分鐘
 - **總分**：100 分
 - **出題範圍**：計算機組織、作業系統、資料結構與演算法、網路原理、C/C++ 程式設計
@@ -48,6 +49,7 @@
 (D) O(V³)
 
 **7. What is the output of the following C++ code?**
+
 ```cpp
 #include <iostream>
 using namespace std;
@@ -69,6 +71,7 @@ int main() {
     return 0;
 }
 ```
+
 (A) Animal
 (B) Dog
 (C) Animal Dog
@@ -105,11 +108,13 @@ int main() {
 (D) ICMP
 
 **13. In C/C++, what is the result of using the `sizeof` operator on an array passed as a parameter to a function? For example:**
+
 ```c
 void printSize(int arr[]) {
     printf("%lu", sizeof(arr));
 }
 ```
+
 (A) The total number of bytes occupied by all elements in the array.
 (B) The number of elements in the array.
 (C) The size of a pointer to an integer.

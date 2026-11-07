@@ -1,9 +1,9 @@
 # Chapter 3: Linear Lists & Linked List Implementations
 
-> 📚 **課程名稱**：資料結構 (Data Structures)  
-> 📖 **對應章節**：Chapter 3 Linked Lists (Linear List Concepts ~ Complex Linked List Structures)  
-> 👨‍🏫 **授課教師**：Kuen-Liang Sue (NCU IM)  
-> 📄 **參考講義**：[DS_Ch3.pdf](file:///c:/Users/Cupid/Downloads/Study-space/Reference/NCU_Classes/資料結構/DS_Ch3.pdf)  
+> 📚 **課程名稱**：資料結構 (Data Structures)
+> 📖 **對應章節**：Chapter 3 Linked Lists (Linear List Concepts ~ Complex Linked List Structures)
+> 👨‍🏫 **授課教師**：Kuen-Liang Sue (NCU IM)
+> 📄 **參考講義**：[DS_Ch3.pdf](file:///c:/Users/Cupid/Downloads/Study-space/Reference/NCU_Classes/資料結構/DS_Ch3.pdf)
 > 🔖 **先修觀念**：[Chapter 1 ADT 模型與 C++ 樣板](./Chapter_1_教材.md)、[Chapter 2 搜尋演算法](./Chapter_2_教材.md)、C/C++ 動態記憶體配置（`new`/`delete`, `malloc`/`free`）與指標運算
 
 ---
@@ -13,21 +13,21 @@
 ```mermaid
 flowchart LR
     Root(["Chapter 3: 線性串列與鏈結串列實作"])
-    
+  
     Root --> Sec1["3-1 線性串列概念 (Linear List Concepts)"]
     Sec1 --> Sec1_1["陣列 vs. 鏈結串列對比<br>(連續記憶體 vs. 動態節點)"]
     Sec1 --> Sec1_2["串列四大基本操作<br>(Insert, Delete, Retrieve, Traverse)"]
-    
+  
     Root --> Sec2["3-2 單向鏈結串列演算法 (Singly Linked List)"]
     Sec2 --> Sec2_1["節點與表頭結構<br>(Data Node & Head Structure Metadata)"]
     Sec2 --> Sec2_2["插入演算法四大情境<br>(空串列、鏈首、鏈中、鏈尾；先連後斷法則)"]
     Sec2 --> Sec2_3["刪除演算法與記憶體回收<br>(刪首節點 vs. 一般刪除，防止 Memory Leak)"]
     Sec2 --> Sec2_4["走訪與串列銷毀<br>(Traverse, Destroy List)"]
-    
+  
     Root --> Sec3["3-3 鏈結串列進階應用 (List Applications)"]
     Sec3 --> Sec3_1["串列附加 (Append Lists)"]
     Sec3 --> Sec3_2["串列陣列 (Array of Lists / 多串列管理)"]
-    
+  
     Root --> Sec4["3-4 複雜鏈結串列架構 (Complex Structures)"]
     Sec4 --> Sec4_1["環狀鏈結串列 (Circularly Linked List)<br>(尾節點指回首節點，無 NULL 結尾)"]
     Sec4 --> Sec4_2["雙向鏈結串列 (Doubly Linked List)<br>(Predecessor & Successor 指標，插入四步曲與刪除)"]
@@ -39,7 +39,6 @@ flowchart LR
     click Sec2 href "#sec-2" "👉 點擊閱讀 3-2 單向鏈結串列演算法 (Singly Linked List)"
     click Sec3 href "#sec-3" "👉 點擊閱讀 3-3 鏈結串列進階應用 (List Applications)"
     click Sec4 href "#sec-4" "👉 點擊閱讀 3-4 複雜鏈結串列架構 (Complex Structures)"
-
 ```
 
 <a id="tree-diagram"></a>
@@ -63,14 +62,14 @@ flowchart LR
 
 #### 1. 陣列 vs. 鏈結串列本質特性比較
 
-| 評估維度 | 循序陣列 (Array) | 鏈結串列 (Linked List) |
-| :--- | :--- | :--- |
-| **記憶體配置方式** | 靜態配置或固定連續記憶體區塊 | 動態分散配置（Dynamic Allocation，堆積區 Heap） |
-| **隨機存取能力** | 支援常數時間隨機存取：$O(1)$ (`list[i]`) | 不支援隨機存取，需循序走訪：$O(n)$ |
-| **插入與刪除節點** | 需大量搬移後續元素：$O(n)$ | 僅需調整相鄰指標：已知位置下為 $O(1)$ |
-| **記憶體利用彈性** | 固定容量，容易溢位（Overflow）或浪費空間 | 隨插隨配、隨刪隨釋，大小動態調整 |
-| **額外空間開銷** | 零額外空間（純儲存資料欄位） | 每個節點均需額外負擔指標（`link/next`）空間開銷 |
-| **CPU Cache 局部性** | 高（空間局部性 Spatial Locality 優異） | 低（節點位址分散，Cache Miss 機率高） |
+| 評估維度                   | 循序陣列 (Array)                                                                    | 鏈結串列 (Linked List)                            |
+| :------------------------- | :---------------------------------------------------------------------------------- | :------------------------------------------------ |
+| **記憶體配置方式**   | 靜態配置或固定連續記憶體區塊                                                        | 動態分散配置（Dynamic Allocation，堆積區 Heap）   |
+| **隨機存取能力**     | 支援常數時間隨機存取：$O(1)$ (`list[i]`) | 不支援隨機存取，需循序走訪：$O(n)$ |                                                   |
+| **插入與刪除節點**   | 需大量搬移後續元素：$O(n)$                                                        | 僅需調整相鄰指標：已知位置下為$O(1)$            |
+| **記憶體利用彈性**   | 固定容量，容易溢位（Overflow）或浪費空間                                            | 隨插隨配、隨刪隨釋，大小動態調整                  |
+| **額外空間開銷**     | 零額外空間（純儲存資料欄位）                                                        | 每個節點均需額外負擔指標（`link/next`）空間開銷 |
+| **CPU Cache 局部性** | 高（空間局部性 Spatial Locality 優異）                                              | 低（節點位址分散，Cache Miss 機率高）             |
 
 #### 2. 線性串列的四大基本操作
 
@@ -95,23 +94,21 @@ flowchart LR
       TYPE data;
       Node<TYPE>* next;
   };
-
   ```
 
 * **表頭結構 (Head Structure Metadata)**：
   為了強化 ADT 的管理效能，現代實作常設計獨立的 Head Structure，內含元數據：
+
   * `count`：記錄目前串列中的節點總數（使取得串列長度由 $O(n)$ 降為 $O(1)$）。
   * `head`：指向串列第一個節點的指標。
   * `rear` / `tail`（可選）：指向串列最後一個節點的指標（使尾端插入由 $O(n)$ 降為 $O(1)$）。
 
 ```
-
         Head Structure                    Data Nodes
      ┌──────────────────┐           ┌──────────────┐     ┌──────────────┐
      │ count: 2         │     ┌────>│ data: "A"    │┌───>│ data: "B"    │
      │ head:  ──────────┼─────┘     │ next: ───────┼┘    │ next: NULL   │
      └──────────────────┘           └──────────────┘     └──────────────┘
-
 ```
 
 #### 2. 插入節點演算法四大情境與「先連後斷」黃金法則
@@ -119,7 +116,7 @@ flowchart LR
 給定待插入的新節點指標 `pNew`，以及由搜尋演算法定位出的前驅指標 `pPre`：
 
 ##### 核心法則：先連後斷（Prevent Memory Leak & Lost Link）
->
+
 > ⚠️ **死記鐵律**：永遠必須**先讓新節點的指標指向後續節點**，確認鏈結安全後，**再將前驅節點的指標改指向新節點**！若順序顛倒，後續整個鏈結串列將永遠遺失在記憶體中（造成致命 Memory Leak）！
 
 1. **情境一：插入空串列 (Insert into Empty List)**
@@ -164,7 +161,6 @@ void destroyList(Node*& head) {
     }
     head = NULL;
 }
-
 ```
 
 ---
@@ -208,7 +204,6 @@ void destroyList(Node*& head) {
     * 尾端插入與首端插入均可在 $O(1)$ 時間內完成！
 
 ```
-
                       ┌─────────────────────────────────┐
                       │                                 ▼
                  ┌──────────┐     ┌──────────┐     ┌──────────┐
@@ -217,7 +212,6 @@ void destroyList(Node*& head) {
                  └──────────┘     └──────────┘     └──────────┘  │
                       ▲                                          │
                       └──────────────────────────────────────────┘
-
 ```
 
 #### 2. 雙向鏈結串列 (Doubly Linked List)
@@ -233,7 +227,6 @@ struct DNode {
     DNode* prev;
     DNode* next;
 };
-
 ```
 
 ##### 雙向鏈結串列插入四部曲 (Double Linked Insert)
@@ -255,7 +248,6 @@ if (pSucc != NULL)
     pSucc->prev = pNew;
 else
     list->rear = pNew; // 插入尾端特例
-
 ```
 
 ##### 雙向鏈結串列刪除兩部曲 (Double Linked Delete)
@@ -277,7 +269,6 @@ else
 
 // 步驟 3: 釋放節點記憶體
 delete pCur;
-
 ```
 
 #### 3. 雙向環狀串列 (Doubly Circularly Linked List)
@@ -312,7 +303,7 @@ Node* reverseList(Node* head) {
     Node* pPre = NULL;
     Node* pCur = head;
     Node* pNext = NULL;
-    
+  
     while (pCur != NULL) {
         pNext = pCur->next; // 1. 先暫存下一個節點，防止斷鏈
         pCur->next = pPre;  // 2. 將當前節點指針轉向，指向前驅節點
@@ -321,7 +312,6 @@ Node* reverseList(Node* head) {
     }
     return pPre; // pPre 最終即為反轉後的全新表頭
 }
-
 ```
 
 * **分析**：僅巡訪串列一次，時間複雜度為 $O(n)$，僅耗費三個輔助指標變數，空間複雜度為嚴格 $O(1)$。
@@ -340,10 +330,10 @@ Node* reverseList(Node* head) {
 
 在單向鏈結串列（Singly Linked List）中，若已知前驅節點指標為 `pPre`，欲在其後方插入一個新節點 `pNew`。下列何組 C++ 指標指派順序能正確完成插入且**絕對不會造成記憶體斷鏈**？
 
-(A) `pPre->next = pNew;` 然後 `pNew->next = pPre->next;`  
-(B) `pNew->next = pPre->next;` 然後 `pPre->next = pNew;`  
-(C) `pNew->next = pPre;` 然後 `pPre = pNew;`  
-(D) `pPre = pNew;` 然後 `pNew->next = pPre->next;`  
+(A) `pPre->next = pNew;` 然後 `pNew->next = pPre->next;`
+(B) `pNew->next = pPre->next;` 然後 `pPre->next = pNew;`
+(C) `pNew->next = pPre;` 然後 `pPre = pNew;`
+(D) `pPre = pNew;` 然後 `pNew->next = pPre->next;`
 
 👉 [查看 Q1 答案與詳細解析](#ans-q1)
 
@@ -355,10 +345,10 @@ Node* reverseList(Node* head) {
 
 設 `head` 為指向單向鏈結串列第一個節點的指標。欲正確刪除第一個節點並妥善釋放其動態記憶體（防止 Memory Leak），下列操作步驟順序何者正確？
 
-(A) `delete head;` 然後 `head = head->next;`  
-(B) `head = head->next;` 然後 `delete head;`  
-(C) `Node* pDel = head; head = head->next; delete pDel;`  
-(D) `head->next = nullptr; delete head;`  
+(A) `delete head;` 然後 `head = head->next;`
+(B) `head = head->next;` 然後 `delete head;`
+(C) `Node* pDel = head; head = head->next; delete pDel;`
+(D) `head->next = nullptr; delete head;`
 
 👉 [查看 Q2 答案與詳細解析](#ans-q2)
 
@@ -370,10 +360,10 @@ Node* reverseList(Node* head) {
 
 在傳統單向環狀鏈結串列中，走訪串列時判斷是否已經回到首節點（或串列結尾）的終止條件為何？
 
-(A) 當前節點的 `next == nullptr`  
-(B) 當前節點的 `next == head`  
-(C) 當前節點的資料欄位為 0  
-(D) 當前節點的 `prev == nullptr`  
+(A) 當前節點的 `next == nullptr`
+(B) 當前節點的 `next == head`
+(C) 當前節點的資料欄位為 0
+(D) 當前節點的 `prev == nullptr`
 
 👉 [查看 Q3 答案與詳細解析](#ans-q3)
 
@@ -384,13 +374,13 @@ Node* reverseList(Node* head) {
 #### Q4. (基礎複雜度計算) 首指標 vs. 尾指標的操作複雜度
 
 某單向鏈結串列包含 $n$ 個節點：
-(1) 若外部**僅維護一個首指標 `head`**，在串列尾端插入一個新節點的時間複雜度為何？  
-(2) 若外部**同時維護首指標 `head` 與尾指標 `rear`**，在串列尾端插入一個新節點的時間複雜度為何？  
+(1) 若外部**僅維護一個首指標 `head`**，在串列尾端插入一個新節點的時間複雜度為何？
+(2) 若外部**同時維護首指標 `head` 與尾指標 `rear`**，在串列尾端插入一個新節點的時間複雜度為何？
 
-(A) (1) $O(1)$, (2) $O(1)$  
-(B) (1) $O(n)$, (2) $O(1)$  
-(C) (1) $O(n)$, (2) $O(n)$  
-(D) (1) $O(1)$, (2) $O(n)$  
+(A) (1) $O(1)$, (2) $O(1)$
+(B) (1) $O(n)$, (2) $O(1)$
+(C) (1) $O(n)$, (2) $O(n)$
+(D) (1) $O(1)$, (2) $O(n)$
 
 👉 [查看 Q4 答案與詳細解析](#ans-q4)
 
@@ -402,10 +392,10 @@ Node* reverseList(Node* head) {
 
 在雙向鏈結串列（Doubly Linked List）中，欲在前驅節點 `pPre` 與後繼節點 `pSucc` 之間插入新節點 `pNew`。依據「先連後斷（先設定新節點兩側指標，再修改相鄰舊節點指標）」原則，下列哪一步驟**屬於錯誤或危險的指派**？
 
-(A) `pNew->prev = pPre;`  
-(B) `pNew->next = pSucc;`  
-(C) `pPre->next = pSucc;`  
-(D) `pPre->next = pNew;`  
+(A) `pNew->prev = pPre;`
+(B) `pNew->next = pSucc;`
+(C) `pPre->next = pSucc;`
+(D) `pPre->next = pNew;`
 
 👉 [查看 Q5 答案與詳細解析](#ans-q5)
 
@@ -425,15 +415,14 @@ Node* reverseList(Node* head) {
 // 欲在 pPre 後方插入 pNew
 pPre->next = pNew;         // Step 1
 pNew->next = pPre->next;   // Step 2
-
 ```
 
 請問執行這兩行程式碼後，會造成下列哪種災難性後果？
 
-(A) 程式在編譯時期直接報錯，無法編譯  
-(B) `pNew` 會形成「指向自己的無限自環（Self-loop）」，且原本 `pPre` 後方的整個子串列徹底斷鏈並造成記憶體洩漏  
-(C) `pNew` 成功插入，但 `pPre` 的資料被覆蓋  
-(D) 串列反轉，`pNew` 變成了第一個節點  
+(A) 程式在編譯時期直接報錯，無法編譯
+(B) `pNew` 會形成「指向自己的無限自環（Self-loop）」，且原本 `pPre` 後方的整個子串列徹底斷鏈並造成記憶體洩漏
+(C) `pNew` 成功插入，但 `pPre` 的資料被覆蓋
+(D) 串列反轉，`pNew` 變成了第一個節點
 
 👉 [查看 Q6 答案與詳細解析](#ans-q6)
 
@@ -445,10 +434,10 @@ pNew->next = pPre->next;   // Step 2
 
 在實作佇列（Queue，先進先出 FIFO）時，如果採用單向環狀鏈結串列實作，軟體架構師通常「**僅維護一個指向最後節點的 `rear` 指標**」，而不需要額外維護指向第一個節點的 `front` 指標。其最關鍵的實務理由為何？
 
-(A) 因為維護兩個指標會消耗雙倍的 CPU 運算時間  
-(B) 因為透過 `rear` 可以 $O(1)$ 時間存取尾端，且透過 `rear->next` 也能以 $O(1)$ 時間直接存取首端節點  
-(C) 因為環狀串列不允許存在兩個外部指標  
-(D) 因為只有單一指標才能避免死結 (Deadlock)  
+(A) 因為維護兩個指標會消耗雙倍的 CPU 運算時間
+(B) 因為透過 `rear` 可以 $O(1)$ 時間存取尾端，且透過 `rear->next` 也能以 $O(1)$ 時間直接存取首端節點
+(C) 因為環狀串列不允許存在兩個外部指標
+(D) 因為只有單一指標才能避免死結 (Deadlock)
 
 👉 [查看 Q7 答案與詳細解析](#ans-q7)
 
@@ -459,14 +448,15 @@ pNew->next = pPre->next;   // Step 2
 #### Q8. (多重鏈結應用情境) 多重鏈結串列 (Multilinked Lists) 的適用場景
 
 大學教務處需要管理 10,000 名學生的資料，並且需要頻繁支援以下兩種操作：
-1. 依照「學號」由小到大順序循序列印全體名冊。  
-2. 依照「總成績」由高到低順序循序列印獎學金名冊。  
-若要求記憶體中「每位學生的基本資料（姓名、地址等）僅能儲存一份」，且不希望在每次列印前重新執行昂貴的排序演算法，應採用何種資料結構架構？
 
-(A) 兩個完全獨立的動態陣列，資料複製兩份  
-(B) 單向環狀鏈結串列搭配二分搜尋  
-(C) 多重鏈結串列（Multilinked List），每個學生節點包含一份資料實體與兩組指標：`nextByID` 與 `nextByGrade`  
-(D) 靜態固定長度陣列搭配取模雜湊法  
+1. 依照「學號」由小到大順序循序列印全體名冊。
+2. 依照「總成績」由高到低順序循序列印獎學金名冊。
+   若要求記憶體中「每位學生的基本資料（姓名、地址等）僅能儲存一份」，且不希望在每次列印前重新執行昂貴的排序演算法，應採用何種資料結構架構？
+
+(A) 兩個完全獨立的動態陣列，資料複製兩份
+(B) 單向環狀鏈結串列搭配二分搜尋
+(C) 多重鏈結串列（Multilinked List），每個學生節點包含一份資料實體與兩組指標：`nextByID` 與 `nextByGrade`
+(D) 靜態固定長度陣列搭配取模雜湊法
 
 👉 [查看 Q8 答案與詳細解析](#ans-q8)
 
@@ -482,15 +472,14 @@ pNew->next = pPre->next;   // Step 2
 pLoc->prev->next = pLoc->next;
 pLoc->next->prev = pLoc->prev;
 delete pLoc;
-
 ```
 
 若被刪除的節點 `pLoc` 恰好是「**串列中的最後一個節點**」，執行上述程式碼會發生什麼嚴重錯誤？
 
-(A) 邏輯完全正常，能順利刪除  
-(B) 在執行 `pLoc->next->prev` 時會因為解引用空指標（Null Pointer Dereference）而導致程式崩潰 (Segmentation Fault)  
-(C) 串列會變成環狀串列  
-(D) 會刪除到前一個節點  
+(A) 邏輯完全正常，能順利刪除
+(B) 在執行 `pLoc->next->prev` 時會因為解引用空指標（Null Pointer Dereference）而導致程式崩潰 (Segmentation Fault)
+(C) 串列會變成環狀串列
+(D) 會刪除到前一個節點
 
 👉 [查看 Q9 答案與詳細解析](#ans-q9)
 
@@ -505,7 +494,7 @@ delete pLoc;
 #### Q10. (演算法推導題) 單向鏈結串列就地反轉 (In-place Reversal)
 
 給定一單向鏈結串列的首節點指標 `head`，要求在不配置額外節點空間的前提下（即空間複雜度為 $O(1)$），將整條串列方向就地反轉：
-(1) 請以 C++ 虛擬碼寫出使用三指標（`pPre`、`pCurr`、`pNext`）的反轉迴圈核心邏輯。  
+(1) 請以 C++ 虛擬碼寫出使用三指標（`pPre`、`pCurr`、`pNext`）的反轉迴圈核心邏輯。
 (2) 請詳細說明在迴圈的單一輪迭代中，指標如何一步一步轉移，並說明迴圈終止時新的首指標是哪一個指標變數。
 
 👉 [查看 Q10 答案與詳細解析](#ans-q10)
@@ -517,7 +506,7 @@ delete pLoc;
 #### Q11. (架構設計哲學) 虛擬表頭節點 (Dummy Head Node / Sentinel) 的工程效益
 
 在 Linux 核心原始碼（如 `list_head`）或現代資料結構程式庫中，幾乎所有鏈結串列實作皆強制採用「虛擬表頭節點（Dummy Head / Sentinel Node）」：
-(1) 試論述虛擬頭節點在軟體架構層面，消除了哪些繁瑣的特殊邊界情況（Edge Cases）判斷？  
+(1) 試論述虛擬頭節點在軟體架構層面，消除了哪些繁瑣的特殊邊界情況（Edge Cases）判斷？
 (2) 請分別以「在首端插入新節點」為例，展示有 Dummy Head 與無 Dummy Head 時，演算法邏輯複雜度的對比差異。
 
 👉 [查看 Q11 答案與詳細解析](#ans-q11)
@@ -528,7 +517,7 @@ delete pLoc;
 
 #### Q12. (系統效能論述題) 動態陣列 (Vector) vs. 鏈結串列 (Linked List) 的現代硬體效能評估
 
-在傳統演算法教科書中，常標榜「鏈結串列在任意位置插入元素只需 $O(1)$，優於動態陣列的 $O(n)$」。然而在現代 CPU 硬體架構下，即使需要頻繁在中間插入資料，工程師也極少使用 Linked List，絕大多數情況下動態陣列（如 C++ `std::vector`）的效能反而大幅超越鏈結串列。  
+在傳統演算法教科書中，常標榜「鏈結串列在任意位置插入元素只需 $O(1)$，優於動態陣列的 $O(n)$」。然而在現代 CPU 硬體架構下，即使需要頻繁在中間插入資料，工程師也極少使用 Linked List，絕大多數情況下動態陣列（如 C++ `std::vector`）的效能反而大幅超越鏈結串列。
 請從 **CPU 快取行（Cache Line & Locality）**、**分支預測（Branch Prediction）** 與 **記憶體分配器開銷（Heap Allocation & Memory Fragmentation）** 三個底層維度，深入闡述箇中原委。
 
 👉 [查看 Q12 答案與詳細解析](#ans-q12)
@@ -673,7 +662,6 @@ delete pLoc;
     if (pLoc->next != nullptr) {
         pLoc->next->prev = pLoc->prev;
     }
-
     ```
 
 [🔙 返回題目 Q9](#q9) ｜ [🔝 返回知識架構圖](#tree-diagram)
@@ -702,10 +690,10 @@ delete pLoc;
       }
       return pPre;              // 5. 終止時 pPre 恰好指向新的首節點
   }
-
   ```
 
 * **(2) 推導與狀態轉移分析**：
+
   * 初始時 `pPre = nullptr`（保證原首節點反轉後其 `next` 變為 `nullptr` 成為尾節點）。
   * 每一輪迭代精確執行四步轉移：**暫存後繼 → 轉向反接 → 前驅步進 → 當前步進**。
   * 當 `pCurr` 抵達原本串列尾端的 `nullptr` 時迴圈終止，此時 `pPre` 正好停留在原本的最後一個節點上，它就是反轉後的全新首節點，直接回傳 `pPre`。
@@ -720,10 +708,11 @@ delete pLoc;
 ### Q11 答案與詳細解析
 
 * **(1) 消除邊界特殊情況 (Edge Cases)**：
+
   * **無 Dummy Head 的困境**：串列可能為空（`head == nullptr`）；在首端插入或刪除首節點時，必須修改外部變數 `head` 本身；而在中間或尾端操作時，修改的是內部節點的 `next` 欄位。這迫使每一段插入/刪除函式開頭都必須寫 `if (head == nullptr)` 或 `if (pLoc == head)` 的特殊分支。
   * **有 Dummy Head 的優勢**：串列永遠至少有一個節點（即 Dummy Head，不儲存有效資料），`head` 指標永遠不會改變。所有的首端插入等價於「在 Dummy 節點之後插入」，完全統一為一般節點的插入邏輯，徹底消滅條件判斷分支！
-
 * **(2) 首端插入程式碼對比**：
+
   * **無 Dummy Head（需特判分支）**：
 
     ```cpp
@@ -736,7 +725,6 @@ delete pLoc;
             head = pNew;
         }
     }
-
     ```
 
   * **有 Dummy Head（無條件統一為兩行）**：
@@ -747,7 +735,6 @@ delete pLoc;
         pNew->next = dummyHead->next;
         dummyHead->next = pNew;
     }
-
     ```
 
 [🔙 返回題目 Q11](#q11) ｜ [🔝 返回知識架構圖](#tree-diagram)
@@ -759,15 +746,16 @@ delete pLoc;
 ### Q12 答案與詳細解析
 
 * **(1) CPU 快取行與局部性 (Cache Locality)**：
+
   * 現代 CPU 存取 L1 Cache 需約 1 ns，而存取主記憶體（DRAM）需約 50~100 ns。
   * 動態陣列（Vector）佔用連續記憶體。當讀取第 1 個元素時，CPU 晶片自動將連續的 64-byte Cache Line（約 16 個整數）預先快取進 L1/L2。走訪陣列幾乎是 $100\%$ Cache Hit。
   * 鏈結串列節點是由作業系統隨機分配在堆疊（Heap）的各個角落。走訪下一個節點意味著讀取任意指標位址，會引發連續的 **Cache Miss（快取不命中）**，迫使 CPU 頻繁停頓（Pipeline Stall）等待記憶體載入。
-
 * **(2) 記憶體搬移 vs. 節點分配開銷**：
+
   * 雖然 Vector 在中間插入需要搬移元素，但現代 CPU 擁有極其強大的向量指令集（如 `memmove` / AVX-512），搬移數千個位元組只需幾十個奈秒。
   * 相比之下，Linked List 插入節點必須呼叫 `malloc` / `new` 向作業系統核心索取記憶體，涉及 Heap 鎖競爭與記憶體池演算法，單次分配耗時往往就已超過 Vector 整段記憶體搬移的時間。
-
 * **(3) 記憶體開銷與碎片化**：
+
   * 鏈結串列中每個節點都要額外儲存 8 bytes 指針（若為雙向串列則需 16 bytes），加上 Heap 分配器的 8~16 bytes 區塊標頭（Chunk Header），儲存一個 4 bytes 整數可能需要消耗 32 bytes 記憶體，有效載荷率僅 $12.5\%$，且會造成嚴重的記憶體碎片化。因此在現代高效能系統中，連續記憶體結構（如 Vector）幾乎完勝 Linked List。
 
 [🔙 返回題目 Q12](#q12) ｜ [🔝 返回知識架構圖](#tree-diagram)
@@ -776,13 +764,13 @@ delete pLoc;
 
 ## 📊 重點速記表 (Summary Table)
 
-| 串列型態 | 結構定義與特徵 | 尾端插入時間 | 首端插入時間 | 隨機存取時間 | 典型應用場景 |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **陣列 (Array)** | 連續記憶體配置 | $O(1)$ (未滿時) | $O(n)$ (需後移) | $O(1)$ | 資料量固定、頻繁隨機查詢 |
-| **單向鏈結串列 (Singly)** | 單一 `next` 指針，尾指 NULL | $O(n)$ (無rear) / $O(1)$ (有rear) | $O(1)$ | $O(n)$ | 頻繁動態增刪、大小未知 |
-| **環狀鏈結串列 (Circular)** | 尾節點 `next` 指回首節點 | $O(1)$ (維護 rear) | $O(1)$ (維護 rear) | $O(n)$ | 輪詢調度 (Round Robin)、緩衝區 |
-| **雙向鏈結串列 (Doubly)** | 具備 `prev` 與 `next` 指標 | $O(1)$ (維護 rear) | $O(1)$ | $O(n)$ | 瀏覽器上一頁/下一頁、文字編輯器游標 |
-| **多重鏈結串列 (Multilinked)** | 單一資料實體，多組指標欄位 | 相依於各排序鏈 | 相依於各排序鏈 | $O(n)$ | 多鍵值索引系統、學生學籍管理 |
+| 串列型態                             | 結構定義與特徵                |             尾端插入時間             |     首端插入時間     | 隨機存取時間 | 典型應用場景                        |
+| :----------------------------------- | :---------------------------- | :-----------------------------------: | :------------------: | :----------: | :---------------------------------- |
+| **陣列 (Array)**               | 連續記憶體配置                |           $O(1)$ (未滿時)           |  $O(n)$ (需後移)  |   $O(1)$   | 資料量固定、頻繁隨機查詢            |
+| **單向鏈結串列 (Singly)**      | 單一`next` 指針，尾指 NULL  | $O(n)$ (無rear) / $O(1)$ (有rear) |       $O(1)$       |   $O(n)$   | 頻繁動態增刪、大小未知              |
+| **環狀鏈結串列 (Circular)**    | 尾節點`next` 指回首節點     |         $O(1)$ (維護 rear)         | $O(1)$ (維護 rear) |   $O(n)$   | 輪詢調度 (Round Robin)、緩衝區      |
+| **雙向鏈結串列 (Doubly)**      | 具備`prev` 與 `next` 指標 |         $O(1)$ (維護 rear)         |       $O(1)$       |   $O(n)$   | 瀏覽器上一頁/下一頁、文字編輯器游標 |
+| **多重鏈結串列 (Multilinked)** | 單一資料實體，多組指標欄位    |            相依於各排序鏈            |    相依於各排序鏈    |   $O(n)$   | 多鍵值索引系統、學生學籍管理        |
 
 ---
 
@@ -790,46 +778,20 @@ delete pLoc;
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
 
-<div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background-color: #f8fafc;">
-  <strong style="color: #2563eb;">Q: 單向鏈結串列插入節點的黃金法則是什麼？</strong>
-  <hr style="margin: 0.5rem 0;" />
-  <p><strong>A:</strong> 先連後斷！先讓新節點的 next 指向後續節點（<code>pNew->next = pPre->next</code>），再讓前驅節點指向新節點（<code>pPre->next = pNew</code>）。</p>
-</div>
-
-<div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background-color: #f8fafc;">
-  <strong style="color: #2563eb;">Q: 銷毀鏈結串列時為何不能直接 head = NULL？</strong>
-  <hr style="margin: 0.5rem 0;" />
-  <p><strong>A:</strong> 直接置 NULL 只是弄丟了首節點指標，原本所有動態配置在 Heap 區的節點記憶體均未被釋放，會造成嚴重的記憶體洩漏 (Memory Leak)。</p>
-</div>
-
-<div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background-color: #f8fafc;">
-  <strong style="color: #2563eb;">Q: 環狀鏈結串列為何通常只保留 rear 指標？</strong>
-  <hr style="margin: 0.5rem 0;" />
-  <p><strong>A:</strong> 因為透過 rear 可以 $O(1)$ 存取尾節點，而 <code>rear->next</code> 可以 $O(1)$ 存取首節點，一個指標同時搞定雙端 $O(1)$ 存取！</p>
-</div>
-
-<div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background-color: #f8fafc;">
-  <strong style="color: #2563eb;">Q: 多重鏈結串列的核心價值是什麼？</strong>
-  <hr style="margin: 0.5rem 0;" />
-  <p><strong>A:</strong> 資料實體在記憶體中僅存一份不重複複製，透過多元獨立指標鏈提供多種邏輯排序走訪，兼顧省記憶體與資料一致性。</p>
-</div>
-
-</div>
-
 ---
 
 ## ⚠️ 考試常見陷阱題 (Common Traps)
 
-1. **陷阱一：指標連線順序寫反導致全串列遺失**  
-   * *錯誤示範*：`pPre->next = pNew; pNew->next = pPre->next;`  
+1. **陷阱一：指標連線順序寫反導致全串列遺失**
+   * *錯誤示範*：`pPre->next = pNew; pNew->next = pPre->next;`
    * *防坑秘笈*：一旦先覆寫 `pPre->next`，後續節點記憶體位址就永遠找不回來了。記住：新節點先抓住下家，上家再抓住新節點！
-2. **陷阱二：刪除首節點時先 delete 再取 next**  
-   * *錯誤示範*：`delete head; head = head->next;`  
+2. **陷阱二：刪除首節點時先 delete 再取 next**
+   * *錯誤示範*：`delete head; head = head->next;`
    * *防坑秘笈*：釋放後的指標不可再做成員存取（Segmentation fault）。必須用臨時指標 `pTemp = head; head = head->next; delete pTemp;`。
-3. **陷阱三：雙向串列首尾刪除未判斷 NULL 引發當機**  
+3. **陷阱三：雙向串列首尾刪除未判斷 NULL 引發當機**
    * *防坑秘笈*：考試手寫題務必檢查 `pCur->prev != NULL` 與 `pCur->next != NULL`，並妥善處理 `list->head` 與 `list->rear` 的更新。
-4. **陷阱四：環狀串列走訪終止條件寫成 `p != NULL`**  
-   * *錯誤示範*：環狀串列中永遠沒有 NULL，寫 `while(p != NULL)` 會陷入無限死迴圈！  
+4. **陷阱四：環狀串列走訪終止條件寫成 `p != NULL`**
+   * *錯誤示範*：環狀串列中永遠沒有 NULL，寫 `while(p != NULL)` 會陷入無限死迴圈！
    * *防坑秘笈*：終止條件應以走回起始節點為判定（如 `do { p = p->next; } while (p != head);`）。
 
 ---

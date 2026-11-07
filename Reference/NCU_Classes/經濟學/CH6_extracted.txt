@@ -1,0 +1,194 @@
+--- Page 1 ---
+National Central University
+經濟學Supply, Demand, and Government PoliciesCHAPTER1
+--- Page 2 ---
+Look for the answers to these questions:• What are price ceilings and price floors?  What are some examples of each?  • How do price ceilings and price floors affect market outcomes?  • How do taxes affect market outcomes? How do the effects depend on whether the tax is imposed on buyers or sellers? • What is the incidence of a tax (租稅歸宿)?  What determines the incidence? 2
+--- Page 3 ---
+Government Policies That Alter the Private Market Outcome• Price controls – Price ceiling: legal maximum on the price at which a good can be sold•Rent-control laws– Price floor: legal minimum on the price at which a good can be sold•Minimum wage laws• Taxes: government can make buyers or sellers pay a specific amount on each unit3
+--- Page 4 ---
+ASK THE EXPERTS
+4
+Rent Control“Local ordinances that limit rent increases for some rental housing units, such as in New York and San Francisco, have had a positive impact over the past three decades on the amount and quality of broadly affordable rental housing in cities that have used them.”
+In the US, rent caps limit how much your landlord can INCREASE your rent. 
+--- Page 5 ---
+EXAMPLE 1:  The Market for ApartmentsEquilibrium without price controls 
+5
+P
+QDSRental price of apartments$800300Quantity of  apartments
+--- Page 6 ---
+How Price Ceilings Affect Market OutcomesA price ceiling above the equilibrium price is not binding—has no effect on the market outcome. 6
+P
+QDS$800300Price ceiling$1000
+--- Page 7 ---
+How Price Ceilings Affect Market OutcomesThe equilibrium price ($800) is above the ceiling and therefore illegal.The price ceiling is binding, causes a shortage. 7
+P
+QDS$800Price ceiling$500250400shortageThe effects of rent control in the short run (when the supply and demand for housing are inelastic) are: Small shortage and Reduced rents
+--- Page 8 ---
+How Price Ceilings Affect Market OutcomesIn the long run, supply and demand of rental apartments are more price-elastic. So, the shortage is larger. 8
+P
+QDS$800150Price ceiling$500450shortage• Landlords: are not building new apartments and are failing to maintain existing ones• People: more people want to find their own apartments and more people to move into a city • Inefficient rationing mechanisms: long waiting lists; preference to tenants without children; discriminate on the basis of race; bribes to building superintendents
+--- Page 9 ---
+Shortages and Rationing• Because of shortage– Sellers must ration the goods among buyers  • Some rationing mechanisms:  •Long lines •Discrimination according to sellers’ biases– Are often unfair and inefficient•The goods do not necessarily go to the buyers who value them most highly 9
+--- Page 10 ---
+EXAMPLE 2:  The Market for Unskilled LaborEquilibrium without price controls
+10
+W
+LDSWage paid to unskilled workers$6.00500Quantity of  unskilled workersThe “price” of labor is simply the wageWe focus on unskilled labor because the minimum wage is not relevant for higher skilled, higher wage workers.  
+--- Page 11 ---
+How Price Floors Affect Market OutcomesA price floor below the equilibrium price is not binding –has no effect on the market outcome. 11
+W
+LDS$6.00500Price floor$5.00
+--- Page 12 ---
+How Price Floors Affect Market OutcomesThe equilibrium wage ($6) is below the floor and therefore illegal.The price floor is binding, causes a surplus (i.e., unemployment). Minimum wage laws do not affect highly skilled workers.  They do affect teen workers. A 10% increase in the minimum wage raises teen unemployment by 1–3%. 12
+W
+LDS$6.00Price floor$7.25400550
+labor surplusS: HouseholdsD: Firms
+--- Page 13 ---
+13
+QuestionLovers of classical music persuade Congress to impose a price celling of $40 per concert ticket. As a result of this policy, do more or fewer people attend classical music concerts? Explain.
+
+--- Page 14 ---
+ASK THE EXPERTS
+14
+The Minimum Wage“If the federal minimum wage is raised gradually to $15-per-hour by 2020, the employment rate for low-wage U.S. workers will be substantiallylower than it would be under the status quo.”
+Studies have shown that on the teenage labor market: a 10% increase in the minimum wage depresses teenage employment between 1 and 3%. Pros: benefits the working poorCons : leads to unemployment
+--- Page 15 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 1 Price controlsThe market for hotel rooms is in equilibrium as in the graph.•Determine the effects of:A.$90 price ceilingB.$90 price floorC.$120 price floor15
+--- Page 16 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 1 A. $90 price ceilingThe price falls to $90. (binding price ceiling below the equilibrium)Buyers demand 120 rooms, sellers supply 90, leaving a shortage. 16shortage = 30Price ceiling
+--- Page 17 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 1 B. $90 price floorEquilibrium price is above the $90 price floor, so the price floor is not binding.  P = $100, Q = 100 rooms. 17
+Price floor
+--- Page 18 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 1 C. $120 price floorThe price rises to $120. (binding price floor above the equilibrium)Buyers demand 60 rooms, sellers supply 120, causing a surplus. 18
+surplus= 60Price floor
+--- Page 19 ---
+19
+QuestionPrice per Frisbee QuantityDemandedQuantity Supplied$11 1 million Frisbees 15 million Frisbees10 2 129 4 98 6 67 8 36 10 1a. What are the equilibrium price and quantity of Frisbees?b. A concerned Congress votes to impose a price floor $2 above the equilibrium price. What is the new market price? How many Frisbees are sold?c. An concerned Congress votes to repeal the price floor and impose a price ceiling $1 below the former price floor. What is the new market price? How many Frisbees are sold?
+
+--- Page 20 ---
+Evaluating Price Controls• Markets are usually a good way to organize economic activity– Economists usually oppose price ceilings and price floors– Prices are not the outcome of some haphazard process– Prices have the crucial job of balancing supply and demand•Coordinating economic activity20
+--- Page 21 ---
+Evaluating Price Controls• Governments can sometimes improve market outcomes– Want to use price controls•Because of unfair market outcome•Aimed at helping the poor– Often hurt those they are trying to help– Other ways of helping those in need•Rent subsidies•Wage subsidies (earned income tax credit)21EITC (勞動所得稅扣抵制): Workers receive a credit equal to a percentage of their earnings, up to a maximum amount. The credit increases with income up to a certain threshold, stabilizes, and then phases out.
+--- Page 22 ---
+Rent subsidies
+22
+
+--- Page 23 ---
+Taxes• Government uses taxes– To raise revenue for public projects •Roads, schools, and national defense• Tax incidence租稅歸宿– Manner in which the burden of a tax is shared among participants in a market•The government can make the seller or the buyer to pay the tax23The tax can be a percentage of the good’s price, or a specific amount for each unit sold. For simplicity, we analyze per-unit taxes only. 
+--- Page 24 ---
+EXAMPLE 3:  The Market for PizzaEquilibrium without tax
+24
+S1P
+QD1$10.00500
+--- Page 25 ---
+A Tax on BuyersHence, a tax on buyers shifts the Dcurve down by the amount of the tax.The price buyers pay is now $1.50 higher than the market price P. Pwould have to fall by $1.50 to make buyers willing to buy same Q as before.  •E.g., if Pfalls from $10.00 to $8.50, buyers are still willing to purchase 500 pizzas. 25
+S1D1$10.00500
+P
+QD2
+Effects of a $1.50 per unit tax on buyers$8.50Tax
+--- Page 26 ---
+A Tax on BuyersNew equilibrium:• Q = 450• Sellers receive PS= $9.50• Buyers pay PB= $11.00Difference between them = $1.50 = tax26
+S1D1$10.00500
+P
+QD2$11.00PB=$9.50PS= TaxEffects of a $1.50 per unit tax on buyers
+450How taxes on buyers affect market outcomes:• Buyers and sellers share the burden of tax• Sellers get a lower price, are worse off• Buyers pay a lower market price, are worse off: Effective price (with tax) rises
+--- Page 27 ---
+450S1The Incidenceof a Tax:how the burden of a tax is shared among market participantsP
+QD1$10.00500D2$11.00PB=$9.50PS= TaxIn our example,buyers pay $1.00 more,sellers get $0.50 less.27D1: Consumers' willingness-to-pay without taxD2: Consumers' willingness-to-pay with tax
+--- Page 28 ---
+A Tax on SellersThe tax effectively raises sellers’ costs by $1.50 per pizza.Sellers will supply 500 pizzas only if Prises to $11.50, to compensate for this cost increase. Hence, a tax on sellers shifts the Scurve up by the amount of the tax. 28
+S1P
+QD1$10.00500
+S2Effects of a $1.50 per unit tax on sellers$11.50Tax
+--- Page 29 ---
+A Tax on SellersNew equilibrium:• Q = 450• Buyers pay PB= $11.00• Sellers receive PS= $9.50Difference between them = $1.50 = taxS1P
+QD1$10.00500
+S2
+450$11.00PB=$9.50PS= TaxEffects of a $1.50 per unit tax on sellers
+29How taxes on sellers affect market outcomes:• Buyers and sellers share the burden of tax• Sellers get a higher market price, are worse off: Effective price (deducted from tax) declines• Buyers pay a higher price, are worse off
+--- Page 30 ---
+The Outcome Is the Same in Both Cases!• The effects on P and Q, and the tax incidence are the same whether the tax is imposed on buyers or sellers!
+30
+A tax drives a wedge between the price buyers pay and the price sellers receive. S1P
+QD1$10.00500450$9.50$11.00PB=PS= TaxWedgeWhether the government makes buyers or sellers pay the tax, all of the effects are the same:- the price buyers pay rises (in this case to $11)- the price sellers receive falls (to $9.50)- the equilibrium quantity falls (to 450)- the incidence of the tax is the same (here, buyers pay $1 of the tax, while sellers pay $.50 of the tax on each unit)
+--- Page 31 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 2 Effects of a taxThe market for hotel rooms is in equilibrium as in the graph.•Suppose the government imposes a tax on buyers of $30 per room•Find the new Q, PB, PS, and incidence of tax.31
+--- Page 32 ---
+405060708090100110120130140
+50 60 70 80 90 100 110 120 130Q
+P S
+0
+The market for hotel roomsD
+Active Learning 2 Answers•Q = 80•PB= $110•PS = $80•Incidence–buyers: $10–sellers: $2032TaxPB=PS=
+--- Page 33 ---
+Elasticity and Tax IncidenceCASE 1:  Supply is more elastic than demandIt’s easier for sellers than buyers to leave the market.  So buyers bear most of the burden of the tax. P
+QDSTaxBuyers’ share of tax burdenSellers’ share of tax burdenPrice if no taxPBPS 33So what, then, does determine tax incidence?  Turns out it’s elasticity—specifically, the price elasticities of supply and demand. 
+--- Page 34 ---
+Elasticity and Tax IncidenceCASE 2:  Demand is more elastic than supplyIt’s easier for buyers than sellers to leave the market.  Sellers bear most of the burden of the tax.P
+QDSTaxBuyers’ share of tax burdenSellers’ share of tax burdenPrice if no taxPBPS 34Tax burden falls more heavily on the side of the market that is less elastic:• Small elasticity of demand: Buyers do not have good alternatives to consuming this good• Small elasticity of supply: Sellers do not have good alternatives to producing this good
+--- Page 35 ---
+35
+QuestionIf the government places a $500 tax on luxury cars, will the price paid by consumers rise by more than $500, less than $500, or exactly $500? Explain.
+--- Page 36 ---
+AppendixP PQQDSpsnew pbT 500 unitsD1D2Sps300 unitsTnew pb500 unitsLet T = Taxwithout Tax pb=pswith Tax new pb=ps+Tax
+--- Page 37 ---
+37
+QuestionCongress and the president decide to impose a $0.50 tax on each gallon of gasoline sold.a. Should they impose this tax on producers or consumers?b. If the demand for gasoline were more elastic, would this tax be more effective or less effective in reducing the quantity of gasoline consumed?c. Are consumers of gasoline helped or hurt by this tax?d. Are workers in the oil industry helped or hurt by this tax?
+--- Page 38 ---
+Who pays the luxury tax?• 1990, Congress adopted a new luxury tax– On yachts, private airplanes, furs, jewelry, expensive cars – Goal: to raise revenue from those who could most easily afford to pay– Luxury items• Demand is quite elastic• Supply is relatively inelastic38
+--- Page 39 ---
+CASE STUDY:  Who Pays the Luxury Tax?The market for yachts
+39
+P
+QDSTaxBuyers’ share of tax burdenSellers’ share of tax burdenPBPSDemand is price-elastic. Demand is price-elastic. In the short run, supply is inelastic. In the short run, supply is inelastic. Hence, companies that build yachts pay most of the tax. Hence, companies that build yachts pay most of the tax. Most of the luxury tax in the US was repealed in 1993.
+--- Page 40 ---
+Active Learning 3 The 2011 payroll tax cutPrior to 2011, the Social Security payroll tax was 6.2% taken from workers’ pay and 6.2% paid by employers (total 12.4%). The Tax Relief Act (2010) reduced the worker’s portion from 6.2% to 4.2% in 2011, but left the employer’s portion at 6.2%.  •Should this change have increased the typical worker’s take-home pay by exactly 2%, more than 2%, or less than 2%?  In general, do any elasticities affect your answer?  Explain. •FOLLOW-UP QUESTION: Who gets the bigger share of this tax cut, workers or employers?  How do elasticities determine the answer? 40
+工資稅
+--- Page 41 ---
+Active Learning 3 Answers•As long as labor supply and labor demand both have price elasticity > 0, the tax cut will be shared by workers and employers, i.e., workers’ take-home pay will rise less than 2%. •The answer does NOT depend on whether labor demand is more or less elastic than labor supply.  FOLLOW-UP QUESTION :•If labor demand (資方) is more elastic than labor supply (勞方), workers get more of the tax cut than employers.  •If labor demand (資方) is less elastic than labor supply (勞方), employers get the larger share of the tax cut.41
+--- Page 42 ---
+42
+**P(Wage)
+Q(Employment)
+S(Workers before tax relief act)D(Firms)y%y%廠商拿走的好處勞工拿走的好處Suppose that the government makesthe workers to pay the tax ($60).original effective price:$120-$60(Tax)=$60$120$100$60S(Workers after tax relief act)
+The original market price is $120.The new market price is $100new market price original market price 
+--- Page 43 ---
+Summary • A price ceiling is a legal maximum on the price of a good.  An example is rent control.  If the price ceiling is below the equilibrium price, it is binding and causes a shortage. • A price floor is a legal minimum on the price of a good.  An example is the minimum wage.  If the price floor is above the equilibrium price, it is binding and causes a surplus.  The labor surplus caused by the minimum wage is unemployment. 43In absence of market failures (which we will study in later chapters), the allocation of resources resulting from the free market equilibrium is optimal.  Hence, government policies that alter this allocation tend to make the economy worse off.  
+--- Page 44 ---
+Summary • A tax on a good places a wedge between the price buyers pay and the price sellers receive, and causes the equilibrium quantity to fall, whether the tax is imposed on buyers or sellers. • The incidence of a tax is the division of the burden of the tax between buyers and sellers, and does not depend on whether the tax is imposed on buyers or sellers. • The incidence of the tax depends on the price elasticities of supply and demand. 44
+--- Page 45 ---
+45
+QuestionA market is described by the following supply and demand curves:QS= 2PQD= 300 – Pa. Solve for the equilibrium price and quantityb. What are the price, quantity supplied, quantity demanded, and size of the shortage or surplus?If the government imposes a price ceiling of $90 If the government imposes a price floor of $90Instead of a price control, the government levies a tax on producers of $30. As a result, the new supply curve is: QS= 2(P-30)
+--- Page 46 ---
+Can Congress Repeal the Law of Market Forces?
+
+--- Page 47 ---
+Eye on Price Regulation (1 of 2)Can Congress Repeal the Law of Market Forces?When Congress enacts a new law and the President signs it, the outcome is not always what was intended.A mismatch between intention and outcome is almost inevitable when a law or regulation seeks to block the law of market forces.You’ve seen that the federal minimum wagelaw leaves some teenagers without jobs.Problems would also arise if a law tried to cap executive pay.
+--- Page 48 ---
+Eye on Price Regulation (2 of 2)Can Congress Repeal the Law of Market Forces?Placing a cap on executive pay would work like putting a ceiling on home rents.The quantity of executive services supplied would decrease and the most talented executives would seek jobs with the unregulated employers.The firms in the most difficulty would face the added challenge of recruiting and keeping competent executives and directors.The deadweight loss from this action would be large. 

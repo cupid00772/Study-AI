@@ -30,6 +30,7 @@
 | :--- | :--- | :--- |
 | **Mock Exam Generator** | 產生模擬考卷 + 解答卷 | `出考題`、`模擬考`、`practice questions` |
 | **Question Sweeper** | 按章節逐題掃蕩，測驗所有題型 | `掃題`、`排查章節`、`sweep` |
+| **Study Material Generator** | 將 PPT/PDF 轉為結構化教材 + 知識樹 + 練習題 | `生成教材`、`寫教材`、`整理PPT`、`知識樹`、`study material` |
 | **/comprehensive-exam-review** (workflow) | 完整出題→檢討→Dashboard 同步流程 | `/comprehensive-exam-review` |
 | **/targeted-exam** (workflow) | 依弱點出題→檢討→更新 Learning Status | `/targeted-exam` |
 

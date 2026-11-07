@@ -1,6 +1,7 @@
 # 微積分 Chapter 2 掃題測驗 - 導數與微分 - 解答與詳解
 
 ### **Question 1**
+
 **解答：$\frac{\sqrt{3}}{2}$**
 **詳解**：
 這題考察導數的極限定義：$f'(a) = \lim_{h \to 0} \frac{f(a+h) - f(a)}{h}$。
@@ -12,6 +13,7 @@ $f'\left(\frac{\pi}{6}\right) = \cos\left(\frac{\pi}{6}\right) = \frac{\sqrt{3}}
 ---
 
 ### **Question 2**
+
 **解答：$\frac{e-3}{2-e}$**
 **詳解**：
 對原方程式 $x^2 y^3 - e^{xy} + \sin(x-y) = -1$ 兩邊對 $x$ 微分（將 $y$ 視為 $x$ 的函數，使用連鎖律與乘法規則）：
@@ -27,6 +29,7 @@ $$ (3 - e - 1)y' + (3 - e) = 0 \implies (2 - e)y' = e - 3 $$
 ---
 
 ### **Question 3**
+
 **解答：$0$**
 **詳解**：
 令 $y = (\sin x)^{\cos x}$，兩邊取自然對數：
@@ -41,6 +44,7 @@ $$ y'\left(\frac{\pi}{2}\right) = (1)^0 \left[ -1 \cdot \ln(1) + \frac{0}{1} \ri
 ---
 
 ### **Question 4**
+
 **解答：$\frac{1}{14}$**
 **詳解**：
 根據反函數導數公式：$(f^{-1})'(y) = \frac{1}{f'(x)}$，其中 $y = f(x)$。
@@ -56,6 +60,7 @@ $$ f'(1) = 5(1)^4 + 6(1)^2 + 3 = 14 $$
 ---
 
 ### **Question 5**
+
 **解答：$\frac{1}{1+x^2}$**
 **詳解**：
 **方法一（直接微分）：**
@@ -72,6 +77,7 @@ $$ = \frac{2}{(1-2x+x^2) + (1+2x+x^2)} = \frac{2}{2+2x^2} = \frac{1}{1+x^2} $$
 ---
 
 ### **Question 6**
+
 **解答：$2^{n-2} e^{2x} \left[ 4x^2 + 4nx + n(n-1) \right]$**
 **詳解**：
 根據萊布尼茲法則 (Leibniz Rule)：$(uv)^{(n)} = \sum_{k=0}^n \binom{n}{k} u^{(k)} v^{(n-k)}$。
@@ -88,6 +94,7 @@ $$ = 2^{n-2} e^{2x} \left[ 4x^2 + 4nx + n(n-1) \right] $$
 ---
 
 ### **Question 7**
+
 **解答：$\frac{15}{32}$**
 **詳解**：
 首先求一階導數 $\frac{dy}{dx}$：
@@ -103,6 +110,7 @@ $$ \left. \frac{d^2 y}{dx^2} \right|_{t=2} = \frac{3(2^2+1)}{4(2^3)} = \frac{3(5
 ---
 
 ### **Question 8**
+
 **解答：**
 (a) 連續：$\lim_{x \to 0} x^2 \sin\left(\frac{1}{x}\right)$。因為 $-1 \le \sin\left(\frac{1}{x}\right) \le 1$，所以 $-x^2 \le x^2 \sin\left(\frac{1}{x}\right) \le x^2$。
 由夾擠定理 (Squeeze Theorem)，當 $x \to 0$ 時極限為 $0$，等於 $f(0)$，故在 $x=0$ 連續。

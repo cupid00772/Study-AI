@@ -10,13 +10,17 @@ maxBriefChars: 850
 ---
 
 ## Investigation Brief
+
 For Nuxt on Vercel, route-level caching usually belongs in `routeRules`. Match the lever to the route: prerender for static pages, ISR for shared content, and SSR for request-specific views.
 
 ## Evidence To Check
+
 Inspect `nuxt.config`, inline route rules, server routes, pages, auth/session reads, and observed cache or ISR read/write patterns. Verify whether the route should be Vercel cache-backed ISR rather than generic SWR.
 
 ## Do Not Recommend When
+
 Do not cache authenticated, cart, checkout, preview, or per-user routes. Do not add routeRules without proving the route is public and the freshness window is acceptable.
 
 ## Verification
+
 Name the observed route signal, current routeRule or missing rule, chosen cache mode, and exact config line.

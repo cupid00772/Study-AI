@@ -7,6 +7,7 @@
 ### 甲、填充題：共 8 題，每題 8 分，共 64 分。
 
 **1. Answer: `1/3`**
+
 - **難度：** [Easy]
 - **核心概念：** 羅必達法則 (L'Hôpital's Rule)、微積分基本定理 (Fundamental Theorem of Calculus)。
 - **解題步驟：**
@@ -17,6 +18,7 @@
 - **常見錯誤陷阱：** 忘記微積分基本定理的用法，或是微分時少算 $t$ 變成 $x$ 的那一次方。
 
 **2. Answer: `1/4`**
+
 - **難度：** [Medium]
 - **核心概念：** 瑕積分 (Improper Integral)、分部積分 (Integration by Parts) 或 Gamma 函數。
 - **解題步驟：**
@@ -27,6 +29,7 @@
      $$ \frac{1}{8} \Gamma(3) = \frac{1}{8} \cdot 2! = \frac{1}{4} $$。
 
 **3. Answer: `\sqrt{3}(e^\pi - 1)`**
+
 - **難度：** [Medium]
 - **核心概念：** 空間曲線的弧長 (Arc Length of Space Curve)。
 - **解題步驟：**
@@ -37,6 +40,7 @@
 - **常見錯誤陷阱：** 對乘積法則微分時出錯，或化簡三角函數平方和時忘記加上 $z$ 分量的 $1$。
 
 **4. Answer: `\frac{\pi}{4}(1 - e^{-4})`**
+
 - **難度：** [Easy]
 - **核心概念：** 重積分的極座標變換 (Polar Coordinates)。
 - **解題步驟：**
@@ -48,6 +52,7 @@
   4. 外層積分：$\int_0^{\pi/2} \frac{1}{2}(1 - e^{-4}) d\theta = \frac{\pi}{4}(1 - e^{-4})$。
 
 **5. Answer: `19/3`**
+
 - **難度：** [Medium]
 - **核心概念：** 方向導數 (Directional Derivative)、梯度向量 (Gradient Vector)。
 - **解題步驟：**
@@ -58,6 +63,7 @@
 - **常見錯誤陷阱：** 忘記將方向向量 $\mathbf{v}$ 標準化為單位向量 $\mathbf{u}$。
 
 **6. Answer: `2`**
+
 - **難度：** [Medium]
 - **核心概念：** 線積分的保守場 (Conservative Vector Field) 與位勢函數 (Potential Function)。
 - **解題步驟：**
@@ -70,6 +76,7 @@
   4. 根據線積分基本定理：$\int_C \mathbf{F} \cdot d\mathbf{r} = f(1,1) - f(0,0) = (1+1) - 0 = 2$。
 
 **7. Answer: `2`**
+
 - **難度：** [Hard]
 - **核心概念：** 雙變數函數的局部極值 (Local Extrema) 與二階導數測試 (Second Derivative Test)。
 - **解題步驟：**
@@ -87,6 +94,7 @@
   5. 題目求 local maximum value：$f(-1,0) = (-1)^3 - 3(-1) + 3(-1)(0)^2 = -1 + 3 = 2$。
 
 **8. Answer: `17\pi/8`**
+
 - **難度：** [Medium]
 - **核心概念：** 三重積分與柱狀座標 (Cylindrical Coordinates)。
 - **解題步驟：**
@@ -108,6 +116,7 @@
 
 **1. (a)** [Medium]
 **解題步驟：**
+
 1. 設 $a_n = \frac{(-1)^n (x-2)^n}{n 3^n}$。使用比值審斂法 (Ratio Test)：
    $$ \lim_{n \to \infty} \left| \frac{a_{n+1}}{a_n} \right| = \lim_{n \to \infty} \left| \frac{(x-2)^{n+1}}{(n+1)3^{n+1}} \cdot \frac{n 3^n}{(x-2)^n} \right| = \lim_{n \to \infty} \left| \frac{x-2}{3} \cdot \frac{n}{n+1} \right| = \frac{|x-2|}{3} $$
 2. 收斂條件為 $\frac{|x-2|}{3} < 1 \Rightarrow |x-2| < 3$。所以**收斂半徑 $R = 3$**。
@@ -118,6 +127,7 @@
 
 **1. (b)** [Easy]
 **解題步驟：**
+
 1. 考慮積分審斂法 (Integral Test)。令 $f(x) = \frac{1}{x \ln x}$，在 $[2, \infty)$ 上連續、正值且遞減。
 2. 評估瑕積分：
    $$ \int_2^\infty \frac{1}{x \ln x} dx = \lim_{t \to \infty} \int_2^t \frac{1}{x \ln x} dx $$
@@ -127,6 +137,7 @@
 
 **2. (a)** [Medium]
 **解題步驟：**
+
 1. 要證明極限不存在，可從不同路徑逼近 $(0,0)$。
 2. 沿路徑 $y=x$ 逼近：
    $$ \lim_{x \to 0} \frac{x^2 x^2}{x^4 + x^4} = \lim_{x \to 0} \frac{x^4}{2x^4} = \frac{1}{2} $$
@@ -137,6 +148,7 @@
 
 **2. (b)** [Medium]
 **解題步驟：**
+
 1. 依據偏導數的定義：
    $$ f_x(0,0) = \lim_{h \to 0} \frac{f(h, 0) - f(0,0)}{h} $$
 2. 代入函數定義，$f(h, 0) = \frac{h^2 \cdot 0^2}{h^4 + 0^4} = 0$。
@@ -148,6 +160,7 @@
 **3.** [Hard]
 **核心概念：** 拉格朗日乘子法 (Lagrange Multipliers)。
 **解題步驟：**
+
 1. 設目標函數 $f(x,y,z) = x+2y-z$，限制條件 $g(x,y,z) = x^2+y^2+2z^2 = 8$。
 2. 建立方程式 $\nabla f = \lambda \nabla g$ 與 $g(x,y,z)=8$：
    - $1 = \lambda (2x) \Rightarrow x = \frac{1}{2\lambda}$
@@ -168,6 +181,7 @@
 ---
 
 ### 配分建議與評分標準 (Marking Scheme)
+
 - **甲、填充題 (64%)**：每題 8 分，錯一個字、符號或正負號皆全錯，無部分給分。
 - **乙、計算、證明題 (36%)**：每題 12 分。
   - **題 1 (12%)**：(a) 收斂半徑 3 分，收斂區間 3 分。(b) 判別正確 2 分，說明理由完整 4 分。

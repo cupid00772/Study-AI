@@ -1,6 +1,7 @@
 # 機率與統計 考前晨間暖身卷 (Morning Warm-up)
 
 ## 測驗說明區
+
 - **測驗時間**：建議 20 分鐘 (明早通勤或進考場前寫)
 - **總分**：100 分 (共 4 題，每題 25 分)
 - **測驗範圍**：針對你最後補強的四個離散型分配（Bernoulli, Poisson, Hypergeometric, Negative Binomial）。

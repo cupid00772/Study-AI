@@ -78,6 +78,7 @@ Every project should include this utility class for visually hiding content whil
 ```
 
 Tailwind CSS includes this as `sr-only` by default. For other frameworks:
+
 - **Angular**: Add to `styles.scss`
 - **Vue**: Add to `assets/global.css`
 - **Svelte**: Add to `app.css`

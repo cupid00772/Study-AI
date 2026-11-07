@@ -1,6 +1,7 @@
 # 國立臺灣聯合大學系統 114學年度 計算機概論 模擬測驗 (Mock Exam 4)
 
 **測驗說明區**
+
 - **測驗時間：** 80 分鐘
 - **滿分：** 100 分
 - **測驗範圍：** 計算機概論全範圍 (涵蓋計算機組織、作業系統、資料結構與演算法、程式設計、網路與資料庫)
@@ -54,6 +55,7 @@
 (E) NP means "Not Polynomial".
 
 7. **What will be the output of the following C code?**
+
 ```c
 #include <stdio.h>
 int main() {
@@ -65,13 +67,15 @@ int main() {
     return 0;
 }
 ```
+
 (A) 10 20
 (B) 20 30
 (C) 10 30
 (D) 20 20
 (E) 30 40
 
-8. **What will be the output of the following C program?**
+1. **What will be the output of the following C program?**
+
 ```c
 #include <stdio.h>
 int magic(int n) {
@@ -83,13 +87,15 @@ int main() {
     return 0;
 }
 ```
+
 (A) 3
 (B) 4
 (C) 5
 (D) 6
 (E) 43
 
-9. **A binary tree has the following traversals:**
+1. **A binary tree has the following traversals:**
+
 - Inorder: D, B, E, A, F, C, G
 - Preorder: A, B, D, E, C, F, G
 **What is the Postorder traversal of this tree?**
@@ -99,83 +105,85 @@ int main() {
 (D) D, B, E, F, G, C, A
 (E) None of the above
 
-10. **In a 5-stage pipeline processor (IF, ID, EX, MEM, WB), a data hazard occurs due to a true data dependency (RAW) between two consecutive instructions. If data forwarding (bypassing) is NOT implemented, how many stall cycles (bubbles) must be inserted to resolve the hazard? (Assume register read happens in the second half of ID cycle and write happens in the first half of WB cycle)**
+ 1. **In a 5-stage pipeline processor (IF, ID, EX, MEM, WB), a data hazard occurs due to a true data dependency (RAW) between two consecutive instructions. If data forwarding (bypassing) is NOT implemented, how many stall cycles (bubbles) must be inserted to resolve the hazard? (Assume register read happens in the second half of ID cycle and write happens in the first half of WB cycle)**
 (A) 0
 (B) 1
 (C) 2
 (D) 3
 (E) 4
 
-11. **Consider a system with 5 processes. Each process needs a maximum of 3 resource instances to complete its execution. What is the MINIMUM total number of resource instances required in the system to guarantee that deadlock will NEVER occur?**
+ 2. **Consider a system with 5 processes. Each process needs a maximum of 3 resource instances to complete its execution. What is the MINIMUM total number of resource instances required in the system to guarantee that deadlock will NEVER occur?**
 (A) 10
 (B) 11
 (C) 12
 (D) 15
 (E) 5
 
-12. **Given an IP address `192.168.10.75` with a subnet mask of `255.255.255.192`. Which of the following IP addresses belongs to the SAME subnet?**
+ 3. **Given an IP address `192.168.10.75` with a subnet mask of `255.255.255.192`. Which of the following IP addresses belongs to the SAME subnet?**
 (A) 192.168.10.10
 (B) 192.168.10.60
 (C) 192.168.10.100
 (D) 192.168.10.130
 (E) 192.168.10.200
 
-13. **What is the minimum number of bits required to represent the decimal number -128 in two's complement notation?**
+ 4. **What is the minimum number of bits required to represent the decimal number -128 in two's complement notation?**
 (A) 6
 (B) 7
 (C) 8
 (D) 9
 (E) 10
 
-14. **When dealing with Hash Tables, which of the following statements about "Separate Chaining" and "Open Addressing" is TRUE?**
+ 5. **When dealing with Hash Tables, which of the following statements about "Separate Chaining" and "Open Addressing" is TRUE?**
 (A) Separate chaining suffers from primary clustering, while open addressing does not.
 (B) In separate chaining, the load factor ($\alpha$) can be strictly greater than 1.
 (C) Linear probing is a form of separate chaining.
 (D) Open addressing requires dynamic memory allocation for linked lists at each table slot.
 (E) Double hashing completely eliminates secondary clustering but guarantees more cache misses than separate chaining.
 
-15. **What is the time complexity of the following pseudo-code?**
+ 6. **What is the time complexity of the following pseudo-code?**
+
 ```text
 for i = 1 to n:
     j = i
     while j < n:
         j = j * 2
 ```
+
 (A) $O(\log n)$
 (B) $O(n)$
 (C) $O(n \log n)$
 (D) $O(n^2)$
 (E) $O(n^2 \log n)$
 
-16. **Which of the following database ACID properties ensures that a transaction is either fully completed or completely rolled back, leaving the database in a consistent state without partial updates?**
+ 1. **Which of the following database ACID properties ensures that a transaction is either fully completed or completely rolled back, leaving the database in a consistent state without partial updates?**
 (A) Atomicity
 (B) Consistency
 (C) Isolation
 (D) Durability
 (E) Normalization
 
-17. **In C++, what does the `virtual` keyword on a class destructor guarantee?**
+ 2. **In C++, what does the `virtual` keyword on a class destructor guarantee?**
 (A) It prevents the destructor from being overridden by derived classes.
 (B) It ensures that the derived class's destructor is called when deleting an object through a base class pointer.
 (C) It allocates the object on the heap rather than the stack.
 (D) It makes the class an abstract base class that cannot be instantiated.
 (E) It avoids memory leaks by automatically calling `free()` on all member pointers.
 
-18. **In IEEE 754 single-precision floating-point format (32 bits), what does an exponent field consisting of all 1s (11111111) and a non-zero fraction (mantissa) field represent?**
+ 3. **In IEEE 754 single-precision floating-point format (32 bits), what does an exponent field consisting of all 1s (11111111) and a non-zero fraction (mantissa) field represent?**
 (A) Positive Zero
 (B) Negative Zero
 (C) Infinity
 (D) NaN (Not a Number)
 (E) Denormalized Number
 
-19. **Which page replacement algorithm suffers from Belady's Anomaly (where increasing the number of page frames can unexpectedly increase the number of page faults)?**
+ 4. **Which page replacement algorithm suffers from Belady's Anomaly (where increasing the number of page frames can unexpectedly increase the number of page faults)?**
 (A) LRU (Least Recently Used)
 (B) OPT (Optimal)
 (C) FIFO (First-In-First-Out)
 (D) LFU (Least Frequently Used)
 (E) Clock Algorithm
 
-20. **Which of the following is an asymmetric encryption algorithm (Public-Key Cryptography)?**
+ 5. **Which of the following is an asymmetric encryption algorithm (Public-Key Cryptography)?**
 (A) AES (Advanced Encryption Standard)
 (B) DES (Data Encryption Standard)
 (C) RSA (Rivest–Shamir–Adleman)

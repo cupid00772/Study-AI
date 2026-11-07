@@ -19,6 +19,7 @@
 ---
 
 ## 評分標準與建議 (Marking Scheme)
+
 - **總分：** 100 分
 - **配分：** 填充題每題 8 分；計算證明題每題 12 分。
 - **實力評估：**
@@ -34,22 +35,26 @@
 ### 甲、填充題 (每題 8 分)
 
 **1. Answer: `1/√e` or `e^{-1/2}`**
+
 - **解析：** 這是一個 $1^\infty$ 的未定式。令 $y = (\cos x)^{\frac{1}{x^2}}$，則 $\ln y = \frac{\ln(\cos x)}{x^2}$。
 利用 L'Hôpital's Rule 求極限：$\lim_{x \to 0^+} \frac{\ln(\cos x)}{x^2} = \lim_{x \to 0^+} \frac{-\tan x}{2x} = -\frac{1}{2}$。
 因此 $\lim_{x \to 0^+} y = e^{-1/2} = \frac{1}{\sqrt{e}}$。
 
 **2. Answer: `(1 - e^{-1})/2`**
+
 - **解析：** 原積分無法直接積 $e^{-x^2}$，必須改變積分順序。
 範圍是 $0 \le y \le 1, y \le x \le 1$。畫出區域後可知等價於 $0 \le x \le 1, 0 \le y \le x$。
 $\int_0^1 \int_0^x e^{-x^2} dy dx = \int_0^1 x e^{-x^2} dx = \left[-\frac{1}{2} e^{-x^2}\right]_0^1 = \frac{1}{2} - \frac{1}{2e} = \frac{1 - e^{-1}}{2}$。
 
 **3. Answer: `√3`**
+
 - **解析：** 弧長公式 $L = \int_0^{\ln 2} \|\mathbf{r}'(t)\| dt$。
 $\mathbf{r}'(t) = \langle e^t(\cos t - \sin t), e^t(\sin t + \cos t), e^t \rangle$。
 $\|\mathbf{r}'(t)\| = \sqrt{e^{2t}(\cos t - \sin t)^2 + e^{2t}(\sin t + \cos t)^2 + e^{2t}} = \sqrt{e^{2t}(1 - 2\sin t\cos t + 1 + 2\sin t\cos t + 1)} = \sqrt{3e^{2t}} = \sqrt{3}e^t$。
 $L = \int_0^{\ln 2} \sqrt{3} e^t dt = \sqrt{3}[e^t]_0^{\ln 2} = \sqrt{3}(2 - 1) = \sqrt{3}$。
 
 **4. Answer: `8π(2 - √2)/3`**
+
 - **解析：** 使用球座標 (Spherical Coordinates)。
 圓錐 $z = \sqrt{x^2+y^2}$ 對應到 $\phi = \pi/4$。球體 $x^2+y^2+z^2=4$ 對應到 $\rho = 2$。
 體積 $V = \int_0^{2\pi} \int_0^{\pi/4} \int_0^2 \rho^2 \sin\phi \, d\rho \, d\phi \, d\theta$
@@ -57,6 +62,7 @@ $= \left(\int_0^{2\pi} d\theta\right) \left(\int_0^{\pi/4} \sin\phi \, d\phi\rig
 $= 2\pi \cdot (1 - \frac{\sqrt{2}}{2}) \cdot \frac{8}{3} = \frac{16\pi}{3} \left(\frac{2-\sqrt{2}}{2}\right) = \frac{8\pi(2-\sqrt{2})}{3}$。
 
 **5. Answer: `-4π`**
+
 - **解析：** 根據 Stokes' Theorem，$\iint_S (\nabla \times \mathbf{F}) \cdot \mathbf{n} dS = \oint_C \mathbf{F} \cdot d\mathbf{r}$。
 邊界曲線 $C$ 是 $z=9-x^2-y^2$ 與 $z=5$ 的交線，即 $x^2+y^2=4$ 位於 $z=5$ 的平面上。因法向量朝上，由上方俯視 $C$ 為逆時針。
 參數化 $C$: $\mathbf{r}(t) = \langle 2\cos t, 2\sin t, 5 \rangle, 0 \le t \le 2\pi$。
@@ -65,16 +71,19 @@ $\mathbf{F}(\mathbf{r}(t)) = \langle 2\sin t, 5, 2\cos t \rangle$。
 $\oint_C \mathbf{F} \cdot d\mathbf{r} = \int_0^{2\pi} (2\sin t)(-2\sin t) + (5)(2\cos t) + 0 \, dt = \int_0^{2\pi} (-4\sin^2 t + 10\cos t) dt = -4(\pi) + 0 = -4\pi$。
 
 **6. Answer: `π/4`**
+
 - **解析：** $\lim_{n \to \infty} \sum_{i=1}^n \frac{n}{n^2 + i^2} = \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^n \frac{1}{1 + (i/n)^2}$。
 這是一個黎曼和 (Riemann Sum)，對應的定積分為 $\int_0^1 \frac{1}{1+x^2} dx = \left[\tan^{-1} x\right]_0^1 = \frac{\pi}{4}$。
 
 **7. Answer: `7e/5`**
+
 - **解析：** 由微積分基本定理，$\nabla f = \langle f_x, f_y \rangle = \langle e^{x^2}, -e^{y^2} \rangle$。
 在點 $(1,1)$ 的梯度為 $\nabla f(1,1) = \langle e, -e \rangle$。
 方向向量 $\mathbf{v} = \langle 3, -4 \rangle$，其單位向量 $\mathbf{u} = \langle \frac{3}{5}, -\frac{4}{5} \rangle$。
 方向導數 $D_{\mathbf{u}}f(1,1) = \nabla f(1,1) \cdot \mathbf{u} = e(\frac{3}{5}) + (-e)(-\frac{4}{5}) = \frac{3e}{5} + \frac{4e}{5} = \frac{7e}{5}$。
 
 **8. Answer: `-1`**
+
 - **解析：** 巧妙的代數操作：$f(x) = \frac{1}{1-x+x^2} = \frac{1+x}{(1+x)(1-x+x^2)} = \frac{1+x}{1+x^3}$。
 利用幾何級數展開 $\frac{1}{1 - (-x^3)} = 1 - x^3 + x^6 - x^9 + \cdots$。
 $f(x) = (1+x)(1 - x^3 + x^6 - \cdots) = 1 + x - x^3 - x^4 + x^6 + x^7 - \cdots$。
@@ -93,6 +102,7 @@ $$ \lim_{n \to \infty} \left| \frac{a_{n+1}}{a_n} \right| = \lim_{n \to \infty} 
 
 **(b) 判斷端點收斂性 (6 分)**
 區間為 $(2-4, 2+4) = (-2, 6)$。我們需要測試端點 $x=6$ 與 $x=-2$。
+
 1. **當 $x=6$ 時**：級數變為 $\sum_{n=1}^\infty \frac{4^n}{n \cdot 4^n} = \sum_{n=1}^\infty \frac{1}{n}$。
 這是一個 $p$-series (調和級數)，其中 $p=1 \le 1$，所以此級數**發散 (Diverges)**。 *(3 分)*
 2. **當 $x=-2$ 時**：級數變為 $\sum_{n=1}^\infty \frac{(-4)^n}{n \cdot 4^n} = \sum_{n=1}^\infty \frac{(-1)^n}{n}$。

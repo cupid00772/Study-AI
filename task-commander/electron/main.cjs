@@ -49,7 +49,7 @@ function createWindow() {
 }
 
 // 當第二個實例試圖啟動時，聚焦到現有的主要視窗
-app.on('second-instance', (event, commandLine, workingDirectory) => {
+app.on('second-instance', () => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore();

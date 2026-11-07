@@ -10,13 +10,17 @@ maxBriefChars: 850
 ---
 
 ## Investigation Brief
+
 On Next.js 15+, GET Route Handlers are dynamic by default. For hot public GET handlers, verify whether uncached behavior is intentional before recommending cache headers or route config.
 
 ## Evidence To Check
+
 Use method share, cache result, and source. Check `GET`, `revalidate`, `dynamic`, request headers, cookies, auth, query params, and response `Cache-Control`.
 
 ## Do Not Recommend When
+
 Do not cache POST-style handlers, webhooks, per-user APIs, streaming responses, search requests with user-specific params, or handlers that read auth/cookies.
 
 ## Verification
+
 Name the Next.js version, GET share, cache result mix, and the exact handler or header line that makes public caching safe.

@@ -1,0 +1,9 @@
+node_modules/
+Reference/
+task-commander/dist/
+task-commander/dist-electron/
+task-commander/release/
+task-commander/release-new/
+task-commander/node_modules/
+**/scratch/**
+_Tools/

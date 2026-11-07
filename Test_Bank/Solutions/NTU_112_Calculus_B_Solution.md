@@ -2,7 +2,8 @@
 
 ## PART I. Fill in the blanks
 
-### 1. 
+### 1.
+
 **題目：** Evaluate $\lim_{x\to 0} \left( \frac{\sqrt{x+4}-2}{\tan^{-1}(\pi x)} \right)$
 
 **解析：**
@@ -17,6 +18,7 @@ $$ \lim_{x\to 0} \frac{\frac{1}{2\sqrt{x+4}}}{\frac{\pi}{1+(\pi x)^2}} = \frac{\
 ---
 
 ### 2.
+
 **題目：** 曲線 $x - \sqrt{xy} + y = 3$ 通過點 $(4,1)$，求在 $(4,1)$ 的切線方程式。
 
 **解析：**
@@ -35,6 +37,7 @@ $$ (1 - \frac{x}{2\sqrt{xy}})y' = \frac{y}{2\sqrt{xy}} - 1 $$
 ---
 
 ### 3.
+
 **題目：** 求函數 $f(x) = x^6 e^{-2x^2}$ 的絕對極大值。
 
 **解析：**
@@ -50,6 +53,7 @@ $$ f\left(\pm\sqrt{\frac{3}{2}}\right) = \left(\frac{3}{2}\right)^3 e^{-2(3/2)} 
 ---
 
 ### 4.
+
 **題目：** 函數 $g(x) = \frac{\ln(x^3)}{\sqrt{x}}$ 的反曲點發生在 $x = ?$
 
 **解析：**
@@ -66,6 +70,7 @@ $$ = 3 x^{-5/2} \left( -\frac{3}{2} + \frac{3}{4}\ln x - \frac{1}{2} \right) = 3
 ---
 
 ### 5.
+
 **題目：** 求解滿足 $\int_{\sqrt{x}}^4 \frac{f(t^2)}{\ln t} dt = e^{(x-16)^2} - \frac{x}{16}$ 的函數 $f(x)$。
 
 **解析：**
@@ -84,6 +89,7 @@ $$ f(x) = \sqrt{x}\ln x \left( \frac{1}{16} - 2(x-16)e^{(x-16)^2} \right) $$
 ---
 
 ### 6.
+
 **題目：** 求曲線 $y = \frac{1}{\sqrt{x}(\sqrt{x}+1)}$ 從 $x=1$ 到 $x=4$ 繞 $x$ 軸旋轉所產生的體積。
 
 **解析：**
@@ -102,6 +108,7 @@ $$ V = 2\pi \left( \ln\frac{4}{3} - \frac{1}{6} \right) = 2\pi\ln\left(\frac{4}{
 ---
 
 ### 7.
+
 **題目：** 判斷瑕積分 $\int_2^\infty \frac{dx}{x(x^2-1)^{3/2}}$ 是否收斂，若收斂則求值。
 
 **解析：**
@@ -118,12 +125,14 @@ $$ \left( -\cot\frac{\pi}{2} - \frac{\pi}{2} \right) - \left( -\cot\frac{\pi}{3}
 ---
 
 ### 8.
+
 **題目：** 找出曲面 $\sqrt{x} + \sqrt{8y} + \sqrt{27z} = 14$ 上距離原點最近的點。
 
 **解析：**
 即最小化 $f(x,y,z) = x^2+y^2+z^2$，限制條件為 $g(x,y,z) = x^{1/2} + \sqrt{8}y^{1/2} + \sqrt{27}z^{1/2} = 14$。
 Lagrange Multipliers: $\nabla f = \lambda \nabla g$
 $$ \langle 2x, 2y, 2z \rangle = \lambda \langle \frac{1}{2\sqrt{x}}, \frac{\sqrt{8}}{2\sqrt{y}}, \frac{\sqrt{27}}{2\sqrt{z}} \rangle $$
+
 - $2x = \frac{\lambda}{2\sqrt{x}} \implies 4x^{3/2} = \lambda \implies x^{1/2} = (\frac{\lambda}{4})^{1/3}$
 - $2y = \frac{\sqrt{8}\lambda}{2\sqrt{y}} \implies 4y^{3/2} = \sqrt{8}\lambda \implies y^{1/2} = 2^{-1/6}\lambda^{1/3}$
 - $2z = \frac{\sqrt{27}\lambda}{2\sqrt{z}} \implies 4z^{3/2} = \sqrt{27}\lambda \implies z^{1/2} = \frac{\sqrt{3}}{4^{1/3}}\lambda^{1/3}$
@@ -144,6 +153,7 @@ $z^{1/2} = \frac{\sqrt{3}}{4^{1/3}} 4^{1/3} = \sqrt{3} \implies z = 3$
 ---
 
 ### 9.
+
 **題目：** Evaluate $\int_0^2 \int_0^{\sqrt{4-x^2}} \int_{2-\sqrt{4-x^2-y^2}}^{2+\sqrt{4-x^2-y^2}} \sqrt{x^2+y^2+z^2} dz dy dx$
 
 **解析：**
@@ -165,6 +175,7 @@ $$ 32\pi \left[ -\frac{\cos^5\phi}{5} \right]_0^{\pi/2} = 32\pi \left(0 - \left(
 ---
 
 ### 10.
+
 **題目：** 求解初值問題 $x \frac{dy}{dx} = 3x^2 - 2y, y(1)=2$。
 
 **解析：**
@@ -184,6 +195,7 @@ $$ \frac{3}{4} + C = 2 \implies C = \frac{5}{4} $$
 ## PART II. Show ALL your work
 
 ### 11.
+
 **題目：** 計算 $\iint_R \left[ \cos\left(\frac{y-x}{y+x}\right) \right]^2 dA$，區域 $R$ 為頂點 $(2,0), (3,0), (0,3), (0,2)$ 的梯形。
 
 **解析：**
@@ -210,6 +222,7 @@ $$ \frac{1}{2} \left( 1 + \frac{\sin 2}{2} \right) \int_2^3 v dv = \frac{1}{2} \
 ---
 
 ### 12.
+
 **題目：** 描繪函數 $f(x) = x^{2/3}(12-x)^{1/3}$ 的圖形。標出漸近線、局部極值、增減區間、凹凸區間。
 
 **解析：**
@@ -218,12 +231,14 @@ $f(x) = (12x^2 - x^3)^{1/3}$
 $$ f'(x) = \frac{1}{3} (12x^2 - x^3)^{-2/3} (24x - 3x^2) = \frac{x(8-x)}{x^{4/3}(12-x)^{2/3}} = \frac{8-x}{x^{1/3}(12-x)^{2/3}} $$
 臨界點為：$x=8$ (導數為0) 及 $x=0, 12$ (導數不存在，具垂直切線)。
 判斷增減性（$f'(x)$ 的正負）：
+
 - $(-\infty, 0)$: $f' < 0$ (遞減)
 - $(0, 8)$: $f' > 0$ (遞增)
 - $(8, 12)$: $f' < 0$ (遞減)
 - $(12, \infty)$: $f' < 0$ (遞減)
 
 **極值分析：**
+
 - $x=0$ 由減轉增，有局部極小值 $f(0) = 0$ (圖形為尖點 Cusp)。
 - $x=8$ 由增轉減，有局部極大值 $f(8) = 8^{2/3}(4)^{1/3} = 4\sqrt[3]{4}$。
 
@@ -231,6 +246,7 @@ $$ f'(x) = \frac{1}{3} (12x^2 - x^3)^{-2/3} (24x - 3x^2) = \frac{x(8-x)}{x^{4/3}
 經過整理後，二階導數為：
 $$ f''(x) = \frac{-32}{x^{4/3}(12-x)^{5/3}} $$
 分母的 $x^{4/3}$ 恆為正，故正負號由 $(12-x)^{5/3}$ 決定。
+
 - 當 $x < 12$ 時 $(x\neq 0)$，$(12-x) > 0 \implies f''(x) < 0$ (凹向下)。
 - 當 $x > 12$ 時，$(12-x) < 0 \implies f''(x) > 0$ (凹向上)。
 

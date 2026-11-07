@@ -72,6 +72,4 @@ II.Absolute maximum value = 1, minimum value = -1/8
 
 46~50 DBCBC
 
-
-
 ---

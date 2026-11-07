@@ -1,4 +1,5 @@
 # 英文 學習狀態追蹤 (Learning Status)
+
 | 章節 (Chapter) | 精熟度 | 上次測驗日期 | 易錯盲點紀錄 (Weaknesses & Pitfalls) |
 | :--- | :---: | :--- | :--- |
 | Ch 1. Vocabulary (單字填空) | 🟡 | 2026-06-18 | 待測驗後更新 |

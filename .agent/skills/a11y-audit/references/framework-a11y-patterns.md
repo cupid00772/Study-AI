@@ -5,6 +5,7 @@
 ### Common Issues and Fixes
 
 **Image alt text:**
+
 ```jsx
 // ❌ Bad
 <img src="/hero.jpg" />
@@ -19,6 +20,7 @@
 ```
 
 **Form labels:**
+
 ```jsx
 // ❌ Bad — placeholder as label
 <input placeholder="Email" type="email" />
@@ -32,6 +34,7 @@
 ```
 
 **Click handlers on divs:**
+
 ```jsx
 // ❌ Bad — not keyboard accessible
 <div onClick={handleClick}>Click me</div>
@@ -51,6 +54,7 @@
 ```
 
 **SPA route announcements (Next.js App Router):**
+
 ```jsx
 // Layout component — announce page changes
 'use client';
@@ -75,6 +79,7 @@ export function RouteAnnouncer() {
 ```
 
 **Focus management after dynamic content:**
+
 ```jsx
 // After adding item to list, announce it
 const [items, setItems] = useState([]);
@@ -95,6 +100,7 @@ return (
 ```
 
 ### React-Specific Libraries
+
 - `@radix-ui/*` — accessible primitives (Dialog, Tabs, Select, etc.)
 - `@headlessui/react` — unstyled accessible components
 - `react-aria` — Adobe's accessibility hooks
@@ -105,6 +111,7 @@ return (
 ### Common Issues and Fixes
 
 **Dynamic content announcements:**
+
 ```vue
 <template>
   <div aria-live="polite" class="sr-only">
@@ -129,6 +136,7 @@ async function search() {
 ```
 
 **Conditional rendering with focus:**
+
 ```vue
 <template>
   <button @click="showForm = true">Add Item</button>
@@ -153,6 +161,7 @@ watch(showForm, async (val) => {
 ```
 
 ### Vue-Specific Libraries
+
 - `vue-announcer` — route change announcements
 - `@headlessui/vue` — accessible components
 - `eslint-plugin-vuejs-accessibility` — lint rules
@@ -162,6 +171,7 @@ watch(showForm, async (val) => {
 ### Common Issues and Fixes
 
 **CDK accessibility utilities:**
+
 ```typescript
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FocusTrapFactory } from '@angular/cdk/a11y';
@@ -186,6 +196,7 @@ export class MyComponent {
 ```
 
 **Template-driven forms:**
+
 ```html
 <!-- ❌ Bad -->
 <input [formControl]="email" placeholder="Email" />
@@ -201,6 +212,7 @@ export class MyComponent {
 ```
 
 ### Angular-Specific Tools
+
 - `@angular/cdk/a11y` — `FocusTrap`, `LiveAnnouncer`, `FocusMonitor`
 - `codelyzer` — a11y lint rules for Angular templates
 

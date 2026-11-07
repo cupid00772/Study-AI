@@ -1,6 +1,7 @@
 # 微積分 Chapter 1 掃題測驗 - Maclaurin Series - 解答與詳解
 
 ### **Question 1**
+
 **解答：$1/6$**
 **詳解**：
 使用 $\sin x$ 的 Maclaurin 級數展開：
@@ -11,6 +12,7 @@ $$ \lim_{x \to 0} \frac{x - \left( x - \frac{x^3}{6} + O(x^5) \right)}{x^3} = \l
 ---
 
 ### **Question 2**
+
 **解答：$1/3$**
 **詳解**：
 使用 $\ln(1+x)$ 的展開式：
@@ -21,6 +23,7 @@ $$ \lim_{x \to 0} \frac{\left( x - \frac{x^2}{2} + \frac{x^3}{3} - \dots \right)
 ---
 
 ### **Question 3**
+
 **解答：$1/2$**
 **詳解**：
 使用二項式展開 $(1+u)^p = 1 + pu + \frac{p(p-1)}{2!}u^2 + \frac{p(p-1)(p-2)}{3!}u^3 + \dots$
@@ -33,6 +36,7 @@ $$ \lim_{x \to 0} \frac{\left( 1 + x - \frac{1}{2}x^2 + \frac{1}{2}x^3 + \dots \
 ---
 
 ### **Question 4**
+
 **解答：$-1/3$**
 **詳解**：
 展開 $e^x$ 與 $\cos x$ 到 $x^3$ 項並相乘：
@@ -47,6 +51,7 @@ $$ \lim_{x \to 0} \frac{\left( 1 + x - \frac{x^3}{3} + \dots \right) - 1 - x}{x^
 ---
 
 ### **Question 5**
+
 **解答：$-1/3$**
 **詳解**：
 利用合成函數展開。已知 $\sin u \approx u - \frac{u^3}{6}$。令 $u = \sin x \approx x - \frac{x^3}{6}$。
@@ -59,6 +64,7 @@ $$ \lim_{x \to 0} \frac{\left( x - \frac{x^3}{3} \right) - x}{x^3} = -\frac{1}{3
 ---
 
 ### **Question 6**
+
 **解答：$1/3$**
 **詳解**：
 先通分：
@@ -71,6 +77,7 @@ $$ \lim_{x \to 0} \frac{\frac{x^3}{3}}{x^3} = \frac{1}{3} $$
 ---
 
 ### **Question 7**
+
 **解答：$-1/12$**
 **詳解**：
 首先展開 $\cos x$ 到 $x^4$：
@@ -85,6 +92,7 @@ $$ \lim_{x \to 0} \frac{\left( - \frac{x^2}{2} - \frac{x^4}{12} \right) + \frac{
 ---
 
 ### **Question 8**
+
 **解答：$3/2$**
 **詳解**：
 展開 $\cos x$ 與 $\sqrt{\cos 2x}$。
@@ -99,6 +107,7 @@ $$ \lim_{x \to 0} \frac{1 - \left( 1 - \frac{3}{2}x^2 \right)}{x^2} = \frac{3}{2
 ---
 
 ### **Question 9**
+
 **解答：$-1/12$**
 **詳解**：
 將兩個函數展開至 $x^4$。
@@ -112,6 +121,7 @@ $$ \cos x - e^{-x^2/2} \approx \left( 1 - \frac{x^2}{2} + \frac{x^4}{24} \right)
 ---
 
 ### **Question 10**
+
 **解答：$a = 1, b = -1, c = 1/2$**
 **詳解**：
 展開 $\ln(1+ax)$ 到三次項：
@@ -121,6 +131,7 @@ $$ \ln(1+ax) + bx + cx^2 = (ax - \frac{a^2}{2}x^2 + \frac{a^3}{3}x^3) + bx + cx^
 $$ = (a+b)x + \left(c - \frac{a^2}{2}\right)x^2 + \frac{a^3}{3}x^3 + O(x^4) $$
 為了讓極限 $\lim_{x \to 0} \frac{\text{分子}}{x^3}$ 存在且等於 $1/3$，分子中 $x$ 與 $x^2$ 的係數必須為 $0$，且 $x^3$ 的係數必須為 $1/3$。
 我們建立方程式：
+
 1. $a + b = 0$
 2. $c - \frac{a^2}{2} = 0$
 3. $\frac{a^3}{3} = \frac{1}{3}$

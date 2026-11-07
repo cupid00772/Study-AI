@@ -7,6 +7,7 @@ subject: "微積分 (Calculus)"
 # 詳解與評分標準：Vector Analysis 模擬測驗解答
 
 ## 🎯 考點分佈總表 (Topic Analysis)
+
 | 題號 | 核心考點 (Key Concepts) | 難度 | 針對弱點打擊重點 |
 |:---:|:---|:---:|:---|
 | 1 | Gradient & Directional Derivative | [Medium] | 提醒求極值方向時，必須將向量轉為**單位向量** |
@@ -25,8 +26,10 @@ subject: "微積分 (Calculus)"
 ## 📝 解題步驟 (Step-by-step Solutions)
 
 ### Q1. (Directional Derivative)
+
 **Step 1: 計算偏導數與梯度向量 (Gradient Vector)**
 $f(x, y, z) = x^2 y^3 z^4$
+
 - $f_x = 2xy^3z^4$
 - $f_y = 3x^2y^2z^4$
 - $f_z = 4x^2y^3z^3$
@@ -48,6 +51,7 @@ $\mathbf{u} = \frac{\nabla f}{|\nabla f|} = \frac{1}{\sqrt{29}} \langle -2, 3, -
 ---
 
 ### Q2. (Green's Theorem with Singularity) ⚠️重點考題
+
 **Step 1: 檢查向量場的散度與旋度**
 設 $\mathbf{F}(x,y) = P\mathbf{i} + Q\mathbf{j} = \frac{-y}{x^2 + y^2}\mathbf{i} + \frac{x}{x^2 + y^2}\mathbf{j}$
 計算 $\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}$：
@@ -71,6 +75,7 @@ $= \int_0^{2\pi} \frac{\epsilon^2(\sin^2 t + \cos^2 t)}{\epsilon^2} dt = \int_0^
 ---
 
 ### Q3. (Surface Integral - Flux) ⚠️易錯點
+
 **Step 1: 確定 $d\mathbf{S}$ 的轉換**
 曲面 $S$: $z = g(x,y) = 1 - x^2 - y^2$。因為是向上定向 (upward)，法向量的 $z$ 分量為正：
 $d\mathbf{S} = \hat{n} dS = \langle -g_x, -g_y, 1 \rangle dA = \langle 2x, 2y, 1 \rangle dA$
@@ -90,6 +95,7 @@ $= 2\pi [\frac{r^2}{2} + \frac{r^6}{6}]_0^1 = 2\pi (\frac{1}{2} + \frac{1}{6}) =
 ---
 
 ### Q4. (Divergence Theorem & Spherical Coordinates) ⚠️易錯點
+
 **Step 1: 使用散度定理**
 $\iint_S \mathbf{F} \cdot d\mathbf{S} = \iiint_V (\nabla \cdot \mathbf{F}) dV$
 計算散度：$\nabla \cdot \mathbf{F} = \frac{\partial}{\partial x}(x^3) + \frac{\partial}{\partial y}(y^3) + \frac{\partial}{\partial z}(z^3) = 3x^2 + 3y^2 + 3z^2$
@@ -106,6 +112,7 @@ $= (2\pi) \times [-\cos\phi]_0^\pi \times [ \frac{3}{5}\rho^5 ]_0^1 = (2\pi) \ti
 ---
 
 ### Q5. (Stokes' Theorem)
+
 **Step 1: 計算旋度 (Curl)**
 $\nabla \times \mathbf{F} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ \frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z} \\ -y^2 & x & z^2 \end{vmatrix} = \langle 0, 0, 1 - (-2y) \rangle = \langle 0, 0, 1+2y \rangle$
 
@@ -122,6 +129,7 @@ $= \int_0^{2\pi} (\frac{1}{2} + \frac{2}{3}\sin\theta) d\theta = [\frac{1}{2}\th
 ---
 
 ### Q6. (Conservative Vector Field)
+
 **Step 1: 檢查是否保守 (Check Curl)**
 $\nabla \times \mathbf{F} = \langle \frac{\partial(3xz^2)}{\partial y} - \frac{\partial(x^2)}{\partial z}, \frac{\partial(2xy+z^3)}{\partial z} - \frac{\partial(3xz^2)}{\partial x}, \frac{\partial(x^2)}{\partial x} - \frac{\partial(2xy+z^3)}{\partial y} \rangle$
 $= \langle 0 - 0, 3z^2 - 3z^2, 2x - 2x \rangle = \langle 0,0,0 \rangle$ (保守場)
@@ -141,6 +149,7 @@ $= [ (3)^2(1) + (3)(4)^3 ] - [ (1)^2(-2) + (1)(1)^3 ] = (9 + 192) - (-2 + 1) = 2
 ---
 
 ### Q7. (Green's Theorem - Standard)
+
 **Step 1: 應用 Green 定理**
 $P = e^x - y^3, \quad Q = \cos y + x^3$
 $\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y} = 3x^2 - (-3y^2) = 3(x^2 + y^2)$
@@ -154,6 +163,7 @@ $\iint_D 3(x^2+y^2) dA = \int_0^{2\pi} \int_0^3 3r^2 (r) dr d\theta = 2\pi \left
 ---
 
 ### Q8. (Scalar Surface Integral)
+
 **Step 1: 標量面積分參數化 (球座標)**
 曲面 $S$: $x^2+y^2+z^2=4 \implies \rho = 2$。
 上半球 $z \ge 0 \implies 0 \le \phi \le \pi/2$。
@@ -170,6 +180,7 @@ $= 2\pi \int_0^{\pi/2} 4\sin(2\phi) d\phi = 8\pi \left[ -\frac{1}{2}\cos(2\phi) 
 ---
 
 ### Q9. (Line Integral - Work)
+
 **Step 1: 代入參數式**
 $\mathbf{r}(t) = \langle t, t^2, t^3 \rangle \implies d\mathbf{r} = \langle 1, 2t, 3t^2 \rangle dt$
 $\mathbf{F}(\mathbf{r}(t)) = \langle y, z, x \rangle = \langle t^2, t^3, t \rangle$
@@ -183,6 +194,7 @@ $W = \int_0^1 (2t^4 + 3t^3 + t^2) dt = \left[ \frac{2}{5}t^5 + \frac{3}{4}t^4 + 
 ---
 
 ### Q10. (Divergence Theorem - Cylinder)
+
 **Step 1: 散度定理**
 $\mathbf{F} = \langle x, y, z \rangle$
 $\nabla \cdot \mathbf{F} = 1 + 1 + 1 = 3$

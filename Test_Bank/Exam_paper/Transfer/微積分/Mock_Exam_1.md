@@ -7,6 +7,7 @@
 ---
 
 ### 甲、填充題：共 8 題，每題 8 分，共 64 分。請在答案卷上列出題號依序作答。
+>
 > 請注意：本（甲）部分，共 8 題，命題型態為填充題，請依題號順序獨立列出，勿同時陳列出計算過程。倘若答案被包含在演算過程，將被視為試算流程，不另行挑出計分。
 
 1. Evaluate the limit $\lim _{x \rightarrow 0} \frac{1}{x^3} \int_{0}^{x} t \sin(t) d t$.
@@ -37,11 +38,11 @@ Answer : ____________________
 
 ### 乙、計算、證明題：共 3 題，每題 12 分，共 36 分。須詳細寫出計算及證明過程，否則不予計分。
 
-**1.** 
+**1.**
 (a) (6 分) Find the radius of convergence and interval of convergence of the power series $\sum_{n=1}^{\infty} \frac{(-1)^n (x-2)^n}{n 3^n}$.
 (b) (6 分) Determine whether the series $\sum_{n=2}^{\infty} \frac{1}{n \ln n}$ is absolutely convergent, conditionally convergent, or divergent. Give reasons for your answer.
 
-**2.** Let the function $f$ be defined by 
+**2.** Let the function $f$ be defined by
 $$
 f(x, y) = \begin{cases} \frac{x^2 y^2}{x^4 + y^4}, & \text{if } (x, y) \neq (0,0) \\ 0, & \text{if } (x, y) = (0,0) \end{cases}
 $$

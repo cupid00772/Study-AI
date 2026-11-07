@@ -29,7 +29,7 @@ $$ \sum_{n=1}^{\infty} \frac{(x-3)^n}{n \cdot 2^n} $$
 **7. (10%)** 觀察泰勒展開式，求出下列無窮級數的總和 (Exact sum)：
 $$ \sum_{n=0}^{\infty} \frac{(-1)^n \pi^{2n+1}}{4^{2n+1} (2n+1)!} $$
 
-**8. (15%)** 
+**8. (15%)**
 (a) 利用 $f(x) = e^{-x^2}$ 的馬克勞林級數前三個非零項，來估計定積分 $\int_{0}^{0.1} e^{-x^2} \, dx$ 的值。
 (b) 根據交錯級數估計定理 (Alternating Series Estimation Theorem)，給出此估計值的最大誤差上界 (Upper bound of the error)。
 

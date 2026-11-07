@@ -1,6 +1,7 @@
 # 微積分 Chapter 4 掃題測驗 - 積分 - 解答與詳解
 
 ### **Question 1**
+
 **解答：$\frac{\pi}{4}$**
 **詳解**：
 將原式改寫為黎曼和的形式，提出 $\frac{1}{n}$：
@@ -11,6 +12,7 @@ $$ \int_{0}^{1} \frac{1}{1+x^2} dx = \left[ \arctan(x) \right]_0^1 = \arctan(1) 
 ---
 
 ### **Question 2**
+
 **解答：$2x\sqrt{1+x^6} - 2\sqrt{1+8x^3}$**
 **詳解**：
 根據微積分基本定理 (Fundamental Theorem of Calculus) 和連鎖律 (Chain Rule)：
@@ -22,6 +24,7 @@ $$ F'(x) = 2x\sqrt{1+x^6} - 2\sqrt{1+8x^3} $$
 ---
 
 ### **Question 3**
+
 **解答：$\frac{23}{3}$**
 **詳解**：
 先找出 $|x^2 - 4| = 0$ 的根，為 $x = \pm 2$。在積分區間 $[0, 3]$ 內，分界點為 $x=2$。
@@ -39,6 +42,7 @@ $$ \frac{16}{3} + \frac{7}{3} = \frac{23}{3} $$
 ---
 
 ### **Question 4**
+
 **解答：$2e^{\sqrt{x}} + C$**
 **詳解**：
 令 $u = \sqrt{x} = x^{1/2}$，則 $du = \frac{1}{2\sqrt{x}} dx$，即 $dx = 2\sqrt{x} du$。
@@ -50,6 +54,7 @@ $$ 2e^{\sqrt{x}} + C $$
 ---
 
 ### **Question 5**
+
 **解答：$\pi$**
 **詳解**：
 積分區間為對稱區間 $[-\frac{\pi}{4}, \frac{\pi}{4}]$。可以利用奇偶函數性質：
@@ -64,6 +69,7 @@ $$ \int_{-\frac{\pi}{4}}^{\frac{\pi}{4}} 2 dx = 2 \times \left( \frac{\pi}{4} - 
 ---
 
 ### **Question 6**
+
 **解答：平均值為 $\frac{4}{3}$，$c = \frac{16}{9}$**
 **詳解**：
 函數平均值公式：$f_{avg} = \frac{1}{b-a} \int_{a}^{b} f(x) dx$。

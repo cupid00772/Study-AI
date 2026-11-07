@@ -7,6 +7,7 @@
 ---
 
 ### 甲、填充題：共 8 題，每題 8 分，共 64 分。請在答案卷上列出題號依序作答。
+>
 > 請注意：本（甲）部分，共 8 題，命題型態為填充題，請依題號順序獨立列出，勿同時陳列出計算過程。倘若答案被包含在演算過程，將被視為試算流程，不另行挑出計分。
 
 1. Evaluate the limit $\lim _{x \rightarrow 0} \frac{e^x - 1 - x}{x^2}$.
@@ -41,6 +42,6 @@ Answer : ____________________
 
 **2.** Determine whether the improper integral $\int_1^\infty \frac{\ln x}{x^2} dx$ is convergent or divergent. If it is convergent, evaluate it.
 
-**3.** Use Green's Theorem to evaluate the line integral 
+**3.** Use Green's Theorem to evaluate the line integral
 $$ \oint_C (3y - e^{\sin x})dx + (7x + \sqrt{y^4+1})dy $$
 where $C$ is the circle $x^2+y^2=9$ traversed counterclockwise.

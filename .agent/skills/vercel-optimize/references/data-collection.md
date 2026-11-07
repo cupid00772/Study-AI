@@ -181,6 +181,7 @@ Status filtering uses `http_status` (not `status`). Both `http_status eq '500'` 
 ### `vercel api /v9/projects/<id>` / `?teamId=<orgId>`
 
 Top-level keys relevant to the skill (real, verified):
+
 - `framework` (string, e.g. `"nextjs"`)
 - `resourceConfig.fluid` (boolean) — **Fluid Compute toggle**
 - `defaultResourceConfig.fluid` — template for new functions
@@ -211,6 +212,7 @@ May return `Error: Costs not found (404)`. Treat that queried error as `USAGE_UN
 CLI error message strings are not stable contracts — they can change between versions. Detecting `OPLUS_REQUIRED` by greping `stderr.includes('Observability Plus')` will break the moment Vercel rewords the message.
 
 `runVercelJson()` therefore:
+
 1. Always tries to **parse stdout as JSON** first. Most failures emit a structured `{error:{code,message,allowedValues}}` payload that's deterministic.
 2. Only falls back to a lower-case stderr substring match when stdout was not parseable JSON.
 3. Categorizes anything unrecognized as `EXIT_N` and treats it as "missing data, continue."

@@ -33,6 +33,7 @@
 ---
 
 ## 評分標準與建議 (Marking Scheme)
+
 - **總分：** 100 分
 - **配分：** 共 25 題，每題 4 分，答錯不倒扣。
 - **實力評估：**
@@ -48,22 +49,27 @@
 ### 單選題 (每題 4 分)
 
 **1. Answer: `(C)`**
+
 - **考點：** Process States (狀態轉換)。
 - **解析：** 當行程處於 Waiting (Blocked) 狀態時，通常是因為它正在等待某個事件發生 (例如 I/O 讀寫完成)。一旦該事件完成 (I/O completion interrupt)，作業系統就會將該行程的狀態從 Waiting 轉為 Ready，放入 Ready Queue 等待 CPU 調度。選項 (B) 是 Running 到 Ready；選項 (A) 是 Ready 到 Running。
 
 **2. Answer: `(B)`**
+
 - **考點：** Heap 的時間複雜度。
 - **解析：** 從一個無序陣列建構 Max-Heap (Build-Heap)，如果使用 Bottom-Up 的 `heapify` 方法，其數學推導的時間複雜度為 $O(n)$，而非 $O(n \log n)$。這是一個非常常考的觀念陷阱。逐一 Insert 才會造成 $O(n \log n)$。
 
 **3. Answer: `(B)`**
+
 - **考點：** P, NP, NP-Hard, NP-Complete 的關係。
 - **解析：** NP-Complete (NPC) 的嚴格定義為：(1) 該問題屬於 NP。(2) 該問題是 NP-Hard (所有 NP 問題都可以在多項式時間內被 reduce 到該問題)。選項 (A) 錯誤，NP-Hard 不一定在 NP 中 (如 Halting problem)；選項 (E) 錯誤，NP 是 Nondeterministic Polynomial，不是 Not Polynomial。
 
 **4. Answer: `(A)`**
+
 - **考點：** Pipeline Data Hazard 與 Forwarding。
 - **解析：** 當有 Data Forwarding (Bypassing) 時，Instruction 1 在 EX 階段計算出結果後，會立刻透過硬體線路 Forwarding 將結果送給 Instruction 2 的 ALU 輸入端。因此 Instruction 2 可以在自己的 EX 階段直接拿到需要的資料，不需要等待 Instruction 1 寫回 (WB) 暫存器。所以 RAW hazard 介於兩個 ALU 指令之間時，Stall cycles 為 0。
 
 **5. Answer: `(D)`**
+
 - **考點：** IP Subnetting (AND 運算與廣播位置)。
 - **解析：**
   - IP: `172.16.45.14`，Mask: `255.255.240.0`
@@ -79,6 +85,7 @@
   - **更正：Answer 為 (B)。**
 
 **6. Answer: `(B)`**
+
 - **考點：** IEEE 754 浮點數表示法。
 - **解析：**
   - 在 IEEE 754 中，Exponent 全為 1 且 Mantissa (Fraction) 全為 0 時，代表 Infinity ($\infty$)。
@@ -86,21 +93,25 @@
   - 因此 Sign=1, Exponent=All 1s, Mantissa=All 0s 即為 $-\infty$。如果 Mantissa 非 0，則是 NaN (選項 C)。
 
 **7. Answer: `(C)`**
+
 - **考點：** Page Replacement 與 Belady's Anomaly。
 - **解析：** Belady's Anomaly 是指「配給作業系統的 Physical Page Frames 變多，反而造成 Page Faults 次數增加」的反常現象。這只會發生在 FIFO 演算法上，因為它不具備 Stack Algorithm 的特性。
 
 **8. Answer: `(C)`**
+
 - **考點：** Effective Memory Access Time (EMAT)。
 - **解析：**
   - TLB Hit Time = TLB 搜尋時間 + Main Memory 存取時間 = $20 + 100 = 120$ ns。
   - TLB Miss Time = TLB 搜尋時間 + Page Table 存取時間 (在 Main Memory) + Main Memory 資料存取時間 = $20 + 100 + 100 = 220$ ns。
-  - EMAT = (Hit Ratio * Hit Time) + (Miss Ratio * Miss Time) = $(0.8 \times 120) + (0.2 \times 220) = 96 + 44 = 140$ ns。
+  - EMAT = (Hit Ratio *Hit Time) + (Miss Ratio* Miss Time) = $(0.8 \times 120) + (0.2 \times 220) = 96 + 44 = 140$ ns。
 
 **9. Answer: `(D)`**
+
 - **考點：** Sorting Stability。
 - **解析：** 穩定排序 (Stable sorting) 保證值相同的元素在排序後相對位置不變。Insertion Sort, Bubble Sort, Merge Sort, Counting Sort 都是穩定的。Quick Sort 由於交換機制 (swapping) 會破壞相同元素的相對順序，通常是不穩定的。
 
 **10. Answer: `(A)`**
+
 - **考點：** C 語言雙重指標 (Double Pointers)。
 - **解析：**
   - `ptr` 指向 `arr[0]` (存放 `&a`)。
@@ -110,6 +121,7 @@
   - 第二個 `printf("%d", **ptr);` 再次印出 `b` 的值，此時為 `21`。因此輸出為 `20 21`。
 
 **11. Answer: `(B)`**
+
 - **考點：** Master Theorem。
 - **解析：**
   - $T(n) = aT(n/b) + f(n)$，這裡 $a=3, b=2, f(n) = O(n^1)$。
@@ -118,6 +130,7 @@
   - 時間複雜度為 $O(n^{\log_2 3})$。
 
 **12. Answer: `(B)`**
+
 - **考點：** Cache Mapping 結構。
 - **解析：**
   - 記憶體位址為 32 bits。
@@ -133,18 +146,22 @@
   - **更正：Answer 為 (A)。**
 
 **13. Answer: `(A)`**
+
 - **考點：** Banker's Algorithm (銀行家演算法) Safe State。
 - **解析：** 在 Banker's Algorithm 中，"Safe State" 的嚴格定義是：系統能夠找到至少一組所有 Process 的安全執行序列 (Safe Sequence)，按照這組序列依序分配資源，所有 Process 最終都能順利完成並歸還資源，不會發生死結。選項 A 完全符合這個定義。
 
 **14. Answer: `(C)`**
+
 - **考點：** User-Level Threads (ULT) vs Kernel-Level Threads (KLT)。
 - **解析：** ULT 是由 User Space 的 Library 來管理，當進行 Thread switching 時，作業系統並不知情，因此不需要 Context Switch 切換進 Kernel Mode，速度遠快於 KLT (KLT 每次切換都需要陷入核心態)。選項 A 錯誤，ULT 只要一個 Thread block 住 I/O，整個 Process 就會 block；選項 B 錯誤，ULT 無法真正利用多核平行處理。
 
 **15. Answer: `(B)`**
+
 - **考點：** Database Normalization (2NF)。
 - **解析：** 第二正規化 (2NF) 的定義是：該資料表必須先符合 1NF，並且消除「部分相依」(Partial Dependency)。也就是說，所有的非鍵值屬性 (Non-key attributes) 必須「完全」依賴於整個主鍵 (Primary Key)，不能只依賴主鍵的一部分。
 
 **16. Answer: `(C)`**
+
 - **考點：** Recursive function tracing。
 - **解析：** 這題是著名的遞迴追蹤題。`foo(n)` 會呼叫 `foo(n-1)`，印出 `n`，再呼叫 `foo(n-2)`。
   - 畫出遞迴樹 (Recursion Tree) 可以得出序列，也可以觀察到：
@@ -174,6 +191,7 @@
   - 選項可能有點筆誤，但根據結構長度，唯有長度相符的選項是正確的。答案為 (D) 的變體，若選接近的以考試邏輯為準。在此設定為標準解答。請以理解樹狀展開為主。*(由於 Markdown 選項長度限制，實際作答應選最符合前綴之選項。)*正確答案的結構會是：`1 2 3 1 4 1 2 5 1 2 3 1`。由於無此精確選項，假設選項 (D) 接近。 *(實際上這是一道測驗細心的題目，只要前綴對了即可判斷。我們就選擇與前綴最符合的。)*
 
 **17. Answer: `(B)`**
+
 - **考點：** TCP 3-Way Handshake。
 - **解析：** TCP 建立連線的三次握手：
   1. Client 傳送 `SYN` (同步要求) 給 Server。
@@ -181,6 +199,7 @@
   3. Client 收到後，回傳 `ACK` (確認收到) 給 Server。連線建立完成。
 
 **18. Answer: `(B)`**
+
 - **考點：** Dijkstra's Algorithm。
 - **解析：**
   - Dijkstra 演算法「無法」處理含有負權重邊 (Negative edge weights) 的圖，這會導致演算法算出錯誤的最短路徑 (應使用 Bellman-Ford)。選項 A 錯誤。
@@ -188,6 +207,7 @@
   - 它是 Greedy approach，不是 Divide and Conquer。
 
 **19. Answer: `(B)`**
+
 - **考點：** Amdahl's Law (阿姆達爾定律)。
 - **解析：**
   - 公式：$S(n) = \frac{1}{(1 - P) + \frac{P}{n}}$
@@ -196,10 +216,12 @@
   - 最大加速比 $S_{\max} = \frac{1}{1 - P} = \frac{1}{1 - 0.8} = \frac{1}{0.2} = 5$ 倍。
 
 **20. Answer: `(C)`**
+
 - **考點：** 數位簽章 (Digital Signatures)。
 - **解析：** 為了達到不可否認性 (Non-repudiation) 與身分認證，發送方 (Alice) 必須使用自己的「私鑰 (Private Key)」來加密文件的 Hash 產生數位簽章。接收方 (Bob) 則用 Alice 的公開的「公鑰 (Public Key)」來解密驗證。因為只有 Alice 有她的私鑰，這證明了這份文件確實是 Alice 簽署的。
 
 **21. Answer: `(C)`**
+
 - **考點：** 布林代數 De Morgan's Law。
 - **解析：**
   - 笛摩根定律有兩條：
@@ -208,6 +230,7 @@
   - 選項 C 完全符合第一條。
 
 **22. Answer: `(B)`**
+
 - **考點：** i-node 架構與檔案大小計算。
 - **解析：**
   - 一個 Block 是 4KB = 4096 Bytes。
@@ -217,13 +240,16 @@
   - 所以 Single indirect 可以支援的容量 = $1024 \times 4\text{KB} = 4096\text{KB} = 4\text{MB}$。
 
 **23. Answer: `(B)`**
+
 - **考點：** Hash Table 雙重雜湊 (Double Hashing)。
 - **解析：** 在 Double Hashing 中，探測序列的步長由 $h_2(k)$ 決定 (公式: $(h_1(k) + i \cdot h_2(k)) \mod m$)。如果 $h_2(k)$ 回傳 0，那麼探測的步長會永遠是 0，導致在同一個槽位死迴圈，無法解決 Collision。因此 $h_2(k)$ 絕對不能等於 0。
 
 **24. Answer: `(C)`**
+
 - **考點：** 圖的走訪 (Graph Traversal)。
 - **解析：** Breadth-First Search (BFS) 廣度優先搜尋，核心邏輯是先進先出 (FIFO)，因此需要使用 Queue (佇列) 資料結構來實作。Stack 則是用於 DFS (深度優先搜尋)。
 
 **25. Answer: `(B)`**
+
 - **考點：** Complete Binary Tree (完全二元樹)。
 - **解析：** 在一個有 $N$ 個節點的 Complete Binary Tree 中，葉節點 (Leaves) 的數量可以用數學公式證明為 $\lceil N / 2 \rceil$。例如：N=5，葉子有 3 個 ($\lceil 2.5 \rceil$); N=4，葉子有 2 個 ($\lceil 2.0 \rceil$)。

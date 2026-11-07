@@ -7,6 +7,7 @@
 ### 甲、填充題：共 8 題，每題 8 分，共 64 分。
 
 **1. Answer: `1/2`**
+
 - **難度：** [Easy]
 - **核心概念：** 羅必達法則 (L'Hôpital's Rule) 或 泰勒級數 (Taylor Series)。
 - **解題步驟：**
@@ -14,6 +15,7 @@
   或用泰勒級數：$e^x = 1 + x + \frac{x^2}{2!} + \dots$，代入得 $\lim_{x \to 0} \frac{\frac{x^2}{2!} + \dots}{x^2} = \frac{1}{2}$。
 
 **2. Answer: `1/4`**
+
 - **難度：** [Easy]
 - **核心概念：** 變數代換積分法 (Integration by Substitution)。
 - **解題步驟：**
@@ -22,6 +24,7 @@
   $\int_0^1 u^3 du = \left[\frac{1}{4}u^4\right]_0^1 = \frac{1}{4}$。
 
 **3. Answer: `\ln(\sqrt{2}+1)`**
+
 - **難度：** [Medium]
 - **核心概念：** 曲線弧長 (Arc Length)。
 - **解題步驟：**
@@ -31,6 +34,7 @@
   積分結果為 $\left[\ln|\sec x + \tan x|\right]_0^{\pi/4} = \ln(\sqrt{2}+1) - \ln(1+0) = \ln(\sqrt{2}+1)$。
 
 **4. Answer: `2/3`**
+
 - **難度：** [Medium] (針對弱點)
 - **核心概念：** 梯度 (Gradient) 與最大方向導數。
 - **解題步驟：**
@@ -40,6 +44,7 @@
   最大變化率即為梯度向量的長度：$|\nabla f| = \frac{1}{9} \sqrt{2^2 + (-4)^2 + 4^2} = \frac{\sqrt{36}}{9} = \frac{6}{9} = \frac{2}{3}$。
 
 **5. Answer: `\frac{1}{2}(1-\cos 1)`**
+
 - **難度：** [Medium]
 - **核心概念：** 二重積分 (Double Integral) 與 Fubini 定理。
 - **解題步驟：**
@@ -49,6 +54,7 @@
   $\frac{1}{2} \int_0^1 \sin(u) du = \frac{1}{2}[-\cos(u)]_0^1 = \frac{1}{2}(1 - \cos 1)$。
 
 **6. Answer: `-1`**
+
 - **難度：** [Medium]
 - **核心概念：** 隱函數微分 (Implicit Differentiation)。
 - **解題步驟：**
@@ -57,6 +63,7 @@
   代入 $(1,1,1)$，得 $-\frac{2(1) - 3(1)(1)}{2(1) - 3(1)(1)} = -\frac{-1}{-1} = -1$。
 
 **7. Answer: `5`**
+
 - **難度：** [Easy]
 - **核心概念：** 保守場與線積分基本定理 (Fundamental Theorem for Line Integrals)。
 - **解題步驟：**
@@ -68,6 +75,7 @@
   線積分 $= f(2,1) - f(0,0) = (4(1) + 1^3) - 0 = 5$。
 
 **8. Answer: `$\infty$`**
+
 - **難度：** [Easy]
 - **核心概念：** 冪級數的收斂半徑 (Radius of Convergence)、比值審斂法 (Ratio Test)。
 - **解題步驟：**
@@ -80,6 +88,7 @@
 
 **1.** [Medium] (針對弱點：Lagrange Multipliers)
 **解題步驟：**
+
 1. 設目標函數 $f(x,y) = xy$，限制條件 $g(x,y) = \frac{x^2}{8} + \frac{y^2}{2} = 1$。
 2. 建立 Lagrange 方程式 $\nabla f = \lambda \nabla g$：
    - $y = \lambda (\frac{x}{4})$  (1)
@@ -100,6 +109,7 @@
 
 **2.** [Medium]
 **解題步驟：**
+
 1. 此為瑕積分，寫成極限形式：$\lim_{t \to \infty} \int_1^t \frac{\ln x}{x^2} dx$。
 2. 使用分部積分法 (Integration by Parts)：令 $u = \ln x, dv = \frac{1}{x^2} dx$。
    則 $du = \frac{1}{x} dx, v = -\frac{1}{x}$。
@@ -113,6 +123,7 @@
 
 **3.** [Easy]
 **解題步驟：**
+
 1. 觀察線積分形式 $\oint_C P dx + Q dy$，其中 $P = 3y - e^{\sin x}, Q = 7x + \sqrt{y^4+1}$。
 2. 檢查 Green's Theorem 的條件：$P, Q$ 有連續的偏導數，且 $C$ 是一封閉、正向(逆時針)的曲線。
 3. 計算偏導數：
@@ -125,7 +136,9 @@
 6. 計算結果：$4 \times 9\pi = 36\pi$。
 
 ---
+
 ### 配分建議與評分標準 (Marking Scheme)
+
 - **甲、填充題 (64%)**：每題 8 分，錯一個字、符號或正負號皆全錯，無部分給分。
 - **乙、計算、證明題 (36%)**：每題 12 分。
   - **題 1 (12%)**：列出 Lagrange 方程式得 4 分，推導出 $y(1-\lambda^2/4)=0$ 或 $\lambda=\pm 2$ 得 4 分，求出極大極小值各 2 分。

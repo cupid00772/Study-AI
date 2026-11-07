@@ -1,6 +1,7 @@
 # 國立臺灣聯合大學系統 114學年度 計算機概論 模擬測驗 (Mock Exam 5)
 
 **測驗說明區**
+
 - **測驗時間：** 100 分鐘
 - **滿分：** 100 分
 - **測驗範圍：** 計算機概論全範圍 (涵蓋計算機組織、作業系統、資料結構與演算法、程式設計、網路與資料庫)
@@ -75,6 +76,7 @@
 (E) Counting Sort
 
 10. **What will be the output of the following C program?**
+
 ```c
 #include <stdio.h>
 int main() {
@@ -88,48 +90,50 @@ int main() {
     return 0;
 }
 ```
+
 (A) 20 21
 (B) 20 20
 (C) 20 30
 (D) 10 20
 (E) Compile Error
 
-11. **Using the Master Theorem, what is the asymptotic time complexity of the recurrence relation $T(n) = 3T(n/2) + O(n)$?**
+ 1. **Using the Master Theorem, what is the asymptotic time complexity of the recurrence relation $T(n) = 3T(n/2) + O(n)$?**
 (A) $O(n \log n)$
 (B) $O(n^{\log_2 3})$
 (C) $O(n^2)$
 (D) $O(n^{\log_3 2})$
 (E) $O(n^3)$
 
-12. **Consider a computer system with a 32-bit physical address space, an 8 KB Direct-Mapped Cache, and a block size of 64 bytes. How many bits are used for the Tag, Index, and Block Offset fields respectively?**
+ 2. **Consider a computer system with a 32-bit physical address space, an 8 KB Direct-Mapped Cache, and a block size of 64 bytes. How many bits are used for the Tag, Index, and Block Offset fields respectively?**
 (A) Tag = 19, Index = 7, Offset = 6
 (B) Tag = 18, Index = 8, Offset = 6
 (C) Tag = 19, Index = 8, Offset = 5
 (D) Tag = 17, Index = 9, Offset = 6
 (E) Tag = 18, Index = 7, Offset = 7
 
-13. **In the context of the Banker's Algorithm for deadlock avoidance, a system is in a "Safe State" if:**
+ 3. **In the context of the Banker's Algorithm for deadlock avoidance, a system is in a "Safe State" if:**
 (A) There is at least one sequence of all processes such that each process can complete its execution with currently available resources and resources released by previously executed processes in the sequence.
 (B) No processes are currently in the waiting state.
 (C) The total number of available resources strictly exceeds the total maximum demand of all processes.
 (D) A cycle does not exist in the Resource Allocation Graph.
 (E) All processes have executed the `wait()` system call successfully.
 
-14. **Which of the following features is a primary advantage of User-Level Threads (ULT) over Kernel-Level Threads (KLT)?**
+ 4. **Which of the following features is a primary advantage of User-Level Threads (ULT) over Kernel-Level Threads (KLT)?**
 (A) If one ULT blocks on an I/O operation, other ULTs within the same process can continue executing.
 (B) The Operating System can schedule multiple ULTs from the same process onto multiple CPU cores simultaneously.
 (C) Thread switching in ULT does not require a context switch into kernel mode, making it much faster.
 (D) ULTs are directly managed and optimized by the hardware scheduler.
 (E) ULTs are immune to race conditions and do not require synchronization mechanisms like mutexes.
 
-15. **In an entity-relationship (ER) model and Relational Databases, what is the defining condition for a table to be in the Second Normal Form (2NF)?**
+ 5. **In an entity-relationship (ER) model and Relational Databases, what is the defining condition for a table to be in the Second Normal Form (2NF)?**
 (A) It must be in 1NF and contain no transitive dependencies.
 (B) It must be in 1NF and all non-key attributes must be fully functionally dependent on the primary key.
 (C) Every determinant must be a candidate key.
 (D) It must contain only atomic (indivisible) values.
 (E) It must contain no multi-valued dependencies.
 
-16. **What is the output of the following recursive C function when `foo(5)` is called?**
+ 6. **What is the output of the following recursive C function when `foo(5)` is called?**
+
 ```c
 #include <stdio.h>
 void foo(int n) {
@@ -140,69 +144,70 @@ void foo(int n) {
     }
 }
 ```
+
 (A) 5 4 3 2 1
 (B) 1 2 3 4 5
 (C) 1 2 1 3 1 2 4 1 2 1 3 5 1 2 1 3 1 2
 (D) 1 2 1 3 1 4 1 2 1 5 1 2 1 3 1
 (E) 5 3 1 2 1 4 2 1 3 1
 
-17. **During the TCP 3-Way Handshake to establish a connection, what is the correct sequence of packets exchanged between the Client and the Server?**
+ 1. **During the TCP 3-Way Handshake to establish a connection, what is the correct sequence of packets exchanged between the Client and the Server?**
 (A) SYN $\rightarrow$ ACK $\rightarrow$ SYN-ACK
 (B) SYN $\rightarrow$ SYN-ACK $\rightarrow$ ACK
 (C) ACK $\rightarrow$ SYN $\rightarrow$ SYN-ACK
 (D) SYN-ACK $\rightarrow$ SYN $\rightarrow$ ACK
 (E) SYN $\rightarrow$ SYN $\rightarrow$ ACK
 
-18. **In Graph Algorithms, which of the following statements about Dijkstra's Shortest Path Algorithm is TRUE?**
+ 2. **In Graph Algorithms, which of the following statements about Dijkstra's Shortest Path Algorithm is TRUE?**
 (A) It can correctly find the shortest path in a graph containing negative edge weights, provided there are no negative weight cycles.
 (B) It can be implemented to run in $O(V \log V + E)$ time using a Fibonacci Heap.
 (C) It uses a Divide and Conquer approach.
 (D) It finds the Minimum Spanning Tree (MST) of a graph.
 (E) It requires the graph to be a Directed Acyclic Graph (DAG).
 
-19. **According to Amdahl's Law, if 80% of a program can be perfectly parallelized, what is the maximum theoretical speedup that can be achieved if the program is run on a system with an infinite number of processors?**
+ 3. **According to Amdahl's Law, if 80% of a program can be perfectly parallelized, what is the maximum theoretical speedup that can be achieved if the program is run on a system with an infinite number of processors?**
 (A) 4x
 (B) 5x
 (C) 8x
 (D) 10x
 (E) Infinite
 
-20. **When using Asymmetric Cryptography (Public-Key Cryptography) for Digital Signatures to ensure non-repudiation and authentication, how does the sender (Alice) sign a document sent to the receiver (Bob)?**
+ 4. **When using Asymmetric Cryptography (Public-Key Cryptography) for Digital Signatures to ensure non-repudiation and authentication, how does the sender (Alice) sign a document sent to the receiver (Bob)?**
 (A) Alice encrypts the document hash with Alice's Public Key.
 (B) Alice encrypts the document hash with Bob's Public Key.
 (C) Alice encrypts the document hash with Alice's Private Key.
 (D) Alice encrypts the document hash with Bob's Private Key.
 (E) Alice encrypts the document hash with a shared Symmetric Key.
 
-21. **In Boolean Algebra, which of the following represents De Morgan's Law?**
+ 5. **In Boolean Algebra, which of the following represents De Morgan's Law?**
 (A) $A + (B \cdot C) = (A + B) \cdot (A + C)$
 (B) $A \cdot (A + B) = A$
 (C) $\overline{A \cdot B} = \overline{A} + \overline{B}$
 (D) $A + \overline{A}B = A + B$
 (E) $A \cdot \overline{A} = 0$
 
-22. **In a UNIX-like file system using i-nodes, if an i-node contains 12 direct block pointers, 1 single indirect pointer, 1 double indirect pointer, and 1 triple indirect pointer. Assuming each disk block is 4KB and a pointer requires 4 Bytes, what is the maximum file size that can be supported by the single indirect pointer alone?**
+ 6. **In a UNIX-like file system using i-nodes, if an i-node contains 12 direct block pointers, 1 single indirect pointer, 1 double indirect pointer, and 1 triple indirect pointer. Assuming each disk block is 4KB and a pointer requires 4 Bytes, what is the maximum file size that can be supported by the single indirect pointer alone?**
 (A) 48 KB
 (B) 4 MB
 (C) 4 GB
 (D) 1024 KB
 (E) 4096 KB
 
-23. **Consider a Hash Table utilizing Double Hashing for collision resolution. The primary hash function is $h_1(k)$ and the secondary hash function is $h_2(k)$. Which of the following is a critical requirement for $h_2(k)$?**
+ 7. **Consider a Hash Table utilizing Double Hashing for collision resolution. The primary hash function is $h_1(k)$ and the secondary hash function is $h_2(k)$. Which of the following is a critical requirement for $h_2(k)$?**
 (A) $h_2(k)$ must evaluate to 0 for at least one key.
 (B) $h_2(k)$ must never evaluate to 0.
 (C) $h_2(k)$ must always return an odd number.
 (D) $h_2(k)$ must be identical to $h_1(k)$ to ensure symmetry.
 (E) $h_2(k)$ must return a value greater than the table size.
 
-24. **Which of the following data structures is most suitable for implementing a Breadth-First Search (BFS) algorithm on a graph?**
+ 8. **Which of the following data structures is most suitable for implementing a Breadth-First Search (BFS) algorithm on a graph?**
 (A) Stack
 (B) Priority Queue
 (C) Queue
 (D) Hash Table
 (E) Max-Heap
 
-25. **If a complete binary tree has $N$ nodes, what is the maximum number of leaves it can have?**
+ 9. **If a complete binary tree has $N$ nodes, what is the maximum number of leaves it can have?**
 (A) $\lfloor N / 2 \rfloor$
 (B) $\lceil N / 2 \rceil$
 (C) $2^{\lfloor \log_2 N \rfloor}$

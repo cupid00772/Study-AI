@@ -8,6 +8,7 @@ type: "模擬卷 (Mock Exam)"
 # 微積分模擬考卷：Vector Analysis 綜合測驗
 
 ## 測驗說明區
+
 - **測驗時間**：100 分鐘
 - **總分**：100 分 (每題 10 分)
 - **範圍**：Vector Calculus (向量微積分)，特別針對**方向導數與單位向量**、**Green 定理與奇點 (Singularity)**、**面積分 (Surface Integral)** 與 **散度定理 (Divergence Theorem, 三維空間積分)** 進行強化。
@@ -25,7 +26,7 @@ Let $C$ be the ellipse $x^2 + 4y^2 = 4$ oriented counterclockwise. Evaluate the 
 $$ \oint_C \frac{-y}{x^2 + y^2} dx + \frac{x}{x^2 + y^2} dy $$
 
 **3. (Surface Integral - Flux)**
-Evaluate the surface integral $\iint_S \mathbf{F} \cdot d\mathbf{S}$, where $\mathbf{F}(x,y,z) = x\mathbf{i} + y\mathbf{j} + z^2\mathbf{k}$, and $S$ is the part of the paraboloid $z = 1 - x^2 - y^2$ that lies above the $xy$-plane, oriented upward. 
+Evaluate the surface integral $\iint_S \mathbf{F} \cdot d\mathbf{S}$, where $\mathbf{F}(x,y,z) = x\mathbf{i} + y\mathbf{j} + z^2\mathbf{k}$, and $S$ is the part of the paraboloid $z = 1 - x^2 - y^2$ that lies above the $xy$-plane, oriented upward.
 
 **4. (Divergence Theorem & Spherical Coordinates)**
 Let $S$ be the unit sphere $x^2 + y^2 + z^2 = 1$ oriented outward. Use the Divergence Theorem to evaluate the flux of the vector field $\mathbf{F}(x, y, z) = x^3 \mathbf{i} + y^3 \mathbf{j} + z^3 \mathbf{k}$ across $S$.

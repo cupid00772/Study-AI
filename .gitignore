@@ -29,3 +29,10 @@ tessdata/
 
 # === VS Code 相關設定 ===
 .vscode/
+
+# === Windows 捷徑與桌面設定 ===
+*.lnk
+
+# === Electron 打包產物 ===
+task-commander/release*/
+task-commander/dist/

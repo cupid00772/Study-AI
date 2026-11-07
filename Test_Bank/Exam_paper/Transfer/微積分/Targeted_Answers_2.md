@@ -7,6 +7,7 @@
 ### 甲、填充題：共 2 題，每題 20 分，共 40 分。
 
 **1. Answer: `4`**
+
 - **難度：** [Easy]
 - **核心概念：** Ratio Test (比值審斂法) 與 收斂半徑。
 - **解題步驟：**
@@ -16,6 +17,7 @@
   因此收斂半徑 $R = 4$。
 
 **2. Answer: `7/10`**
+
 - **難度：** [Medium]
 - **核心概念：** Green's Theorem (格林定理)。
 - **解題步驟：**
@@ -44,6 +46,7 @@
 
 **2.** [Medium] (針對弱點：Lagrange Multipliers 代數計算)
 **解題步驟：**
+
 1. 設目標函數 $f(x,y) = x^2 y$，限制條件 $g(x,y) = x^2 + y^2 = 3$。
 2. 建立 Lagrange 方程式 $\nabla f = \lambda \nabla g$：
    - $\frac{\partial f}{\partial x} = 2xy = \lambda(2x) \quad \Rightarrow \quad 2x(y - \lambda) = 0 \quad \text{--- (1)}$
@@ -67,7 +70,9 @@
    **Absolute minimum value is -2** (在點 $(\pm\sqrt{2}, -1)$)
 
 ---
+
 ### 配分建議與評分標準 (Marking Scheme)
+
 - **甲、填充題 (40%)**：每題 20 分。
 - **乙、計算、證明題 (60%)**：每題 30 分。
   - **題 1 (30%)**：(a) 正確算出極限 $L=0$ 得 15 分。(b) 邏輯清晰指出 $L<1$ 故絕對收斂，並答出 $R=\infty$ 得 15 分。

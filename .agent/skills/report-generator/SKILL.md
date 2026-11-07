@@ -45,9 +45,11 @@ Use this skill when the user provides data or context and explicitly asks for a 
 ```
 
 ## Tone and Style
+
 - Use a professional, objective, and analytical tone.
 - Avoid fluff; be concise and to the point.
 - Use formatting (bolding, lists, tables) to make the report scannable and easy to read.
 
 ## Output
+
 Output the final report directly to the user in the chat, or if the user asks you to save it, use the appropriate file writing tool to save it as a `.md` file (or another requested format).

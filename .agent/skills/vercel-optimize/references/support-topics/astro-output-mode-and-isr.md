@@ -10,13 +10,17 @@ maxBriefChars: 850
 ---
 
 ## Investigation Brief
+
 Astro defaults to static output; `server` output makes pages render on demand unless route-level prerendering changes that. First decide whether the hot route truly needs SSR.
 
 ## Evidence To Check
+
 Inspect `astro.config`, adapter options, `output`, route-level `prerender`, dynamic params, middleware, and whether the content is shared across visitors. Compare route cache result and request volume.
 
 ## Do Not Recommend When
+
 Do not prerender or cache personalized, preview, cart, checkout, or auth-gated pages. Do not change output mode for the whole app when one route-level flag is enough.
 
 ## Verification
+
 Name the Astro output mode, route-level prerender state, observed route signal, and exact config or page line.

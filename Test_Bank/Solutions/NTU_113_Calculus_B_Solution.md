@@ -3,6 +3,7 @@
 ## PART 1: Fill in the blanks
 
 ### 1.
+
 **(a) 題目：** $\lim_{x\to0} |x - \tan x|^{\frac{1}{\ln|x|}}$
 
 **解析：**
@@ -42,6 +43,7 @@ $$ \lim_{t\to 0^+} \frac{(1+3t)^e - 1 - 3et}{t^2} $$
 ---
 
 ### 2.
+
 **(a) 題目：** $2y^x = x+y$ 定義了隱函數 $y = f(x)$ 於點 $(0, 2)$。求 $f'(0)$。
 
 **解析：**
@@ -66,6 +68,7 @@ $$ z - 1 = (2\ln 2 - 1)x - 1(y - 2) \implies z = (2\ln 2 - 1)x - y + 3 $$
 ---
 
 ### 3.
+
 **(a) 題目：** $\int \frac{1}{\sqrt{4x^2+4x}} dx$
 
 **解析：**
@@ -91,6 +94,7 @@ $$ \int_0^{\pi/4} \frac{1-\cos 2\theta}{2} d\theta = \left[ \frac{\theta}{2} - \
 
 **解析：**
 轉為極座標 $x=r\cos\theta, y=r\sin\theta$：
+
 - $x^2+y^2 = \frac{1}{4} \implies r = \frac{1}{2}$
 - $x^2+y^2 = x \implies r^2 = r\cos\theta \implies r = \cos\theta$
 - $y=x \implies \theta = \frac{\pi}{4}$， $y=0 \implies \theta = 0$
@@ -108,6 +112,7 @@ $$ = \frac{1}{2} \left( \frac{1}{4} - \frac{1}{8}\ln 2 \right) = \frac{1}{8} - \
 ---
 
 ### 4.
+
 **題目：** $\mathbf{F} = xz\mathbf{i} + yz\mathbf{j} + (-z + ey^2)\mathbf{k}$，$S$ 為圓柱 $x^2+y^2=1$ 在 $z=0$ 與 $z=2+x$ 之間朝外的部分。
 
 **解析：**
@@ -133,6 +138,7 @@ $$ = \frac{1}{2} (8\pi + 0 + \pi) = \frac{9\pi}{2} $$
 ## PART 2: Computation and Proofs
 
 ### 1.
+
 已知：
 (i) $|f(x) - f(0) - 3x| \le x^2$ for $|x| \le 1$
 (ii) $f(x+y) = f(x) + f(y) + xy(x+y)$
@@ -179,6 +185,7 @@ $$ = \frac{10}{3} - \left[ \frac{x^4}{12} + \frac{3x^2}{2} \right]_0^1 = \frac{1
 ---
 
 ### 2.
+
 **(a) Find max value of $z$ subject to $x+y+z=1$ and $x^2+y^2+z^2=3$**
 利用 Lagrange Multipliers，令目標函數 $f=z$。
 限制條件：$g = x+y+z = 1$, $h = x^2+y^2+z^2 = 3$。
@@ -191,6 +198,7 @@ $\langle 0, 0, 1 \rangle = \lambda \langle 1, 1, 1 \rangle + \mu \langle 2x, 2y,
 代入限制條件：
 $2x+z=1 \implies z = 1-2x$
 $2x^2+(1-2x)^2=3 \implies 6x^2-4x-2=0 \implies 3x^2-2x-1=0 \implies (3x+1)(x-1)=0$
+
 - 若 $x=1$，則 $y=1, z=-1$。
 - 若 $x=-\frac{1}{3}$，則 $y=-\frac{1}{3}, z = 1-2(-\frac{1}{3}) = \frac{5}{3}$。
 比較 $z$ 值，最大值為 $\frac{5}{3}$。

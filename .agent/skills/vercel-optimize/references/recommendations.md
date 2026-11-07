@@ -145,10 +145,10 @@ Used by sanitizer #3. These provider limits are public contract values:
 
 | Provider | Limit | Doc URL |
 |---|---|---|
-| Notion | 3 rps | https://developers.notion.com/reference/request-limits |
-| OpenAI | 30 rps | https://platform.openai.com/docs/guides/rate-limits |
-| Stripe | 100 rps | https://docs.stripe.com/rate-limits |
-| Anthropic | 10 rps | https://docs.anthropic.com/en/api/rate-limits |
+| Notion | 3 rps | <https://developers.notion.com/reference/request-limits> |
+| OpenAI | 30 rps | <https://platform.openai.com/docs/guides/rate-limits> |
+| Stripe | 100 rps | <https://docs.stripe.com/rate-limits> |
+| Anthropic | 10 rps | <https://docs.anthropic.com/en/api/rate-limits> |
 
 Tiers/plans differ; these are first-tier defaults. The sanitizer prepends a caveat if the rec prescribes higher concurrency.
 
@@ -178,6 +178,7 @@ Each rec is scored on four axes, 0-1 each. Average → grade:
 | Evidence | Numeric, observed claims | Count words (errors, queries, invocations) + units (% / ms / s / K / M) |
 
 Grade thresholds:
+
 - `Excellent` ≥ 0.85
 - `Good` 0.70 – 0.85
 - `Fair` 0.55 – 0.70

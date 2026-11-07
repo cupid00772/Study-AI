@@ -50,10 +50,12 @@ The traffic-independent allow-list lives in each scanner's `metadata.trafficInde
 Every recommendation must carry at least one citation from `references/docs-library.json`. Anything else is dropped at sanitizer time.
 
 The library has two parts:
+
 - **URLs** — Vercel docs, Next.js docs, SvelteKit docs, etc. Each declares `applicableFrameworks` (e.g., `["next@>=15.0.0"]`).
 - **Cross-skill rule references** — by name only (`vercel-react-best-practices:async-parallel`). The agent's host resolves these.
 
 Three sanitizers enforce this:
+
 - `missing-citation` — drops recs with empty `citations[]`.
 - `unknown-citation` — strips URLs not in the library, marks `needsReview=true`.
 - `version-mismatch` — strips URLs whose `applicableFrameworks` doesn't match the project's framework@version (parsed from `package.json`).
@@ -77,6 +79,7 @@ Performance numbers stay precise because they're observed, not extrapolated. We 
 ## What good looks like
 
 A good run produces:
+
 - A small number (5-15) of recommendations.
 - Every rec ties to a specific route or file plus a specific metric signal.
 - Every rec carries before/after code and ≥1 citation matching the user's framework version.

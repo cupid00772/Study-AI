@@ -1,6 +1,7 @@
 # 微積分 Chapter 5 掃題測驗 - 積分的應用 - 解答與詳解
 
 ### **Question 1**
+
 **解答：$\frac{9}{2}$**
 **詳解**：
 首先找出兩曲線的交點：
@@ -16,6 +17,7 @@ $A = \left[ 2x + \frac{x^2}{2} - \frac{x^3}{3} \right]_{-1}^2$
 ---
 
 ### **Question 2**
+
 **解答：$\frac{64\pi}{15}$**
 **詳解**：
 找出交點：$x^2 = 2x \implies x(x-2) = 0 \implies x = 0, 2$。
@@ -27,6 +29,7 @@ $V = \pi \left[ \frac{4}{3}x^3 - \frac{1}{5}x^5 \right]_0^2 = \pi \left( \frac{3
 ---
 
 ### **Question 3**
+
 **解答：$2\pi^2$**
 **詳解**：
 使用圓柱殼法 (Cylindrical Shells)，半徑為 $x$，高度為 $y = \sin(x)$。
@@ -41,6 +44,7 @@ $V = 2\pi \left( (-\pi \cos(\pi) + \sin(\pi)) - (0 + 0) \right) = 2\pi (-\pi(-1)
 ---
 
 ### **Question 4**
+
 **解答：$\frac{46}{3}$**
 **詳解**：
 弧長公式 $L = \int_{a}^{b} \sqrt{1 + (y')^2} dx$。
@@ -54,6 +58,7 @@ $L = \left( \frac{2}{3}(27) - 3 \right) - \left( \frac{2}{3} - 1 \right) = (18 -
 ---
 
 ### **Question 5**
+
 **解答：$\frac{\pi}{6} (17\sqrt{17} - 5\sqrt{5})$**
 **詳解**：
 旋轉曲面面積公式 (繞 $x$ 軸)：$S = \int_{a}^{b} 2\pi y \sqrt{1 + (y')^2} dx$。
@@ -67,6 +72,7 @@ $S = \pi \int_{5}^{17} u^{1/2} \frac{du}{4} = \frac{\pi}{4} \left[ \frac{2}{3} u
 ---
 
 ### **Question 6**
+
 **解答：$(0, \frac{4r}{3\pi})$**
 **詳解**：
 由對稱性可知，圖形對稱於 $y$ 軸，因此質心的 $x$ 座標 $\bar{x} = 0$。
