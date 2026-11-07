@@ -327,6 +327,29 @@ function App() {
     }
   };
 
+  const handleCompleteExam = async (examId) => {
+    if (!trackerData?.exams) return;
+
+    const targetExam = trackerData.exams.find(e => e.id === examId);
+    if (!targetExam || targetExam.status === 'completed') return;
+
+    const rewardXp = Number(targetExam.xp) || 1000;
+    const updatedExams = trackerData.exams.map(e => 
+      e.id === examId ? { ...e, status: 'completed' } : e
+    );
+
+    const updatedData = { ...trackerData, exams: updatedExams };
+    setTrackerData(updatedData);
+
+    // Reward XP
+    setProgress(prev => addExperience(prev, rewardXp));
+
+    // Save back to academic_tracker.json via Electron
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
   const handleAddTask = (newTask) => {
     if (newTask.id) {
       setTasks(prevTasks => prevTasks.map(t => t.id === newTask.id ? newTask : t));
@@ -526,6 +549,7 @@ function App() {
           exams={trackerData?.exams || []} 
           calendarEvents={trackerData?.calendar_events || []}
           onPreviewFile={handlePreviewFile}
+          onCompleteExam={handleCompleteExam}
         />
       )}
 

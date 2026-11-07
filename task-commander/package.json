@@ -16,6 +16,7 @@
     "electron:preview": "vite build && electron ."
   },
   "dependencies": {
+    "katex": "^0.19.1",
     "lucide-react": "^1.42.0",
     "marked": "^18.1.3",
     "react": "^19.2.8",

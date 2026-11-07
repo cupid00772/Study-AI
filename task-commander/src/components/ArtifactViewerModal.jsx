@@ -1,6 +1,61 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, Maximize2, Minimize2, ExternalLink, FolderOpen, FileText, Code, Sparkles, BookOpen } from 'lucide-react';
 import { marked } from 'marked';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+
+function renderMarkdownWithKatex(content) {
+  if (!content) return '';
+
+  const mathTokens = [];
+
+  // 1. Protect & render Display Math: $$ ... $$
+  let tokenized = content.replace(/\$\$([\s\S]+?)\$\$/g, (match, expr) => {
+    try {
+      const rendered = katex.renderToString(expr.trim(), {
+        displayMode: true,
+        throwOnError: false,
+        strict: false
+      });
+      const id = `%%KATEX_BLOCK_${mathTokens.length}%%`;
+      mathTokens.push(rendered);
+      return id;
+    } catch {
+      return match;
+    }
+  });
+
+  // 2. Protect & render Inline Math: $ ... $ (avoid escaped \$ or newlines)
+  tokenized = tokenized.replace(/(?<!\\)\$((?:[^$\n\\]|\\.)+?)\$/g, (match, expr) => {
+    try {
+      const rendered = katex.renderToString(expr.trim(), {
+        displayMode: false,
+        throwOnError: false,
+        strict: false
+      });
+      const id = `%%KATEX_INLINE_${mathTokens.length}%%`;
+      mathTokens.push(rendered);
+      return id;
+    } catch {
+      return match;
+    }
+  });
+
+  // 3. Parse Markdown with marked
+  let html = '';
+  try {
+    html = marked.parse(tokenized, { gfm: true, breaks: true });
+  } catch {
+    html = `<pre>${content}</pre>`;
+  }
+
+  // 4. Restore rendered KaTeX HTML
+  html = html.replace(/%%KATEX_(?:BLOCK|INLINE)_(\d+)%%/g, (_, idx) => {
+    return mathTokens[Number(idx)] || '';
+  });
+
+  return html;
+}
 
 export default function ArtifactViewerModal({ file, onClose }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -60,7 +115,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
   const renderedMarkdown = useMemo(() => {
     if (!isMd || !rawContent) return '';
     try {
-      return marked.parse(rawContent, { gfm: true, breaks: true });
+      return renderMarkdownWithKatex(rawContent);
     } catch {
       return `<pre>${rawContent}</pre>`;
     }

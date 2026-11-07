@@ -180,26 +180,70 @@
       "deliverableFile": "Study_Materials/經濟學/ECON_期中背誦表.html"
     },
     {
-      "id": "exam-transfer-cs1",
+      "id": "exam-transfer-calc-master",
       "course": "台聯大/台大轉學考",
-      "title": "計算機概論模擬考卷 (第 1 ~ 8 回詳解全集)",
-      "date": "2026-11-25",
-      "category": "Mock_Exam",
-      "description": "數字系統轉換、浮點數 IEEE 754、作業系統分頁與快取演算法全真模擬題。",
-      "xp": 1200,
-      "status": "active",
-      "deliverableFile": "Test_Bank/Exam_paper/Transfer/計算機概論/Mock_Exam_1.md"
-    },
-    {
-      "id": "exam-transfer-calc",
-      "course": "台聯大/台大轉學考",
-      "title": "台大 112~115 年微積分(B) 歷屆試題詳解",
-      "date": "2026-12-05",
+      "title": "台大 112 ~ 114 學年度微積分(B) 歷屆真題詳解全集",
+      "date": "2026-11-20",
       "category": "Past_Exam",
-      "description": "極限瑕積分、馬克勞林級數展開、重積分與格林定理題目逐步推理。",
+      "description": "完整收錄 114、113、112 年所有題目與逐步推導，全面支援標準 KaTeX 數學教科書排版符號。",
       "xp": 1500,
       "status": "active",
+      "deliverableFile": "Test_Bank/Solutions/NTU_Calculus_B_112_114_Master.md"
+    },
+    {
+      "id": "exam-transfer-calc-113",
+      "course": "台聯大/台大轉學考",
+      "title": "台大 113 學年度微積分(B) 歷屆試題與詳解",
+      "date": "2026-11-22",
+      "category": "Past_Exam",
+      "description": "包含極限 lim |x-tan x|^(1/ln|x|)、隱函數微分切線與三階泰勒多項式極限題目逐步推理。",
+      "xp": 800,
+      "status": "active",
       "deliverableFile": "Test_Bank/Solutions/NTU_113_Calculus_B_Solution.md"
+    },
+    {
+      "id": "exam-transfer-calc-114",
+      "course": "台聯大/台大轉學考",
+      "title": "台大 114 學年度微積分(B) 歷屆試題與詳解",
+      "date": "2026-11-24",
+      "category": "Past_Exam",
+      "description": "泰勒展開式、瑕積分收斂性、雙重積分換元與格林定理題目逐步推理。",
+      "xp": 800,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Solutions/NTU_114_Calculus_B_Solution.md"
+    },
+    {
+      "id": "exam-transfer-calc-112",
+      "course": "台聯大/台大轉學考",
+      "title": "台大 112 學年度微積分(B) 歷屆試題與詳解",
+      "date": "2026-11-26",
+      "category": "Past_Exam",
+      "description": "羅必達極限、隱微分垂直切線方程式、函數絕對極大值與重積分題目逐步推理。",
+      "xp": 800,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Solutions/NTU_112_Calculus_B_Solution.md"
+    },
+    {
+      "id": "exam-transfer-cs-master",
+      "course": "台聯大/台大轉學考",
+      "title": "計算機概論 全真模擬試題與詳解總目錄 (第 1 ~ 8 回全集)",
+      "date": "2026-11-28",
+      "category": "Mock_Exam",
+      "description": "完整收錄 1~8 回全真模擬考題與詳解快速導航，覆蓋程式指標、快取記憶體、虛擬記憶體與圖形演算法。",
+      "xp": 1200,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Exam_paper/Transfer/計算機概論/CS_Mock_Exams_Master.md"
+    },
+    {
+      "id": "exam-transfer-cs1",
+      "course": "台聯大/台大轉學考",
+      "title": "計算機概論 模擬試題 (第 1 回) + 詳解",
+      "date": "2026-11-30",
+      "category": "Mock_Exam",
+      "description": "指標操作、快取空間局部性、二補數與二元搜尋樹 (BST) 25 道全真模擬題目。",
+      "xp": 600,
+      "status": "active",
+      "deliverableFile": "Test_Bank/Exam_paper/Transfer/計算機概論/Mock_Exam_1.md"
     }
   ],
   "deliverables": [

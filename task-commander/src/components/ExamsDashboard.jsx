@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Calendar, Award, Sparkles, BookOpen, Clock, FileText } from 'lucide-react';
+import { Calendar, Award, Sparkles, BookOpen, Clock, FileText, CheckCircle2 } from 'lucide-react';
 import defaultTracker from '../data/defaultTracker.json';
 
-export default function ExamsDashboard({ exams = [], calendarEvents = [], onPreviewFile }) {
+export default function ExamsDashboard({ exams = [], calendarEvents = [], onPreviewFile, onCompleteExam }) {
   const [activeTab, setActiveTab] = useState('courses'); // 'courses' | 'calendar' | 'transfer'
 
   const resolvedCalendarEvents = calendarEvents && calendarEvents.length > 0 ? calendarEvents : (defaultTracker.calendar_events || []);
@@ -106,16 +106,27 @@ export default function ExamsDashboard({ exams = [], calendarEvents = [], onPrev
                     </p>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--gemini-purple)', fontWeight: 700 }}>
-                      +{ex.xp || 1000} XP
-                    </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => onCompleteExam?.(ex.id)}
+                      disabled={ex.status === 'completed'}
+                      style={{
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.8rem',
+                        background: ex.status === 'completed' ? 'rgba(52, 168, 83, 0.15)' : undefined,
+                        color: ex.status === 'completed' ? '#137333' : undefined,
+                        borderColor: ex.status === 'completed' ? 'rgba(52, 168, 83, 0.3)' : undefined
+                      }}
+                    >
+                      <CheckCircle2 size={13} /> {ex.status === 'completed' ? `已完成 (+${ex.xp || 1000} XP)` : `標記完成 (+${ex.xp || 1000} XP)`}
+                    </button>
 
                     {ex.deliverableFile && (
                       <button
                         className="btn btn-primary"
                         onClick={() => onPreviewFile({ title: ex.title, path: ex.deliverableFile, course: ex.course })}
-                        style={{ padding: '0.4rem 0.95rem', fontSize: '0.8rem' }}
+                        style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
                       >
                         <Sparkles size={13} /> 開啟背誦/題本
                       </button>
@@ -188,11 +199,26 @@ export default function ExamsDashboard({ exams = [], calendarEvents = [], onPrev
                 </p>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => onCompleteExam?.(ex.id)}
+                  disabled={ex.status === 'completed'}
+                  style={{
+                    padding: '0.4rem 0.85rem',
+                    fontSize: '0.8rem',
+                    background: ex.status === 'completed' ? 'rgba(52, 168, 83, 0.15)' : undefined,
+                    color: ex.status === 'completed' ? '#137333' : undefined,
+                    borderColor: ex.status === 'completed' ? 'rgba(52, 168, 83, 0.3)' : undefined
+                  }}
+                >
+                  <CheckCircle2 size={13} /> {ex.status === 'completed' ? `已完成 (+${ex.xp || 1200} XP)` : `標記完成 (+${ex.xp || 1200} XP)`}
+                </button>
+
                 <button
                   className="btn btn-primary"
                   onClick={() => onPreviewFile({ title: ex.title, path: ex.deliverableFile, course: ex.course })}
-                  style={{ padding: '0.4rem 0.95rem', fontSize: '0.8rem' }}
+                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
                 >
                   <FileText size={13} /> 開啟題本與解答
                 </button>
