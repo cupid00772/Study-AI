@@ -49,8 +49,8 @@ async function main() {
   }
 
   // 4. 準備暫存檔案 (聚焦於 Task Commander 相關檔案及聯動追蹤檔)
-  console.log('\n[2/5] 暫存 Task Commander 變更檔案...');
-  run('git add task-commander/ academic_tracker.json .gitignore', { cwd: repoRoot });
+  console.log('\n[2/5] 暫存 Task Commander 變更檔案與推送腳本...');
+  run('git add task-commander/ academic_tracker.json .gitignore push_task_commander.bat _Tools/push_task_commander.bat _Tools/sync.bat', { cwd: repoRoot });
 
   const stagedFiles = getOutput('git diff --staged --name-only', { cwd: repoRoot });
   
@@ -92,10 +92,10 @@ async function main() {
     console.log('\n[3/5] 無新檔案變更，將推送本地先前尚未推送的 Commit...');
   }
 
-  // 6. 從遠端拉取並整併 (Pull with Rebase)
-  console.log(`\n[4/5] 正在從 GitHub 拉取最新進度 (git pull origin ${currentBranch} --rebase)...`);
+  // 6. 從遠端拉取並整併 (Pull with Rebase & Autostash)
+  console.log(`\n[4/5] 正在從 GitHub 拉取最新進度 (git pull origin ${currentBranch} --rebase --autostash)...`);
   try {
-    run(`git pull origin ${currentBranch} --rebase`, { cwd: repoRoot });
+    run(`git pull origin ${currentBranch} --rebase --autostash`, { cwd: repoRoot });
     console.log('✅ 遠端進度整併完成。');
   } catch (err) {
     console.error(`❌ 拉取或 Rebase 失敗，可能存在衝突。請手動解決後再推送。`);
