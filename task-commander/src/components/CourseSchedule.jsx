@@ -45,7 +45,7 @@ const INITIAL_ITEMS = [
 
   // 通識、必選修及其他
   { id: "o1", type: "other", cat: "通識課程 (14學分)", name: "AI人工智慧導論 GS3073", credits: 3, completed: true },
-  { id: "o2", type: "other", cat: "通識課程 (14學分)", name: "科學、科技、歷史 GS4508", credits: 2, completed: true },
+  { id: "o2", type: "other", cat: "通識課程 (14學分)", name: "通識地球物理 GS4110", credits: 2, completed: true },
   { id: "o3", type: "other", cat: "通識課程 (14學分)", name: "基因與遺傳 CC0202", credits: 2, completed: true },
   { id: "o4", type: "other", cat: "通識課程 (14學分)", name: "生命教育 GS3150", credits: 2, completed: true },
   { id: "o5", type: "other", cat: "通識課程 (14學分)", name: "未修通識學分 (需自行規劃)", credits: 5, completed: false },
@@ -152,10 +152,35 @@ export default function CourseSchedule({ currentCourses = [] }) {
       {activeTab === 'current' && (
         <div className="vault-grid">
           {displayCourses.map(c => (
-            <div key={c.id} className="gemini-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div key={c.id} className="gemini-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', overflow: 'hidden' }}>
               <div>
+                {c.coverImage && (
+                  <div style={{
+                    width: 'calc(100% + 2rem)',
+                    margin: '-1rem -1rem 1rem -1rem',
+                    height: '110px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    background: 'var(--bg-input)'
+                  }}>
+                    <img
+                      src={c.coverImage}
+                      alt={c.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)'
+                    }} />
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span className="badge-chip badge-blue">{c.code}</span>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <span className="badge-chip badge-blue">{c.code}</span>
+                    {c.serial && <span className="badge-chip" style={{ fontSize: '0.75rem', opacity: 0.85, background: 'var(--bg-input)' }}>流水號 {c.serial}</span>}
+                  </div>
                   <span className="badge-chip badge-purple">{c.category} • {c.credits} 學分</span>
                 </div>
 
@@ -194,7 +219,7 @@ export default function CourseSchedule({ currentCourses = [] }) {
               {cats.map(cat => {
                 const catItems = gridItems.filter(i => i.cat === cat);
                 const uniqueNames = [...new Set(catItems.map(i => i.name))];
-                
+
                 return uniqueNames.map((name, index) => (
                   <tr key={`${cat}-${name}`} style={{ background: index % 2 === 0 ? 'var(--bg-panel)' : 'var(--bg-app)' }}>
                     {index === 0 && (
@@ -208,13 +233,13 @@ export default function CourseSchedule({ currentCourses = [] }) {
                       return (
                         <td key={sem.key} style={{ ...tdStyle, textAlign: 'center' }}>
                           {cellItems.map(item => (
-                            <div 
-                              key={item.id} 
+                            <div
+                              key={item.id}
                               onClick={() => toggleCourse(item.id)}
-                              style={{ 
-                                cursor: 'pointer', 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
+                              style={{
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
                                 gap: '5px',
                                 color: item.completed ? '#059669' : 'var(--text-muted)',
                                 background: item.completed ? 'rgba(16, 185, 129, 0.12)' : 'transparent',

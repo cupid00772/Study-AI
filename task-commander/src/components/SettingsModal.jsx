@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, Plus, Trash2, X } from 'lucide-react';
 
 export default function SettingsModal({ onClose, weeklySchedule, setWeeklySchedule, reminders, setReminders }) {
   const [activeTab, setActiveTab] = useState('reminders');
+  
+  // ESC 鍵關閉支援
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
   
   // 提醒事項狀態
   const [newReminder, setNewReminder] = useState('');
@@ -45,8 +56,26 @@ export default function SettingsModal({ onClose, weeklySchedule, setWeeklySchedu
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 2000 }}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+    <div 
+      className="modal-overlay" 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      style={{ zIndex: 2000 }}
+    >
+      <div 
+        className="modal-content" 
+        onClick={e => e.stopPropagation()} 
+        onMouseDown={e => e.stopPropagation()}
+        style={{ maxWidth: '600px' }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 className="modal-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Settings size={24} style={{ color: 'var(--accent-gold)' }} />

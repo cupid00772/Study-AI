@@ -10,17 +10,18 @@ import ExamsDashboard from './components/ExamsDashboard';
 import ArtifactVault from './components/ArtifactVault';
 import ArtifactViewerModal from './components/ArtifactViewerModal';
 import StickyNotesBoard from './components/StickyNotesBoard';
+import EEClassWidget from './components/EEClassWidget';
 import defaultTracker from './data/defaultTracker.json';
-import { 
-  Sparkles, 
-  BookOpen, 
-  CheckSquare, 
-  Calendar, 
-  FolderGit2, 
-  ListTodo, 
-  Settings, 
-  Sun, 
-  Moon, 
+import {
+  Sparkles,
+  BookOpen,
+  CheckSquare,
+  Calendar,
+  FolderGit2,
+  ListTodo,
+  Settings,
+  Sun,
+  Moon,
   Plus,
   Move,
   Pin,
@@ -33,16 +34,16 @@ const INITIAL_TASKS = [
   { id: '1', title: '聯絡清大註冊組', desc: '寄送 Email 詢問轉校事宜', category: 'Main', difficulty: 'Medium', xp: 500, completed: false },
   { id: '2', title: '整理台聯大微積分考古題', desc: '完成 113~115 年度的錯題檢討', category: 'Challenge', difficulty: 'Hard', xp: 1200, completed: false },
   { id: '3', title: '每日單字複習', desc: '複習 50 個英文單字', category: 'Daily', difficulty: 'Easy', xp: 100, completed: false },
-  { id: '4', title: '計算機概論 作業-1', desc: '完成第一章習題', category: 'Main', difficulty: 'Medium', xp: 500, completed: false, relatedCourse: '計算機概論' },
-  { id: '5', title: '計算機概論 作業-2', desc: '實作基礎排序演算法', category: 'Main', difficulty: 'Medium', xp: 600, completed: false, relatedCourse: '計算機概論' }
+  { id: '4', title: '作業系統 Ch1 程序模型筆記', desc: '閱讀 Process Control Block 與排程機制', category: 'Main', difficulty: 'Medium', xp: 500, completed: false, relatedCourse: '作業系統' },
+  { id: '5', title: '資料與檔案結構 作業-1', desc: '實作 Linked List 與 Dynamic Array 比較', category: 'Main', difficulty: 'Medium', xp: 600, completed: false, relatedCourse: '資料與檔案結構' }
 ];
 
 const DEFAULT_WEEKLY_SCHEDULE = {
-  'Monday': ['計算機概論', '微積分'],
-  'Tuesday': ['會計學', '英文'],
-  'Wednesday': ['計算機概論', '程式設計'],
-  'Thursday': ['微積分', '體育'],
-  'Friday': ['資料結構'],
+  'Monday': ['經濟學', '通識地球物理'],
+  'Tuesday': [],
+  'Wednesday': ['統計學', '邏輯與批判思考'],
+  'Thursday': ['作業系統', '服務學習課程'],
+  'Friday': ['資料與檔案結構', '服務學習課程'],
   'Saturday': [],
   'Sunday': []
 };
@@ -77,8 +78,8 @@ function getInitialTasks() {
 
   try {
     localStorage.setItem(TODAY_KEY, today);
-  } catch {}
-  
+  } catch { }
+
   return (Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS).map(task => (
     task.category === 'Daily' ? { ...task, completed: false } : task
   ));
@@ -102,7 +103,7 @@ function App() {
     return localStorage.getItem('wt_compact_mode') === 'true' ? 'notes' : 'courses';
   });
   const [tasks, setTasks] = useState(getInitialTasks);
-  
+
   // Theme state: 'light' by default per Gemini style overhaul
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('wt_theme') || 'light';
@@ -110,7 +111,7 @@ function App() {
 
   // Academic Tracker Data initialized with bundled default so it's NEVER empty
   const [trackerData, setTrackerData] = useState(defaultTracker);
-  
+
   // Artifact Modal Viewer state
   const [selectedFileForViewer, setSelectedFileForViewer] = useState(null);
 
@@ -144,19 +145,31 @@ function App() {
   const toggleCompactMode = () => {
     setIsCompactMode(prev => {
       const next = !prev;
-      try { localStorage.setItem('wt_compact_mode', next.toString()); } catch {}
+      try { localStorage.setItem('wt_compact_mode', next.toString()); } catch { }
       if (next) {
         setActiveTab('notes');
       }
+      window.electronAPI?.setCompactMode?.(next);
       return next;
     });
   };
 
+  useEffect(() => {
+    if (isCompactMode) {
+      window.electronAPI?.setCompactMode?.(true);
+    }
+  }, []);
+
   const [weeklySchedule, setWeeklySchedule] = useState(() => {
-    const storedSchedule = readStorage('wt_weekly_schedule', DEFAULT_WEEKLY_SCHEDULE);
-    return storedSchedule && typeof storedSchedule === 'object' && !Array.isArray(storedSchedule)
-      ? storedSchedule
-      : DEFAULT_WEEKLY_SCHEDULE;
+    const storedSchedule = readStorage('wt_weekly_schedule_v2', null);
+    if (storedSchedule && typeof storedSchedule === 'object' && !Array.isArray(storedSchedule)) {
+      return storedSchedule;
+    }
+    const legacySchedule = readStorage('wt_weekly_schedule', null);
+    if (legacySchedule && !legacySchedule['Monday']?.includes('計算機概論') && !legacySchedule['Tuesday']?.includes('會計學')) {
+      return legacySchedule;
+    }
+    return DEFAULT_WEEKLY_SCHEDULE;
   });
 
   const [reminders, setReminders] = useState(() => {
@@ -180,7 +193,7 @@ function App() {
       xp: Number.isInteger(xp) && xp >= 0 ? xp : 0
     };
   });
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
@@ -197,7 +210,7 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem('wt_theme', theme);
-    } catch {}
+    } catch { }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -220,7 +233,7 @@ function App() {
             const data = await res.json();
             setTrackerData(data);
           }
-        } catch {}
+        } catch { }
       }
     }
 
@@ -241,21 +254,32 @@ function App() {
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
 
-    const urgentHw = trackerData.assignments.find(hw => {
+    const urgentHws = trackerData.assignments.filter(hw => {
       if (hw.status === 'completed' || !hw.dueDate) return false;
       const due = new Date(hw.dueDate);
       const diffDays = Math.ceil((due - todayDate) / (1000 * 60 * 60 * 24));
-      return diffDays >= 0 && diffDays <= 3;
+      return diffDays >= 0 && diffDays <= 5;
     });
 
-    if (urgentHw) {
-      const notifiedKey = `notified_${todayDate.toISOString().slice(0, 10)}_${urgentHw.id}`;
-      if (!sessionStorage.getItem(notifiedKey)) {
-        window.electronAPI.sendNotification({
-          title: `⚠️ 作業截止提醒：${urgentHw.course}`,
-          body: `「${urgentHw.title}」即將於 ${urgentHw.dueDate} 截止，請把握時間！`
-        });
-        sessionStorage.setItem(notifiedKey, 'true');
+    if (urgentHws.length > 0) {
+      const todayStr = todayDate.toISOString().slice(0, 10);
+      const batchKey = `notified_batch_${todayStr}`;
+
+      if (!sessionStorage.getItem(batchKey)) {
+        if (urgentHws.length === 1) {
+          const hw = urgentHws[0];
+          window.electronAPI.sendNotification({
+            title: `⚠️ 作業截止提醒：${hw.course}`,
+            body: `「${hw.title}」即將於 ${hw.dueDate} 截止，請把握時間！`
+          });
+        } else {
+          const summary = urgentHws.slice(0, 3).map(h => `• [${h.course}] ${h.title} (${h.dueDate})`).join('\n');
+          window.electronAPI.sendNotification({
+            title: `⚠️ 近期有 ${urgentHws.length} 項作業即將截止！`,
+            body: summary + (urgentHws.length > 3 ? `\n...等共 ${urgentHws.length} 項任務` : '')
+          });
+        }
+        sessionStorage.setItem(batchKey, 'true');
       }
     }
   }, [trackerData]);
@@ -286,9 +310,10 @@ function App() {
       localStorage.setItem('wt_level', level.toString());
       localStorage.setItem('wt_xp', xp.toString());
       localStorage.setItem('wt_weekly_schedule', JSON.stringify(weeklySchedule));
+      localStorage.setItem('wt_weekly_schedule_v2', JSON.stringify(weeklySchedule));
       localStorage.setItem('wt_reminders', JSON.stringify(reminders));
       localStorage.setItem('wt_reminder_completions', JSON.stringify(reminderCompletions));
-    } catch {}
+    } catch { }
   }, [tasks, level, xp, weeklySchedule, reminders, reminderCompletions]);
 
   const handleCompleteTask = (taskId) => {
@@ -311,7 +336,7 @@ function App() {
     if (!targetHw || targetHw.status === 'completed') return;
 
     const rewardXp = Number(targetHw.xp) || 500;
-    const updatedAssignments = trackerData.assignments.map(a => 
+    const updatedAssignments = trackerData.assignments.map(a =>
       a.id === assignmentId ? { ...a, status: 'completed' } : a
     );
 
@@ -334,7 +359,7 @@ function App() {
     if (!targetExam || targetExam.status === 'completed') return;
 
     const rewardXp = Number(targetExam.xp) || 1000;
-    const updatedExams = trackerData.exams.map(e => 
+    const updatedExams = trackerData.exams.map(e =>
       e.id === examId ? { ...e, status: 'completed' } : e
     );
 
@@ -348,6 +373,63 @@ function App() {
     if (window.electronAPI?.saveTrackerData) {
       await window.electronAPI.saveTrackerData(updatedData);
     }
+  };
+
+  const handleAddExam = async (newExam) => {
+    if (!trackerData) return;
+    const currentExams = trackerData.exams || [];
+    const updatedExams = [newExam, ...currentExams];
+    const updatedData = { ...trackerData, exams: updatedExams };
+    setTrackerData(updatedData);
+
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
+  const handleDeleteExam = async (examId) => {
+    if (!trackerData?.exams) return;
+    const updatedExams = trackerData.exams.filter(e => e.id !== examId);
+    const updatedData = { ...trackerData, exams: updatedExams };
+    setTrackerData(updatedData);
+
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
+  const handleDeleteAssignment = async (assignmentId) => {
+    if (!trackerData?.assignments) return;
+    const updatedAssignments = trackerData.assignments.filter(a => a.id !== assignmentId);
+    const updatedData = { ...trackerData, assignments: updatedAssignments };
+    setTrackerData(updatedData);
+
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
+  const handleUpdateAssignments = async (newAssignments) => {
+    const updatedData = { ...trackerData, assignments: newAssignments };
+    setTrackerData(updatedData);
+
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
+  const handleSaveDeliverables = async (updatedDeliverables) => {
+    const updatedData = { ...trackerData, deliverables: updatedDeliverables };
+    setTrackerData(updatedData);
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+  };
+
+  const handleAddDeliverable = async (newDeliverable) => {
+    const prevDeliverables = trackerData?.deliverables || [];
+    const updatedDeliverables = [newDeliverable, ...prevDeliverables];
+    await handleSaveDeliverables(updatedDeliverables);
   };
 
   const handleAddTask = (newTask) => {
@@ -391,204 +473,236 @@ function App() {
     setSelectedFileForViewer(fileObj);
   }, []);
 
+  // 全局 ESC 鍵取消檢視器/設定（任務編輯中需透過 ABORT 離開，防止誤觸丟失輸入）
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedFileForViewer) setSelectedFileForViewer(null);
+        else if (isSettingsOpen) setIsSettingsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [selectedFileForViewer, isSettingsOpen]);
+
   return (
-    <div className={`app-container ${isCompactMode ? 'compact-mode' : ''}`}>
-      {/* Desktop Window Drag Bar & Window Controls (便條紙視窗拖曳與固定) */}
-      <div className="window-drag-bar">
-        <div className="drag-handle-pill" title="按住拖動便條紙位置">
-          <Move size={14} />
-          <span>按住拖動位置</span>
-        </div>
-
-        <div className="window-no-drag" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* 置頂按鈕 */}
-          <button
-            className={`window-ctrl-btn ${isPinned ? 'active-pin' : ''}`}
-            onClick={handleTogglePin}
-            title={isPinned ? '已置頂桌面（點擊解除）' : '釘選至桌面最上層 (Always on top)'}
-          >
-            <Pin size={14} />
-          </button>
-
-          {/* 便條紙精簡模式 / 完整儀表板模式 切換 */}
-          <button
-            className={`window-ctrl-btn ${isCompactMode ? 'active-pin' : ''}`}
-            onClick={toggleCompactMode}
-            title={isCompactMode ? '展開完整儀表板' : '切換為精簡便條紙模式'}
-          >
-            <StickyNote size={14} />
-          </button>
-
-          {/* 最小化 */}
-          <button
-            className="window-ctrl-btn"
-            onClick={handleMinimize}
-            title="最小化"
-          >
-            <Minus size={14} />
-          </button>
-
-          {/* 關閉 */}
-          <button
-            className="window-ctrl-btn btn-close"
-            onClick={handleClose}
-            title="關閉"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Gemini Header */}
-      <div className="gemini-header">
-        <div className="brand-wrapper">
-          <div className="gemini-sparkle-icon">
-            <Sparkles size={22} />
+    <>
+      <div className={`app-container ${isCompactMode ? 'compact-mode' : ''}`}>
+        {/* 需求 1: 整合式固定標題與視窗控制列 (統一位置、膠囊 1:1 拖曳範圍) */}
+        <header className="gemini-header">
+          <div className="brand-wrapper">
+            <div className="gemini-sparkle-icon">
+              <Sparkles size={22} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h1 className="brand-title">TASK COMMANDER</h1>
+                {/* 需求 1: 拖動位置膠囊按鈕固定於標題旁，且互動區域嚴格受限於膠囊自身 */}
+                <div
+                  className="drag-handle-pill"
+                  title="按住拖動便條紙位置"
+                >
+                  <Move size={13} />
+                  <span>按住拖動位置</span>
+                </div>
+              </div>
+              <div className="brand-subtitle">中央大學學業任務指揮中心 • Powered by Gemini</div>
+            </div>
           </div>
-          <div>
-            <h1 className="brand-title">TASK COMMANDER</h1>
-            <div className="brand-subtitle">中央大學學業任務指揮中心 • Powered by Gemini</div>
-          </div>
-        </div>
 
-        {/* Center Pill Navigation */}
-        <div className="nav-pills">
-          <button 
-            className={`nav-pill-btn ${activeTab === 'notes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notes')}
-          >
-            <StickyNote size={16} /> 桌面便條
-          </button>
-          <button 
-            className={`nav-pill-btn ${activeTab === 'courses' ? 'active' : ''}`}
-            onClick={() => setActiveTab('courses')}
-          >
-            <BookOpen size={16} /> 科目總覽
-          </button>
-          <button 
-            className={`nav-pill-btn ${activeTab === 'assignments' ? 'active' : ''}`}
-            onClick={() => setActiveTab('assignments')}
-          >
-            <CheckSquare size={16} /> 作業管理
-          </button>
-          <button 
-            className={`nav-pill-btn ${activeTab === 'exams' ? 'active' : ''}`}
-            onClick={() => setActiveTab('exams')}
-          >
-            <Calendar size={16} /> 考試日程
-          </button>
-          <button 
-            className={`nav-pill-btn ${activeTab === 'vault' ? 'active' : ''}`}
-            onClick={() => setActiveTab('vault')}
-          >
-            <FolderGit2 size={16} /> AI 成果庫
-          </button>
-          <button 
-            className={`nav-pill-btn ${activeTab === 'missions' ? 'active' : ''}`}
-            onClick={() => setActiveTab('missions')}
-          >
-            <ListTodo size={16} /> 每日任務
-          </button>
-        </div>
+          {/* Center Pill Navigation (完整模式下顯示) */}
+          {!isCompactMode && (
+            <nav className="nav-pills window-no-drag">
+              <button
+                className={`nav-pill-btn ${activeTab === 'notes' ? 'active' : ''}`}
+                onClick={() => setActiveTab('notes')}
+              >
+                <StickyNote size={16} /> 桌面便條
+              </button>
+              <button
+                className={`nav-pill-btn ${activeTab === 'courses' ? 'active' : ''}`}
+                onClick={() => setActiveTab('courses')}
+              >
+                <BookOpen size={16} /> 科目總覽
+              </button>
+              <button
+                className={`nav-pill-btn ${activeTab === 'assignments' ? 'active' : ''}`}
+                onClick={() => setActiveTab('assignments')}
+              >
+                <CheckSquare size={16} /> 作業管理
+              </button>
+              <button
+                className={`nav-pill-btn ${activeTab === 'exams' ? 'active' : ''}`}
+                onClick={() => setActiveTab('exams')}
+              >
+                <Calendar size={16} /> 考試日程
+              </button>
+              <button
+                className={`nav-pill-btn ${activeTab === 'vault' ? 'active' : ''}`}
+                onClick={() => setActiveTab('vault')}
+              >
+                <FolderGit2 size={16} /> AI 成果庫
+              </button>
+              <button
+                className={`nav-pill-btn ${activeTab === 'missions' ? 'active' : ''}`}
+                onClick={() => setActiveTab('missions')}
+              >
+                <ListTodo size={16} /> 每日任務
+              </button>
+            </nav>
+          )}
 
-        {/* Right Action Icons */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button 
-            className="btn btn-secondary btn-icon-circle"
-            onClick={toggleTheme}
-            title={`切換為${theme === 'light' ? '深色' : '淺色'}主題`}
-          >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
+          {/* 需求 1: 圖 2、3 按鈕群組有明確固定的整合位置，統一置於右側操作區 */}
+          <div className="header-actions-group window-no-drag">
+            <button
+              className="window-ctrl-btn"
+              onClick={toggleTheme}
+              title={`切換為${theme === 'light' ? '深色' : '淺色'}主題`}
+            >
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
 
-          <button 
-            className="btn btn-secondary btn-icon-circle" 
-            onClick={() => setIsSettingsOpen(true)}
-            title="系統設定"
-          >
-            <Settings size={18} />
-          </button>
-        </div>
-      </div>
+            <button
+              className="window-ctrl-btn"
+              onClick={() => setIsSettingsOpen(true)}
+              title="系統設定"
+            >
+              <Settings size={16} />
+            </button>
 
-      {/* Level & XP Progress Bar & Reminders (Hidden in compact mode for clean desktop sticky look) */}
-      {!isCompactMode && (
-        <>
-          <LevelProgressBar level={level} xp={xp} maxXp={xpNeeded} />
-          <DailyReminders 
-            weeklySchedule={weeklySchedule} 
-            reminders={reminders} 
-            reminderCompletions={reminderCompletions}
-            today={today}
-            tasks={tasks}
-            onCompleteTask={handleCompleteTask}
-            onToggleReminder={toggleReminder}
-          />
-        </>
-      )}
+            <div className="header-divider" />
 
-      {/* Main Tab Content */}
-      {activeTab === 'notes' && (
-        <StickyNotesBoard />
-      )}
+            {/* 置頂按鈕 */}
+            <button
+              className={`window-ctrl-btn ${isPinned ? 'active-pin' : ''}`}
+              onClick={handleTogglePin}
+              title={isPinned ? '已置頂桌面（點擊解除）' : '釘選至桌面最上層 (Always on top)'}
+            >
+              <Pin size={14} />
+            </button>
 
-      {activeTab === 'courses' && (
-        <CourseSchedule currentCourses={trackerData?.courses || []} />
-      )}
+            {/* 便條紙精簡模式 / 完整儀表板模式 切換 */}
+            <button
+              className={`window-ctrl-btn ${isCompactMode ? 'active-pin' : ''}`}
+              onClick={toggleCompactMode}
+              title={isCompactMode ? '展開完整儀表板' : '切換為精簡便條紙模式'}
+            >
+              <StickyNote size={14} />
+            </button>
 
-      {activeTab === 'assignments' && (
-        <AssignmentsBoard 
-          assignments={trackerData?.assignments || []} 
-          onCompleteAssignment={handleCompleteAssignment}
-          onPreviewFile={handlePreviewFile}
-        />
-      )}
+            {/* 最小化 */}
+            <button
+              className="window-ctrl-btn"
+              onClick={handleMinimize}
+              title="最小化"
+            >
+              <Minus size={14} />
+            </button>
 
-      {activeTab === 'exams' && (
-        <ExamsDashboard 
-          exams={trackerData?.exams || []} 
-          calendarEvents={trackerData?.calendar_events || []}
-          onPreviewFile={handlePreviewFile}
-          onCompleteExam={handleCompleteExam}
-        />
-      )}
-
-      {activeTab === 'vault' && (
-        <ArtifactVault 
-          deliverables={trackerData?.deliverables || []} 
-          onPreviewFile={handlePreviewFile}
-        />
-      )}
-
-      {activeTab === 'missions' && (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
-            <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-              <Plus size={18} /> 新增任務
+            {/* 關閉 */}
+            <button
+              className="window-ctrl-btn btn-close"
+              onClick={handleClose}
+              title="關閉"
+            >
+              <X size={14} />
             </button>
           </div>
-          <TaskBoard 
-            tasks={tasks.filter(t => !t.completed)} 
-            onComplete={handleCompleteTask} 
-            onEdit={openEditModal}
-            onDelete={handleDeleteTask}
-            onCategoryChange={handleCategoryChange}
-          />
-        </>
-      )}
+        </header>
 
-      {/* Modals */}
+        {/* 需求 1: 滾動內容容器，包含在具有永久圓角 overflow: hidden 的 app-container 內部，滑動時外部圓角永久維持 */}
+        <main className="app-main-scrollable">
+          {/* Level & XP Progress Bar & Reminders (Hidden in compact mode for clean desktop sticky look) */}
+          {!isCompactMode && (
+            <>
+              <LevelProgressBar level={level} xp={xp} maxXp={xpNeeded} />
+              <DailyReminders
+                weeklySchedule={weeklySchedule}
+                reminders={reminders}
+                reminderCompletions={reminderCompletions}
+                today={today}
+                tasks={tasks}
+                onCompleteTask={handleCompleteTask}
+                onToggleReminder={toggleReminder}
+              />
+              <EEClassWidget trackerData={trackerData} />
+            </>
+          )}
+
+          {/* Main Tab Content */}
+          {activeTab === 'notes' && (
+            <StickyNotesBoard />
+          )}
+
+          {activeTab === 'courses' && (
+            <CourseSchedule currentCourses={trackerData?.courses || []} />
+          )}
+
+          {activeTab === 'assignments' && (
+            <AssignmentsBoard
+              assignments={trackerData?.assignments || []}
+              courses={trackerData?.courses || []}
+              onCompleteAssignment={handleCompleteAssignment}
+              onDeleteAssignment={handleDeleteAssignment}
+              onUpdateAssignments={handleUpdateAssignments}
+              onPreviewFile={handlePreviewFile}
+            />
+          )}
+
+          {activeTab === 'exams' && (
+            <ExamsDashboard
+              exams={trackerData?.exams || []}
+              calendarEvents={trackerData?.calendar_events || []}
+              courses={trackerData?.courses || []}
+              onPreviewFile={handlePreviewFile}
+              onCompleteExam={handleCompleteExam}
+              onDeleteExam={handleDeleteExam}
+              onAddExam={handleAddExam}
+            />
+          )}
+
+          {activeTab === 'vault' && (
+            <ArtifactVault
+              deliverables={trackerData?.deliverables || []}
+              courses={trackerData?.courses || []}
+              onPreviewFile={handlePreviewFile}
+              onSaveDeliverables={handleSaveDeliverables}
+              onAddDeliverable={handleAddDeliverable}
+            />
+          )}
+
+          {activeTab === 'missions' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                  <Plus size={18} /> 新增任務
+                </button>
+              </div>
+              <TaskBoard
+                tasks={tasks.filter(t => !t.completed)}
+                onComplete={handleCompleteTask}
+                onEdit={openEditModal}
+                onDelete={handleDeleteTask}
+                onCategoryChange={handleCategoryChange}
+              />
+            </>
+          )}
+        </main>
+
+      </div>
+
+      {/* 需求 2: Modals 渲染在 app-container 外部，避免被 backdrop-filter 限制或裁切，確保覆蓋整個視窗並在點擊外部時順利取消 */}
       {selectedFileForViewer && (
-        <ArtifactViewerModal 
-          file={selectedFileForViewer} 
-          onClose={() => setSelectedFileForViewer(null)} 
+        <ArtifactViewerModal
+          file={selectedFileForViewer}
+          onClose={() => setSelectedFileForViewer(null)}
         />
       )}
 
       {isModalOpen && (
-        <CreateTaskModal 
-          onClose={closeEditModal} 
-          onAdd={handleAddTask} 
+        <CreateTaskModal
+          onClose={closeEditModal}
+          onAdd={handleAddTask}
           initialTask={editingTask}
           courseOptions={courseOptions}
         />
@@ -603,7 +717,7 @@ function App() {
           setReminders={setReminders}
         />
       )}
-    </div>
+    </>
   );
 }
 

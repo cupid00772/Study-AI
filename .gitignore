@@ -30,9 +30,23 @@ tessdata/
 # === VS Code 相關設定 ===
 .vscode/
 
+# === 本地認證與機密設定 ===
+_Tools/.eeclass_config.json
+*.credential*
+*.session*
+
 # === Windows 捷徑與桌面設定 ===
 *.lnk
 
 # === Electron 打包產物 ===
 task-commander/release*/
 task-commander/dist/
+
+# === 臨時除錯截圖與檔案 ===
+crop_*.png
+task_commander_box.png
+topleft_crop.png
+_Temp/*.png
+!_Temp/exam_figures/**
+!_Temp/image/**
+_Temp/take_screen.ps1

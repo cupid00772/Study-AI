@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readFileContent: (relativePath) => ipcRenderer.invoke('read-file', relativePath),
   openExternalPath: (relativePath) => ipcRenderer.invoke('open-path', relativePath),
   showItemInFolder: (relativePath) => ipcRenderer.invoke('show-in-folder', relativePath),
+  selectFile: () => ipcRenderer.invoke('select-file'),
+  scanWorkspaceDeliverables: () => ipcRenderer.invoke('scan-workspace-deliverables'),
   sendNotification: (payload) => ipcRenderer.invoke('send-notification', payload),
   onTrackerUpdated: (callback) => {
     const handler = (_event, data) => callback(data);
@@ -17,5 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
   closeWindow: () => ipcRenderer.invoke('window-close'),
   togglePinWindow: () => ipcRenderer.invoke('window-toggle-pin'),
-  isWindowPinned: () => ipcRenderer.invoke('window-get-pinned')
+  isWindowPinned: () => ipcRenderer.invoke('window-get-pinned'),
+  setCompactMode: (isCompact) => ipcRenderer.invoke('window-set-compact-mode', isCompact),
+  updateWindowShape: (radius) => ipcRenderer.invoke('window-update-shape', radius)
 });

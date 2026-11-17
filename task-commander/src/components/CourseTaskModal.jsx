@@ -1,10 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BookOpen, Check } from 'lucide-react';
 
 export default function CourseTaskModal({ course, tasks, onClose, onCompleteTask }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000 }}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+    <div 
+      className="modal-overlay" 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      style={{ zIndex: 1000 }}
+    >
+      <div 
+        className="modal-content" 
+        onClick={e => e.stopPropagation()} 
+        onMouseDown={e => e.stopPropagation()} 
+        style={{ maxWidth: '500px' }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
           <BookOpen size={24} style={{ color: 'var(--accent-gold)' }} />
           <h2 className="modal-title" style={{ margin: 0 }}>{course} - Pending Tasks</h2>

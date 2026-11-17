@@ -66,8 +66,15 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+    <div 
+      className="modal-overlay" 
+      style={{ cursor: 'default' }}
+    >
+      <div 
+        className="modal-content" 
+        onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
+      >
         <h2 className="modal-title">{initialTask ? 'UPDATE MISSION BRIEFING' : 'NEW MISSION BRIEFING'}</h2>
         <form onSubmit={handleSubmit}>
           
