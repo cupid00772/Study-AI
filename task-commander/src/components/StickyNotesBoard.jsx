@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Plus, Pin, Trash2, CheckCircle2, Circle, Palette } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Pin, Trash2, CheckCircle2, Circle, Palette, ExternalLink, Monitor, X } from 'lucide-react';
+import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
 
 const NOTE_COLORS = [
   { id: 'yellow', name: '晨曦黃', bg: 'rgba(254, 249, 195, 0.85)', border: '#fde047', text: '#713f12' },
@@ -36,7 +37,7 @@ const DEFAULT_NOTES = [
   }
 ];
 
-export default function StickyNotesBoard() {
+export default function StickyNotesBoard({ onRequireUnlock }) {
   const [notes, setNotes] = useState(() => {
     try {
       const saved = localStorage.getItem('wt_sticky_notes');
@@ -45,16 +46,94 @@ export default function StickyNotesBoard() {
       return DEFAULT_NOTES;
     }
   });
+  const [deletedIds, setDeletedIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('wt_sticky_notes_deleted');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [activeColor, setActiveColor] = useState('yellow');
+  const [activeStickyIds, setActiveStickyIds] = useState([]);
+  const skipNextCloudPushRef = useRef(true);
 
   useEffect(() => {
     try {
       localStorage.setItem('wt_sticky_notes', JSON.stringify(notes));
+      localStorage.setItem('wt_sticky_notes_deleted', JSON.stringify(deletedIds));
     } catch {}
-  }, [notes]);
+    if (skipNextCloudPushRef.current) {
+      skipNextCloudPushRef.current = false;
+      return;
+    }
+    pushCloudDoc(SYNC_KEYS.STICKY_NOTES, {
+      notes,
+      deletedIds,
+      updatedAt: new Date().toISOString(),
+    }).then((res) => {
+      if (res?.authRequired) onRequireUnlock?.();
+    });
+  }, [notes, deletedIds, onRequireUnlock]);
 
-  const handleAddNote = () => {
+  // 接收來自雲端 Realtime 或啟動合併的便條更新
+  useEffect(() => {
+    const onCloudUpdated = (e) => {
+      const detail = e.detail;
+      if (detail && Array.isArray(detail.notes)) {
+        skipNextCloudPushRef.current = true;
+        setNotes(detail.notes);
+        if (Array.isArray(detail.deletedIds)) setDeletedIds(detail.deletedIds);
+      }
+    };
+    window.addEventListener('tc-cloud-sticky-updated', onCloudUpdated);
+    return () => window.removeEventListener('tc-cloud-sticky-updated', onCloudUpdated);
+  }, []);
+
+  // 監聽並獲取目前已在桌面開啟的便條紙 IDs
+  useEffect(() => {
+    if (window.electronAPI?.getActiveStickyIds) {
+      window.electronAPI.getActiveStickyIds().then(ids => {
+        if (Array.isArray(ids)) setActiveStickyIds(ids);
+      });
+    }
+
+    if (window.electronAPI?.onActiveStickiesUpdated) {
+      const unsubscribe = window.electronAPI.onActiveStickiesUpdated((ids) => {
+        if (Array.isArray(ids)) setActiveStickyIds(ids);
+      });
+      return unsubscribe;
+    }
+  }, []);
+
+  // 自動清理不存在於本機的孤兒幽靈便條紙 ID
+  useEffect(() => {
+    if (activeStickyIds.length > 0 && notes.length > 0) {
+      const validIds = new Set(notes.map(n => n.id));
+      activeStickyIds.forEach(id => {
+        if (!validIds.has(id) && window.electronAPI?.deleteStickyPosition) {
+          window.electronAPI.deleteStickyPosition(id);
+        }
+      });
+    }
+  }, [activeStickyIds, notes]);
+
+  // 監聽來自獨立桌面視窗的變更
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'wt_sticky_notes' && e.newValue) {
+        try {
+          setNotes(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const handleAddNote = (shouldPopOut = true) => {
+    const nowIso = new Date().toISOString();
     const newNote = {
       id: `note-${Date.now()}`,
       title: '新便條紙 📌',
@@ -62,21 +141,71 @@ export default function StickyNotesBoard() {
       color: activeColor,
       isPinned: false,
       todos: [],
-      updatedAt: '剛剛'
+      updatedAt: nowIso
     };
-    setNotes(prev => [newNote, ...prev]);
+    setNotes(prev => {
+      const updated = [newNote, ...prev];
+      try {
+        localStorage.setItem('wt_sticky_notes', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // 若在 Electron 環境中，直接在桌面以獨立視窗彈出顯示
+    if (shouldPopOut && window.electronAPI?.createStickyWindow) {
+      setTimeout(() => {
+        window.electronAPI.createStickyWindow(newNote.id);
+      }, 50);
+    }
+  };
+
+  const handleTogglePopOut = (noteId) => {
+    if (!window.electronAPI) return;
+    if (activeStickyIds.includes(noteId)) {
+      if (window.electronAPI.closeStickyWindow) {
+        window.electronAPI.closeStickyWindow(noteId);
+      }
+    } else {
+      if (window.electronAPI.createStickyWindow) {
+        window.electronAPI.createStickyWindow(noteId);
+      }
+    }
+  };
+
+  const handlePopOutAll = () => {
+    if (window.electronAPI?.createStickyWindow) {
+      notes.forEach((note, idx) => {
+        setTimeout(() => {
+          window.electronAPI.createStickyWindow(note.id);
+        }, idx * 100);
+      });
+    }
+  };
+
+  const handleCloseAllPopOut = () => {
+    if (window.electronAPI?.closeStickyWindow) {
+      activeStickyIds.forEach(id => {
+        window.electronAPI.closeStickyWindow(id);
+      });
+    }
   };
 
   const handleUpdateNote = (id, field, value) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value, updatedAt: '剛剛' } : n));
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value, updatedAt: new Date().toISOString() } : n));
   };
 
   const handleDeleteNote = (id) => {
     setNotes(prev => prev.filter(n => n.id !== id));
+    setDeletedIds(prev => (prev.includes(id) ? prev : [...prev, id].slice(-200)));
+    if (window.electronAPI?.deleteStickyPosition) {
+      window.electronAPI.deleteStickyPosition(id);
+    } else if (window.electronAPI?.closeStickyWindow) {
+      window.electronAPI.closeStickyWindow(id);
+    }
   };
 
   const handleTogglePin = (id) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, isPinned: !n.isPinned } : n));
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, isPinned: !n.isPinned, updatedAt: new Date().toISOString() } : n));
   };
 
   const handleToggleTodo = (noteId, todoId) => {
@@ -84,6 +213,7 @@ export default function StickyNotesBoard() {
       if (n.id !== noteId) return n;
       return {
         ...n,
+        updatedAt: new Date().toISOString(),
         todos: n.todos.map(t => t.id === todoId ? { ...t, completed: !t.completed } : t)
       };
     }));
@@ -95,7 +225,8 @@ export default function StickyNotesBoard() {
       if (n.id !== noteId) return n;
       return {
         ...n,
-        todos: [...n.todos, { id: `t-${Date.now()}`, text: text.trim(), completed: false }]
+        updatedAt: new Date().toISOString(),
+        todos: [...(n.todos || []), { id: `t-${Date.now()}`, text: text.trim(), completed: false }]
       };
     }));
   };
@@ -105,7 +236,8 @@ export default function StickyNotesBoard() {
       if (n.id !== noteId) return n;
       return {
         ...n,
-        todos: n.todos.filter(t => t.id !== todoId)
+        updatedAt: new Date().toISOString(),
+        todos: (n.todos || []).filter(t => t.id !== todoId)
       };
     }));
   };
@@ -120,11 +252,34 @@ export default function StickyNotesBoard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button 
             className="btn btn-primary"
-            onClick={handleAddNote}
+            onClick={() => handleAddNote(true)}
             style={{ padding: '0.5rem 1.25rem', fontSize: '0.88rem' }}
           >
-            <Plus size={16} /> 新增便條紙
+            <Plus size={16} /> 新增桌面便條紙
           </button>
+
+          {window.electronAPI && (
+            <>
+              <button
+                className="btn btn-secondary"
+                onClick={handlePopOutAll}
+                style={{ padding: '0.5rem 1rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="將所有便條紙展開在桌面上（獨立透明視窗）"
+              >
+                <Monitor size={14} /> 全部釘在桌面
+              </button>
+              {activeStickyIds.length > 0 && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleCloseAllPopOut}
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)' }}
+                  title="將桌面懸浮的便條紙全部收回"
+                >
+                  <X size={14} /> 全部收回桌面
+                </button>
+              )}
+            </>
+          )}
 
           {/* Color Palette Selector */}
           <div className="nav-pills" style={{ padding: '4px 8px', gap: '6px' }}>
@@ -151,9 +306,16 @@ export default function StickyNotesBoard() {
           </div>
         </div>
 
-        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-          📌 共有 {notes.length} 張便條紙（點擊文字直接編輯，自動儲存）
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+          {window.electronAPI ? (
+            <>
+              <span>📌 共有 {notes.length} 張便條紙（{activeStickyIds.length} 張於桌面顯示中）</span>
+              <span style={{ opacity: 0.6 }}>• 變更自動同步至雲端並於重啟還原桌面位置</span>
+            </>
+          ) : (
+            <span>📌 共有 {notes.length} 張雲端同步便條紙</span>
+          )}
+        </div>
       </div>
 
       {/* Sticky Notes Grid */}
@@ -215,20 +377,45 @@ export default function StickyNotesBoard() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleDeleteNote(note.id)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: colorCfg.text,
-                    opacity: 0.6,
-                    padding: '4px'
-                  }}
-                  title="刪除便條"
-                >
-                  <Trash2 size={15} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {window.electronAPI && (
+                    <button
+                      onClick={() => handleTogglePopOut(note.id)}
+                      style={{
+                        background: activeStickyIds.includes(note.id) ? 'rgba(34, 197, 94, 0.18)' : 'rgba(0, 0, 0, 0.05)',
+                        border: `1px solid ${activeStickyIds.includes(note.id) ? '#22c55e' : colorCfg.border}`,
+                        borderRadius: 'var(--radius-pill)',
+                        cursor: 'pointer',
+                        color: activeStickyIds.includes(note.id) ? '#15803d' : colorCfg.text,
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.15s'
+                      }}
+                      title={activeStickyIds.includes(note.id) ? '點擊將此便條紙從桌面收回' : '釘選至桌面（獨立透明視窗）'}
+                    >
+                      <ExternalLink size={12} />
+                      <span>{activeStickyIds.includes(note.id) ? '桌面顯示中 (點擊收回)' : '釘到桌面'}</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteNote(note.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: colorCfg.text,
+                      opacity: 0.6,
+                      padding: '4px'
+                    }}
+                    title="刪除便條"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
               </div>
 
               {/* Editable Title */}
@@ -315,7 +502,9 @@ export default function StickyNotesBoard() {
 
               {/* Footer Timestamp */}
               <div style={{ marginTop: '8px', fontSize: '0.72rem', opacity: 0.6, textAlign: 'right' }}>
-                更新於：{note.updatedAt}
+                更新於：{note.updatedAt && /^\d{4}-\d{2}-\d{2}T/.test(note.updatedAt)
+                  ? new Date(note.updatedAt).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : (note.updatedAt || '剛剛')}
               </div>
             </div>
           );

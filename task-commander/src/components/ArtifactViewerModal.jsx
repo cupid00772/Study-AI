@@ -1,20 +1,37 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { X, Maximize2, Minimize2, ExternalLink, FolderOpen, FileText, Code, Sparkles, BookOpen } from 'lucide-react';
+import {
+  X,
+  Maximize2,
+  Minimize2,
+  ExternalLink,
+  FolderOpen,
+  FileText,
+  Code,
+  Sparkles,
+  BookOpen,
+  Image as ImageIcon,
+  CloudOff,
+} from 'lucide-react';
 import { marked } from 'marked';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import mermaid from 'mermaid';
+import {
+  fetchCloudAssetText,
+  getCloudAssetUrl,
+  isReferencePath,
+} from '../services/cloudAssetService';
 
 // 初始化 Mermaid 渲染引擎
 mermaid.initialize({
   startOnLoad: false,
   theme: 'dark',
-  securityLevel: 'loose', // 允許節點包含 click href 互動連結
+  securityLevel: 'loose',
   fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   flowchart: {
     htmlLabels: true,
     curve: 'basis',
-    useMaxWidth: true
+    useMaxWidth: true,
   },
   themeVariables: {
     darkMode: true,
@@ -28,8 +45,8 @@ mermaid.initialize({
     mainBkg: '#1e2025',
     nodeBorder: '#3b82f6',
     clusterBkg: '#131417',
-    clusterBorder: '#334155'
-  }
+    clusterBorder: '#334155',
+  },
 });
 
 function renderMarkdownWithKatex(content) {
@@ -38,20 +55,20 @@ function renderMarkdownWithKatex(content) {
   const mathTokens = [];
   const mermaidTokens = [];
 
-  // 1. 保護 Mermaid 程式碼區塊（避免被 marked 轉為跳脫的 HTML）
+  // 1. 保護 Mermaid 程式碼區塊
   let tokenized = content.replace(/```mermaid\s*\n([\s\S]*?)\n```/g, (_match, code) => {
     const id = `%%MERMAID_BLOCK_${mermaidTokens.length}%%`;
     mermaidTokens.push(code.trim());
     return id;
   });
 
-  // 2. 保護並預先渲染 Display Math: $$ ... $$
+  // 2. Display Math: $$ ... $$
   tokenized = tokenized.replace(/\$\$([\s\S]+?)\$\$/g, (match, expr) => {
     try {
       const rendered = katex.renderToString(expr.trim(), {
         displayMode: true,
         throwOnError: false,
-        strict: false
+        strict: false,
       });
       const id = `%%KATEX_BLOCK_${mathTokens.length}%%`;
       mathTokens.push(rendered);
@@ -61,13 +78,13 @@ function renderMarkdownWithKatex(content) {
     }
   });
 
-  // 3. 保護並預先渲染 Inline Math: $ ... $
+  // 3. Inline Math: $ ... $
   tokenized = tokenized.replace(/(?<!\\)\$((?:[^$\n\\]|\\.)+?)\$/g, (match, expr) => {
     try {
       const rendered = katex.renderToString(expr.trim(), {
         displayMode: false,
         throwOnError: false,
-        strict: false
+        strict: false,
       });
       const id = `%%KATEX_INLINE_${mathTokens.length}%%`;
       mathTokens.push(rendered);
@@ -77,7 +94,7 @@ function renderMarkdownWithKatex(content) {
     }
   });
 
-  // 4. 使用 marked 解析 Markdown 語法
+  // 4. Marked 解析
   let html = '';
   try {
     html = marked.parse(tokenized, { gfm: true, breaks: true });
@@ -90,7 +107,7 @@ function renderMarkdownWithKatex(content) {
     return mathTokens[Number(idx)] || '';
   });
 
-  // 6. 還原並建構 Mermaid 渲染卡片容器
+  // 6. 還原 Mermaid 卡片容器
   html = html.replace(/(?:<p>)?%%MERMAID_BLOCK_(\d+)%%(?:<\/p>)?/g, (_, idx) => {
     const code = mermaidTokens[Number(idx)] || '';
     const encoded = encodeURIComponent(code);
@@ -117,22 +134,24 @@ function renderMarkdownWithKatex(content) {
 }
 
 export default function ArtifactViewerModal({ file, onClose }) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768));
   const [rawContent, setRawContent] = useState('');
+  const [cloudUrl, setCloudUrl] = useState(null);
+  const [desktopOnlyNotice, setDesktopOnlyNotice] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const markdownContainerRef = useRef(null);
 
-  const isHtml = file.path?.toLowerCase().endsWith('.html');
-  const isMd = file.path?.toLowerCase().endsWith('.md');
-  const isPdf = file.path?.toLowerCase().endsWith('.pdf');
+  const lowerPath = String(file?.path || '').toLowerCase();
+  const isHtml = lowerPath.endsWith('.html') || lowerPath.endsWith('.htm');
+  const isMd = lowerPath.endsWith('.md');
+  const isPdf = lowerPath.endsWith('.pdf');
+  const isImage = /\.(png|jpe?g|webp|svg|gif)$/.test(lowerPath);
+  const isElectron = Boolean(window.electronAPI?.isElectron);
 
-  // ESC 鍵關閉支援
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -140,40 +159,103 @@ export default function ArtifactViewerModal({ file, onClose }) {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    setError(null);
 
     async function loadContent() {
       try {
-        if (window.electronAPI?.readFileContent) {
-          const res = await window.electronAPI.readFileContent(file.path);
+        const resolvedCloudUrl = getCloudAssetUrl(file.path);
+        if (isMounted) setCloudUrl(resolvedCloudUrl);
+
+        // PDF 與圖片不需讀取 UTF-8 文字
+        if (isPdf || isImage) {
+          if (isElectron) {
+            if (isMounted) setLoading(false);
+            return;
+          }
+          if (resolvedCloudUrl) {
+            if (isMounted) setLoading(false);
+            return;
+          }
           if (isMounted) {
-            if (res.success) {
-              setRawContent(res.content);
-            } else {
-              setError(res.error || '無法讀取檔案內容');
-            }
+            setDesktopOnlyNotice(true);
             setLoading(false);
           }
-        } else {
-          // Fallback in web dev mode without Electron
-          const res = await fetch(`/${file.path}`);
-          if (res.ok) {
-            const text = await res.text();
+          return;
+        }
+
+        // 1. Electron 桌面端優先讀本機硬碟，若本機尚無（例如剛從別台 Laptop 網頁上傳），自動回退讀雲端
+        if (window.electronAPI?.readFileContent) {
+          const res = await window.electronAPI.readFileContent(file.path);
+          if (res?.success) {
             if (isMounted) {
-              setRawContent(text);
+              setRawContent(res.content);
               setLoading(false);
             }
-          } else {
-            if (isMounted) {
-              setRawContent(`## ${file.title}\n\n*路徑：\`${file.path}\`*\n\n> 💡 這是此成果的預覽模式。在桌面端可透過 Electron 直接存取本機完整檔案內容。`);
-              setLoading(false);
+            return;
+          }
+          if (resolvedCloudUrl) {
+            const cloudRes = await fetchCloudAssetText(file.path);
+            if (cloudRes.success) {
+              if (isMounted) {
+                setRawContent(cloudRes.content);
+                setLoading(false);
+              }
+              return;
             }
           }
+          if (isMounted) {
+            setError(res?.error || '無法讀取檔案內容');
+            setLoading(false);
+          }
+          return;
+        }
+
+        // 2. Web / iOS / iPadOS 端：優先從 Supabase Storage 雲端載入
+        if (resolvedCloudUrl) {
+          const cloudRes = await fetchCloudAssetText(file.path);
+          if (cloudRes.success) {
+            if (isMounted) {
+              setRawContent(cloudRes.content);
+              setLoading(false);
+            }
+            return;
+          }
+          if (isMounted) {
+            setError(cloudRes.error || '讀取雲端檔案失敗');
+            setLoading(false);
+          }
+          return;
+        }
+
+        // 3. 若未在雲端清單中：若是 Reference 原始大檔顯示專屬提示，否則嘗試靜態相對路徑備援
+        if (isReferencePath(file.path)) {
+          if (isMounted) {
+            setDesktopOnlyNotice(true);
+            setLoading(false);
+          }
+          return;
+        }
+
+        try {
+          const res = await fetch(`./${String(file.path).replace(/^\/+/, '')}`);
+          if (res.ok) {
+            const text = await res.text();
+            if (!text.trimStart().startsWith('<!doctype html') || isHtml) {
+              if (isMounted) {
+                setRawContent(text);
+                setLoading(false);
+              }
+              return;
+            }
+          }
+        } catch {}
+
+        if (isMounted) {
+          setDesktopOnlyNotice(true);
+          setLoading(false);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err.message);
+          setError(err?.message || '載入內容時發生異常');
           setLoading(false);
         }
       }
@@ -181,7 +263,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
 
     loadContent();
     return () => { isMounted = false; };
-  }, [file.path, file.title]);
+  }, [file.path, file.title, isPdf, isImage, isHtml, isElectron]);
 
   const renderedMarkdown = useMemo(() => {
     if (!isMd || !rawContent) return '';
@@ -192,7 +274,6 @@ export default function ArtifactViewerModal({ file, onClose }) {
     }
   }, [isMd, rawContent]);
 
-  // Mermaid 非同步繪製 Effect
   useEffect(() => {
     if (!markdownContainerRef.current) return;
     const cards = markdownContainerRef.current.querySelectorAll('.mermaid-diagram-card');
@@ -215,9 +296,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
           const { svg, bindFunctions } = await mermaid.render(uniqueId, rawCode);
           if (!isCancelled && renderArea) {
             renderArea.innerHTML = svg;
-            if (bindFunctions) {
-              bindFunctions(renderArea);
-            }
+            if (bindFunctions) bindFunctions(renderArea);
           }
         } catch (err) {
           console.error('Mermaid render error:', err);
@@ -234,13 +313,9 @@ export default function ArtifactViewerModal({ file, onClose }) {
     };
 
     renderMermaidDiagrams();
-
-    return () => {
-      isCancelled = true;
-    };
+    return () => { isCancelled = true; };
   }, [renderedMarkdown]);
 
-  // 處理內部跳轉連結 (例如 #sec-1 錨點) 讓其平滑捲動
   const handleContentClick = (e) => {
     const link = e.target.closest('a');
     if (!link) return;
@@ -248,7 +323,9 @@ export default function ArtifactViewerModal({ file, onClose }) {
     if (href && href.startsWith('#')) {
       e.preventDefault();
       const targetId = href.slice(1);
-      const targetEl = document.getElementById(targetId) || document.querySelector(`[name="${targetId}"]`) || document.querySelector(`a[id="${targetId}"]`);
+      const targetEl = document.getElementById(targetId)
+        || document.querySelector(`[name="${targetId}"]`)
+        || document.querySelector(`a[id="${targetId}"]`);
       if (targetEl) {
         targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -258,6 +335,8 @@ export default function ArtifactViewerModal({ file, onClose }) {
   const handleOpenExternal = () => {
     if (window.electronAPI?.openExternalPath) {
       window.electronAPI.openExternalPath(file.path);
+    } else if (cloudUrl) {
+      window.open(cloudUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -268,20 +347,12 @@ export default function ArtifactViewerModal({ file, onClose }) {
   };
 
   return (
-    <div 
-      className="viewer-modal-overlay" 
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+    <div
+      className="viewer-modal-overlay"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div 
+      <div
         className={`viewer-modal-container ${isFullscreen ? 'fullscreen' : ''}`}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
@@ -290,40 +361,46 @@ export default function ArtifactViewerModal({ file, onClose }) {
         <div className="viewer-toolbar">
           <div className="viewer-file-info">
             <div className="vault-icon-badge" style={{ width: 34, height: 34 }}>
-              {isHtml ? <Code size={18} /> : isPdf ? <BookOpen size={18} /> : <FileText size={18} />}
+              {isHtml ? <Code size={18} /> : isPdf ? <BookOpen size={18} /> : isImage ? <ImageIcon size={18} /> : <FileText size={18} />}
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div className="viewer-file-title" title={file.title}>{file.title}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {file.course || 'Study-space'} • <code>{file.path}</code>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {file.course || 'Study-space'} · <code>{file.path}</code>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {window.electronAPI?.isElectron && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            {isElectron ? (
               <>
-                <button 
-                  className="btn btn-secondary" 
+                <button
+                  className="btn btn-secondary btn-sm"
                   onClick={handleOpenExternal}
                   title="使用系統預設軟體開啟"
-                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
                 >
-                  <ExternalLink size={15} /> 外部開啟
+                  <ExternalLink size={14} /> <span className="hide-on-mobile">外部開啟</span>
                 </button>
-                <button 
-                  className="btn btn-secondary" 
+                <button
+                  className="btn btn-secondary btn-sm"
                   onClick={handleShowInFolder}
                   title="在 Windows 檔案總管中標記"
-                  style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
                 >
-                  <FolderOpen size={15} /> 檔案總管
+                  <FolderOpen size={14} /> <span className="hide-on-mobile">檔案總管</span>
                 </button>
               </>
-            )}
+            ) : cloudUrl ? (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleOpenExternal}
+                title="在新分頁開啟原始檔案（iOS PDF / 背誦卡推薦）"
+              >
+                <ExternalLink size={14} /> <span>新分頁開啟</span>
+              </button>
+            ) : null}
 
-            <button 
-              className="btn btn-secondary btn-icon-circle"
+            <button
+              className="btn btn-secondary btn-icon-circle hide-on-mobile"
               onClick={() => setIsFullscreen(!isFullscreen)}
               title={isFullscreen ? '還原視窗' : '全螢幕檢視'}
               style={{ width: 34, height: 34 }}
@@ -331,7 +408,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
               {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
 
-            <button 
+            <button
               className="btn btn-secondary btn-icon-circle"
               onClick={onClose}
               title="關閉"
@@ -343,19 +420,39 @@ export default function ArtifactViewerModal({ file, onClose }) {
         </div>
 
         {/* Modal Content Body */}
-        <div className="viewer-content-body" style={{ padding: isHtml ? 0 : '2rem' }}>
+        <div
+          className="viewer-content-body"
+          style={{ padding: (isHtml || (isPdf && !isElectron && cloudUrl)) ? 0 : undefined }}
+        >
           {loading && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '10px', color: 'var(--text-muted)' }}>
-              <Sparkles size={20} className="gemini-spin" style={{ color: 'var(--gemini-purple)' }} />
+              <Sparkles size={20} className="spin" style={{ color: 'var(--accent-primary)' }} />
               載入成果內容中...
             </div>
           )}
 
-          {error && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--gemini-pink)' }}>
+          {!loading && desktopOnlyNotice && (
+            <div style={{ padding: '3rem 1.5rem', textAlign: 'center', maxWidth: '460px', margin: '0 auto' }}>
+              <CloudOff size={44} style={{ color: 'var(--text-dim)', marginBottom: '0.85rem' }} />
+              <h3 style={{ margin: '0 0 0.5rem' }}>
+                {isReferencePath(file.path) ? '此檔案為 Reference 本機原始大檔' : '檔案尚未上傳至雲端儲存庫'}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, margin: 0 }}>
+                {isReferencePath(file.path)
+                  ? '為節省雲端空間，Reference 資料夾內的大型原始課堂投影片與 PDF 僅保留在 Windows / Laptop 本機資料夾中。'
+                  : '請在 Windows 或 Laptop 本機執行 `npm run sync:assets`（或於桌面版設定頁點「同步本機教材至雲端」），同步完成後即可於行動端直接閱讀。'}
+              </p>
+              <div style={{ marginTop: '1rem', fontSize: '0.76rem', color: 'var(--text-dim)' }}>
+                <code>{file.path}</code>
+              </div>
+            </div>
+          )}
+
+          {!loading && !desktopOnlyNotice && error && (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--accent-danger)' }}>
               <h3>⚠️ 讀取失敗</h3>
               <p>{error}</p>
-              {window.electronAPI?.isElectron && (
+              {isElectron && (
                 <button className="btn btn-primary" onClick={handleOpenExternal} style={{ marginTop: '1rem' }}>
                   <ExternalLink size={16} /> 直接用外部應用程式開啟
                 </button>
@@ -363,7 +460,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
             </div>
           )}
 
-          {!loading && !error && (
+          {!loading && !desktopOnlyNotice && !error && (
             <>
               {isHtml ? (
                 <iframe
@@ -373,21 +470,73 @@ export default function ArtifactViewerModal({ file, onClose }) {
                   sandbox="allow-scripts allow-same-origin"
                 />
               ) : isMd ? (
-                <div 
+                <div
                   ref={markdownContainerRef}
                   className="markdown-body"
                   onClick={handleContentClick}
                   dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
                 />
-              ) : isPdf ? (
-                <div style={{ textAlign: 'center', padding: '3rem' }}>
-                  <BookOpen size={48} style={{ color: 'var(--gemini-blue)', marginBottom: '1rem' }} />
-                  <h3>PDF 格式文件</h3>
-                  <p style={{ color: 'var(--text-muted)' }}>已就緒。點擊下方按鈕以系統預設 PDF 閱讀器開啟檢視：</p>
-                  <button className="btn btn-primary" onClick={handleOpenExternal} style={{ marginTop: '1rem' }}>
-                    <ExternalLink size={16} /> 開啟 PDF 閱讀
-                  </button>
+              ) : isImage ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                  {cloudUrl ? (
+                    <img
+                      src={cloudUrl}
+                      alt={file.title}
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '10px', boxShadow: 'var(--shadow-md)' }}
+                    />
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                      <ImageIcon size={44} style={{ color: 'var(--accent-blue)', marginBottom: '0.75rem' }} />
+                      <p style={{ color: 'var(--text-muted)' }}>本機圖片檔案，點擊外部檢視：</p>
+                      <button className="btn btn-primary" onClick={handleOpenExternal}>
+                        <ExternalLink size={15} /> 開啟圖片
+                      </button>
+                    </div>
+                  )}
                 </div>
+              ) : isPdf ? (
+                !isElectron && cloudUrl ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <div style={{
+                      padding: '8px 14px',
+                      background: 'var(--bg-input)',
+                      borderBottom: '1px solid var(--border-color)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      flexWrap: 'wrap',
+                      fontSize: '0.78rem',
+                      color: 'var(--text-muted)',
+                    }}>
+                      <span>若在 iPhone / iPad Safari 無法順暢翻頁，建議點右側按鈕以系統原生檢視器開啟。</span>
+                      <a
+                        href={cloudUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary btn-xs"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <ExternalLink size={13} /> 以原生 PDF 檢視器開啟
+                      </a>
+                    </div>
+                    <iframe
+                      title={file.title}
+                      src={cloudUrl}
+                      className="viewer-iframe"
+                      style={{ flex: 1, borderRadius: 0 }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '3rem' }}>
+                    <BookOpen size={48} style={{ color: 'var(--accent-blue)', marginBottom: '1rem' }} />
+                    <h3>PDF 格式文件</h3>
+                    <p style={{ color: 'var(--text-muted)' }}>點擊下方按鈕以系統預設 PDF 閱讀器開啟檢視：</p>
+                    <button className="btn btn-primary" onClick={handleOpenExternal} style={{ marginTop: '1rem' }}>
+                      <ExternalLink size={16} /> 開啟 PDF 閱讀
+                    </button>
+                  </div>
+                )
               ) : (
                 <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontFamily: 'inherit' }}>
                   {rawContent}

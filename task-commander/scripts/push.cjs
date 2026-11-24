@@ -23,7 +23,7 @@ async function main() {
   let repoRoot;
   try {
     repoRoot = getOutput('git rev-parse --show-toplevel');
-  } catch (err) {
+  } catch {
     console.error('❌ 錯誤：找不到 Git 儲存庫根目錄！請確保在 Git 專案內執行。');
     process.exit(1);
   }
@@ -43,14 +43,14 @@ async function main() {
   try {
     run('npm run build', { cwd: taskCommanderDir });
     console.log('✅ 前端建置成功！代碼無語法或打包錯誤。');
-  } catch (err) {
+  } catch {
     console.error('❌ 前端建置失敗！請先修復編譯錯誤後再進行推送。');
     process.exit(1);
   }
 
   // 4. 準備暫存檔案 (聚焦於 Task Commander 相關檔案及聯動追蹤檔)
   console.log('\n[2/5] 暫存 Task Commander 變更檔案與推送腳本...');
-  run('git add task-commander/ academic_tracker.json .gitignore push_task_commander.bat _Tools/push_task_commander.bat _Tools/sync.bat', { cwd: repoRoot });
+  run('git add task-commander/ academic_tracker.json .gitignore push_task_commander.bat update_task_commander.bat _Tools/eeclass_crawler.py _Tools/sync.bat', { cwd: repoRoot });
 
   const stagedFiles = getOutput('git diff --staged --name-only', { cwd: repoRoot });
   
@@ -97,7 +97,7 @@ async function main() {
   try {
     run(`git pull origin ${currentBranch} --rebase --autostash`, { cwd: repoRoot });
     console.log('✅ 遠端進度整併完成。');
-  } catch (err) {
+  } catch {
     console.error(`❌ 拉取或 Rebase 失敗，可能存在衝突。請手動解決後再推送。`);
     process.exit(1);
   }
@@ -131,6 +131,18 @@ async function main() {
   console.log('\n=====================================================');
   console.log('       🎉 Task Commander 全部進度已同步至 GitHub！    ');
   console.log('=====================================================\n');
+
+  // 9. 若本機已配置 Supabase .env.local，自動觸發增量教材上雲（不影響 Git 推送結果）
+  const envLocalPath = path.join(taskCommanderDir, '.env.local');
+  const skipCloud = process.argv.includes('--skip-cloud');
+  if (!skipCloud && fs.existsSync(envLocalPath)) {
+    console.log('☁️  偵測到本機 Supabase 設定，正在執行增量教材與資料上雲...');
+    try {
+      run('node scripts/sync-cloud-assets.cjs --with-tracker', { cwd: taskCommanderDir });
+    } catch (err) {
+      console.warn('⚠️ 雲端資產同步未完成（GitHub 已推送成功，可稍後手動執行 npm run sync:assets）：', err.message);
+    }
+  }
 }
 
 main().catch((err) => {

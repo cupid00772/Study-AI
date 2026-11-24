@@ -34,6 +34,13 @@ tessdata/
 _Tools/.eeclass_config.json
 *.credential*
 *.session*
+.env
+.env.local
+.env.*.local
+task-commander/.env
+task-commander/.env.local
+task-commander/.env.*.local
+task-commander/cloud-config.local.json
 
 # === Windows 捷徑與桌面設定 ===
 *.lnk

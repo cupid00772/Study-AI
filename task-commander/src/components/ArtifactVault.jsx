@@ -12,7 +12,6 @@ import {
   ArrowLeft, 
   Home, 
   Plus, 
-  CheckCircle2, 
   ShieldCheck, 
   ExternalLink, 
   Copy, 
@@ -27,10 +26,12 @@ import {
   Award, 
   FolderPlus,
   FileCheck,
-  RefreshCw
+  RefreshCw,
+  Cloud,
+  CloudOff
 } from 'lucide-react';
-import defaultTracker from '../data/defaultTracker.json';
 import ImportMaterialModal from './ImportMaterialModal';
+import { isAssetAvailableOnCloud } from '../services/cloudAssetService';
 
 const CATEGORY_CONFIG = {
   Study_Materials: {
@@ -102,10 +103,13 @@ export default function ArtifactVault({
   courses = [], 
   onPreviewFile, 
   onSaveDeliverables,
-  onAddDeliverable 
+  onAddDeliverable,
+  onRequireUnlock,
+  assetManifestVersion = 0,
 }) {
+  const isElectron = Boolean(window.electronAPI?.isElectron);
   const displayDeliverables = useMemo(() => {
-    return deliverables && deliverables.length > 0 ? deliverables : (defaultTracker.deliverables || []);
+    return Array.isArray(deliverables) ? deliverables : [];
   }, [deliverables]);
 
   // Explorer Navigation Path: [] for Root; [catKey] for Category; [catKey, courseName] for Course
@@ -117,6 +121,7 @@ export default function ArtifactVault({
   // Search query & filter
   const [searchQuery, setSearchQuery] = useState('');
   const [formatFilter, setFormatFilter] = useState('ALL');
+  const [cloudOnlyFilter, setCloudOnlyFilter] = useState(false);
 
   // Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -202,6 +207,10 @@ export default function ArtifactVault({
       items = items.filter(d => (d.format || '').toLowerCase() === formatFilter.toLowerCase());
     }
 
+    if (!isElectron && cloudOnlyFilter && assetManifestVersion >= 0) {
+      items = items.filter(d => isAssetAvailableOnCloud(d.path));
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       items = items.filter(d => 
@@ -214,7 +223,7 @@ export default function ArtifactVault({
     }
 
     return items;
-  }, [displayDeliverables, currentCategoryKey, currentCourseKey, formatFilter, searchQuery]);
+  }, [displayDeliverables, currentCategoryKey, currentCourseKey, formatFilter, searchQuery, isElectron, cloudOnlyFilter, assetManifestVersion]);
 
   // Navigation handlers
   const navigateToRoot = () => {
@@ -380,8 +389,20 @@ export default function ArtifactVault({
             </button>
           </div>
 
+          {/* Cloud-only filter toggle (Web / Mobile) */}
+          {!isElectron && (
+            <button
+              className={`btn btn-sm ${cloudOnlyFilter ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setCloudOnlyFilter((p) => !p)}
+              title="只顯示已同步至雲端可直接閱讀的教材（隱藏僅存於本機之 Reference 大檔）"
+              style={{ fontSize: '0.8rem', gap: '5px' }}
+            >
+              <Cloud size={14} /> {cloudOnlyFilter ? '僅雲端可讀' : '全部檔案'}
+            </button>
+          )}
+
           {/* Scan Workspace Button */}
-          {window.electronAPI?.isElectron && (
+          {isElectron && (
             <button 
               className="btn btn-secondary"
               onClick={handleScanWorkspace}
@@ -399,7 +420,7 @@ export default function ArtifactVault({
             onClick={() => setIsImportModalOpen(true)}
             style={{ padding: '0.42rem 0.95rem', fontSize: '0.82rem', gap: '6px' }}
           >
-            <Plus size={15} /> 自行導入資料
+            <Plus size={15} /> {isElectron ? '自行導入資料' : '上傳 / 新增資料'}
           </button>
         </div>
       </div>
@@ -579,7 +600,6 @@ export default function ArtifactVault({
               {displayDeliverables.slice(0, 4).map(item => {
                 const typeInfo = TYPE_CONFIG[item.type] || { label: item.type, color: 'badge-blue', icon: FileText };
                 const IconComponent = typeInfo.icon;
-                const courseCfg = COURSE_ICON_MAP[item.course] || { color: 'var(--gemini-blue)' };
 
                 return (
                   <div 
@@ -868,6 +888,17 @@ export default function ArtifactVault({
                               .{item.format.toLowerCase()}
                             </span>
                           )}
+                          {!isElectron && (
+                            isAssetAvailableOnCloud(item.path) ? (
+                              <span className="badge-chip badge-green" style={{ fontSize: '0.68rem' }} title="已同步雲端，行動端可直接閱讀">
+                                <Cloud size={11} /> 雲端
+                              </span>
+                            ) : (
+                              <span className="badge-chip" style={{ background: 'var(--bg-input)', color: 'var(--text-dim)', fontSize: '0.68rem' }} title="尚未上傳或為本機專屬大檔">
+                                <CloudOff size={11} /> 僅本機
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
 
@@ -1066,13 +1097,16 @@ export default function ArtifactVault({
       )}
 
       {/* 3. Import Modal */}
-      <ImportMaterialModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImport={handleImportNew}
-        initialCategory={currentCategoryKey || 'Study_Materials'}
-        existingCourses={existingCourseNames}
-      />
+      {isImportModalOpen && (
+        <ImportMaterialModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onImport={handleImportNew}
+          initialCategory={currentCategoryKey || 'Study_Materials'}
+          existingCourses={existingCourseNames}
+          onRequireUnlock={onRequireUnlock}
+        />
+      )}
 
       {/* 4. Feedback Toast */}
       {toastMessage && (

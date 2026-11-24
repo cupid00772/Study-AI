@@ -1,63 +1,107 @@
-import { useState, useEffect, useCallback } from 'react';
-import LevelProgressBar from './components/LevelProgressBar';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import DashboardHome from './components/DashboardHome';
 import TaskBoard from './components/TaskBoard';
 import CreateTaskModal from './components/CreateTaskModal';
 import CourseSchedule from './components/CourseSchedule';
-import DailyReminders from './components/DailyReminders';
 import SettingsModal from './components/SettingsModal';
 import AssignmentsBoard from './components/AssignmentsBoard';
 import ExamsDashboard from './components/ExamsDashboard';
 import ArtifactVault from './components/ArtifactVault';
 import ArtifactViewerModal from './components/ArtifactViewerModal';
 import StickyNotesBoard from './components/StickyNotesBoard';
-import EEClassWidget from './components/EEClassWidget';
+import CommandPalette from './components/CommandPalette';
+import GraduationCreditsModal from './components/GraduationCreditsModal';
+import CloudUnlockModal from './components/CloudUnlockModal';
+import MobileBottomNav from './components/MobileBottomNav';
+import TaskCommanderLogo from './components/TaskCommanderLogo';
 import defaultTracker from './data/defaultTracker.json';
 import {
-  Sparkles,
+  computeAcademicAlerts,
+  getLocalDateKey,
+} from './utils/academicUtils';
+import {
+  loadRuntimeCloudConfig,
+  getCloudAuthState,
+  subscribeCloudAuth,
+  lockCloudWrite,
+} from './services/supabaseClient';
+import {
+  SYNC_KEYS,
+  pullAllCloudDocs,
+  pushCloudDoc,
+  pushTrackerBuckets,
+  subscribeCloudRealtime,
+  subscribeSyncStatus,
+  getSyncStatus,
+  getCachedCloudDocs,
+  assembleTrackerFromBuckets,
+  mergeStudyLogs,
+  mergeRemindersPayload,
+  mergeKeyedItems,
+  flushPendingWrites,
+} from './services/cloudSyncService';
+import { subscribeAssetManifest } from './services/cloudAssetService';
+import {
+  Home,
   BookOpen,
   CheckSquare,
   Calendar,
   FolderGit2,
   ListTodo,
+  StickyNote,
   Settings,
   Sun,
   Moon,
-  Plus,
-  Move,
+  Search,
   Pin,
   Minus,
+  Square,
+  Copy,
   X,
-  StickyNote
+  BellRing,
+  RefreshCw,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Flame,
+  Cloud,
+  CloudOff,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 
 const INITIAL_TASKS = [
-  { id: '1', title: '聯絡清大註冊組', desc: '寄送 Email 詢問轉校事宜', category: 'Main', difficulty: 'Medium', xp: 500, completed: false },
-  { id: '2', title: '整理台聯大微積分考古題', desc: '完成 113~115 年度的錯題檢討', category: 'Challenge', difficulty: 'Hard', xp: 1200, completed: false },
-  { id: '3', title: '每日單字複習', desc: '複習 50 個英文單字', category: 'Daily', difficulty: 'Easy', xp: 100, completed: false },
-  { id: '4', title: '作業系統 Ch1 程序模型筆記', desc: '閱讀 Process Control Block 與排程機制', category: 'Main', difficulty: 'Medium', xp: 500, completed: false, relatedCourse: '作業系統' },
-  { id: '5', title: '資料與檔案結構 作業-1', desc: '實作 Linked List 與 Dynamic Array 比較', category: 'Main', difficulty: 'Medium', xp: 600, completed: false, relatedCourse: '資料與檔案結構' }
+  { id: '1', title: '每日英文單字或聽力複習', desc: '固定維持每日語感與閱讀速度', category: 'Daily', difficulty: 'Easy', completed: false },
+  { id: '2', title: '整理本週課堂重點筆記', desc: '將作業系統與資料結構上課重點整理進 Study_Materials', category: 'Main', difficulty: 'Medium', completed: false, relatedCourse: '資料與檔案結構' },
+  { id: '3', title: '練習台聯大微積分歷屆試題', desc: '完成一回計時演練並檢討錯題', category: 'Challenge', difficulty: 'Hard', completed: false, relatedCourse: '台聯大/台大轉學考' },
 ];
-
-const DEFAULT_WEEKLY_SCHEDULE = {
-  'Monday': ['經濟學', '通識地球物理'],
-  'Tuesday': [],
-  'Wednesday': ['統計學', '邏輯與批判思考'],
-  'Thursday': ['作業系統', '服務學習課程'],
-  'Friday': ['資料與檔案結構', '服務學習課程'],
-  'Saturday': [],
-  'Sunday': []
-};
 
 const DEFAULT_REMINDERS = [
   '吃感冒藥 (早/中/晚)',
-  '記得帶水壺'
+  '記得帶水壺',
 ];
 
-const TODAY_KEY = 'wt_last_refresh_date';
+const DEFAULT_APP_CONFIG = {
+  minimizeToTray: true,
+  autoLaunch: true,
+  autoSyncEnabled: true,
+  autoSyncIntervalHours: 4,
+  autoWatchDeliverables: true,
+  alerts: {
+    enabled: true,
+    assignmentLeadDays: 3,
+    includeOverdue: true,
+    examLeadDays: 7,
+    studyRemindersEnabled: true,
+    dailyTriggerTimes: ['09:00', '20:00'],
+    triggerOnStartup: true,
+    showPopupWindow: true,
+    showWindowsToast: true,
+    snoozeMinutes: 30,
+    dailyStudyGoalMinutes: 60,
+  },
+};
 
-function getTodayKey() {
-  return new Date().toDateString();
-}
+const TODAY_KEY = 'wt_last_refresh_date';
 
 function readStorage(key, fallback) {
   try {
@@ -70,638 +114,1223 @@ function readStorage(key, fallback) {
 
 function getInitialTasks() {
   const storedTasks = readStorage('wt_tasks', INITIAL_TASKS);
-  const today = getTodayKey();
+  const today = new Date().toDateString();
 
   if (localStorage.getItem(TODAY_KEY) === today) {
     return Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS;
   }
-
-  try {
-    localStorage.setItem(TODAY_KEY, today);
-  } catch { }
-
-  return (Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS).map(task => (
+  try { localStorage.setItem(TODAY_KEY, today); } catch {}
+  return (Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS).map((task) =>
     task.category === 'Daily' ? { ...task, completed: false } : task
-  ));
+  );
 }
 
-function addExperience(progress, reward) {
-  let nextXp = progress.xp + reward;
-  let nextLevel = progress.level;
-
-  while (nextXp >= nextLevel * 1000) {
-    nextXp -= nextLevel * 1000;
-    nextLevel += 1;
+function getInitialTracker(isElectron) {
+  if (!isElectron) {
+    const cached = getCachedCloudDocs();
+    if (Object.keys(cached).length > 0) {
+      return assembleTrackerFromBuckets(defaultTracker, cached, false);
+    }
   }
-
-  return { level: nextLevel, xp: nextXp };
+  return defaultTracker;
 }
+
+const TAB_TITLES = {
+  dashboard: '總覽首頁',
+  assignments: '作業管理',
+  exams: '考試日程',
+  missions: '每日任務',
+  notes: '桌面便條',
+  vault: 'AI 成果庫',
+  courses: '科目與課表',
+};
 
 function App() {
-  // Navigation Tabs: 'courses' | 'assignments' | 'exams' | 'vault' | 'missions'
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('wt_compact_mode') === 'true' ? 'notes' : 'courses';
+  const isElectron = Boolean(window.electronAPI?.isElectron);
+
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1280));
+  const isMobile = !isElectron && viewportWidth < 768;
+  const isTablet = !isElectron && viewportWidth >= 768 && viewportWidth < 1024;
+
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (!isElectron && typeof window !== 'undefined' && window.innerWidth < 1024) return true;
+    return localStorage.getItem('wt_sidebar_collapsed') === 'true';
   });
+  const [theme, setTheme] = useState(() => localStorage.getItem('wt_theme') || 'light');
+  const [trackerData, setTrackerData] = useState(() => getInitialTracker(isElectron));
+  const [appConfig, setAppConfig] = useState(DEFAULT_APP_CONFIG);
+
   const [tasks, setTasks] = useState(getInitialTasks);
-
-  // Theme state: 'light' by default per Gemini style overhaul
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('wt_theme') || 'light';
-  });
-
-  // Academic Tracker Data initialized with bundled default so it's NEVER empty
-  const [trackerData, setTrackerData] = useState(defaultTracker);
-
-  // Artifact Modal Viewer state
-  const [selectedFileForViewer, setSelectedFileForViewer] = useState(null);
-
-  // Desktop Sticky Note Window States
-  const [isPinned, setIsPinned] = useState(false);
-  const [isCompactMode, setIsCompactMode] = useState(() => {
-    return localStorage.getItem('wt_compact_mode') === 'true';
-  });
-
-  useEffect(() => {
-    if (window.electronAPI?.isWindowPinned) {
-      window.electronAPI.isWindowPinned().then(pinned => setIsPinned(!!pinned));
-    }
-  }, []);
-
-  const handleTogglePin = async () => {
-    if (window.electronAPI?.togglePinWindow) {
-      const pinned = await window.electronAPI.togglePinWindow();
-      setIsPinned(pinned);
-    }
-  };
-
-  const handleMinimize = () => {
-    window.electronAPI?.minimizeWindow?.();
-  };
-
-  const handleClose = () => {
-    window.electronAPI?.closeWindow?.();
-  };
-
-  const toggleCompactMode = () => {
-    setIsCompactMode(prev => {
-      const next = !prev;
-      try { localStorage.setItem('wt_compact_mode', next.toString()); } catch { }
-      if (next) {
-        setActiveTab('notes');
-      }
-      window.electronAPI?.setCompactMode?.(next);
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (isCompactMode) {
-      window.electronAPI?.setCompactMode?.(true);
-    }
-  }, []);
-
-  const [weeklySchedule, setWeeklySchedule] = useState(() => {
-    const storedSchedule = readStorage('wt_weekly_schedule_v2', null);
-    if (storedSchedule && typeof storedSchedule === 'object' && !Array.isArray(storedSchedule)) {
-      return storedSchedule;
-    }
-    const legacySchedule = readStorage('wt_weekly_schedule', null);
-    if (legacySchedule && !legacySchedule['Monday']?.includes('計算機概論') && !legacySchedule['Tuesday']?.includes('會計學')) {
-      return legacySchedule;
-    }
-    return DEFAULT_WEEKLY_SCHEDULE;
-  });
-
+  const [deletedTaskIds, setDeletedTaskIds] = useState(() => readStorage('wt_tasks_deleted', []));
   const [reminders, setReminders] = useState(() => {
-    const storedReminders = readStorage('wt_reminders', DEFAULT_REMINDERS);
-    return Array.isArray(storedReminders) ? storedReminders : DEFAULT_REMINDERS;
+    const saved = readStorage('wt_reminders', DEFAULT_REMINDERS);
+    return Array.isArray(saved) ? saved : DEFAULT_REMINDERS;
   });
-
   const [reminderCompletions, setReminderCompletions] = useState(() => {
-    const storedCompletions = readStorage('wt_reminder_completions', {});
-    return storedCompletions && typeof storedCompletions === 'object' && !Array.isArray(storedCompletions)
-      ? storedCompletions
-      : {};
+    const saved = readStorage('wt_reminder_completions', {});
+    return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
   });
 
+  // Study Focus Timer & Daily Log
+  const todayIso = getLocalDateKey();
+  const [studyLog, setStudyLog] = useState(() => readStorage('wt_study_log', {}));
+  const studyMinutesToday = Number(studyLog[todayIso] || 0);
+  const [focusState, setFocusState] = useState({
+    presetMinutes: 25,
+    secondsLeft: 25 * 60,
+    isRunning: false,
+  });
+  const focusSecondsAccRef = useRef(0);
+
+  // Cloud Sync & Auth States
+  const [cloudStatus, setCloudStatus] = useState(getSyncStatus);
+  const [cloudAuth, setCloudAuth] = useState({ configured: false, canWrite: false, email: '' });
+  const [assetManifestVersion, setAssetManifestVersion] = useState(0);
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+
+  // Modals & Overlays
+  const [selectedFileForViewer, setSelectedFileForViewer] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [progress, setProgress] = useState(() => {
-    const level = Number.parseInt(localStorage.getItem('wt_level'), 10);
-    const xp = Number.parseInt(localStorage.getItem('wt_xp'), 10);
-    return {
-      level: Number.isInteger(level) && level > 0 ? level : 1,
-      xp: Number.isInteger(xp) && xp >= 0 ? xp : 0
-    };
-  });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
+  const [isCmdOpen, setIsCmdOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [globalToast, setGlobalToast] = useState('');
 
-  const { level, xp } = progress;
-  const xpNeeded = level * 1000;
-  const courseOptions = [...new Set([
-    ...(trackerData?.courses?.map(c => c.name) || []),
-    ...Object.values(weeklySchedule).flat()
-  ])];
-  const today = getTodayKey();
+  // Window & Sync States
+  const [isPinned, setIsPinned] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [activeStickyCount, setActiveStickyCount] = useState(0);
 
-  // Apply Theme Attribute to HTML root
+  // Latest state refs for safe async cloud merging (zero stale closure, zero echo loop)
+  const trackerRef = useRef(trackerData);
+  const tasksRef = useRef(tasks);
+  const deletedTaskIdsRef = useRef(deletedTaskIds);
+  const remindersRef = useRef(reminders);
+  const reminderCompletionsRef = useRef(reminderCompletions);
+  const studyLogRef = useRef(studyLog);
+  const hasPromptedUnlockRef = useRef(false);
+
+  useEffect(() => { trackerRef.current = trackerData; }, [trackerData]);
+  useEffect(() => { tasksRef.current = tasks; }, [tasks]);
+  useEffect(() => { deletedTaskIdsRef.current = deletedTaskIds; }, [deletedTaskIds]);
+  useEffect(() => { remindersRef.current = reminders; }, [reminders]);
+  useEffect(() => { reminderCompletionsRef.current = reminderCompletions; }, [reminderCompletions]);
+  useEffect(() => { studyLogRef.current = studyLog; }, [studyLog]);
+
+  const todayDateStr = new Date().toDateString();
+
+  const showToast = useCallback((msg) => {
+    setGlobalToast(msg);
+    setTimeout(() => setGlobalToast((cur) => (cur === msg ? '' : cur)), 3200);
+  }, []);
+
+  const handleRequireUnlock = useCallback(() => {
+    setIsUnlockModalOpen(true);
+    if (!hasPromptedUnlockRef.current) {
+      hasPromptedUnlockRef.current = true;
+      showToast('目前為公開唯讀模式，輸入編輯密碼一次即可同步寫入雲端');
+    }
+  }, [showToast]);
+
+  // Viewport & platform classes on <html>
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    const rootEl = document.documentElement;
+    rootEl.classList.toggle('is-electron', isElectron);
+    rootEl.classList.toggle('is-web', !isElectron);
+    rootEl.classList.toggle('is-mobile', isMobile);
+    rootEl.classList.toggle('is-tablet', isTablet);
+  }, [isElectron, isMobile, isTablet]);
+
+  // Theme Sync
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    try {
-      localStorage.setItem('wt_theme', theme);
-    } catch { }
+    try { localStorage.setItem('wt_theme', theme); } catch {}
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
-
-  // Load tracker data on mount and setup live listener
   useEffect(() => {
-    async function loadTracker() {
-      if (window.electronAPI?.getTrackerData) {
-        const data = await window.electronAPI.getTrackerData();
-        if (data) {
-          setTrackerData(data);
-        }
-      } else {
-        // Fallback in web dev preview
-        try {
-          const res = await fetch('/academic_tracker.json');
-          if (res.ok) {
-            const data = await res.json();
-            setTrackerData(data);
-          }
-        } catch { }
-      }
-    }
+    try { localStorage.setItem('wt_sidebar_collapsed', String(sidebarCollapsed)); } catch {}
+  }, [sidebarCollapsed]);
 
-    loadTracker();
-
-    if (window.electronAPI?.onTrackerUpdated) {
-      const unsubscribe = window.electronAPI.onTrackerUpdated((updatedData) => {
-        setTrackerData(updatedData);
-      });
-      return unsubscribe;
-    }
-  }, []);
-
-  // Check deadlines & send desktop notifications
-  useEffect(() => {
-    if (!trackerData?.assignments || !window.electronAPI?.sendNotification) return;
-
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-
-    const urgentHws = trackerData.assignments.filter(hw => {
-      if (hw.status === 'completed' || !hw.dueDate) return false;
-      const due = new Date(hw.dueDate);
-      const diffDays = Math.ceil((due - todayDate) / (1000 * 60 * 60 * 24));
-      return diffDays >= 0 && diffDays <= 5;
-    });
-
-    if (urgentHws.length > 0) {
-      const todayStr = todayDate.toISOString().slice(0, 10);
-      const batchKey = `notified_batch_${todayStr}`;
-
-      if (!sessionStorage.getItem(batchKey)) {
-        if (urgentHws.length === 1) {
-          const hw = urgentHws[0];
-          window.electronAPI.sendNotification({
-            title: `⚠️ 作業截止提醒：${hw.course}`,
-            body: `「${hw.title}」即將於 ${hw.dueDate} 截止，請把握時間！`
-          });
-        } else {
-          const summary = urgentHws.slice(0, 3).map(h => `• [${h.course}] ${h.title} (${h.dueDate})`).join('\n');
-          window.electronAPI.sendNotification({
-            title: `⚠️ 近期有 ${urgentHws.length} 項作業即將截止！`,
-            body: summary + (urgentHws.length > 3 ? `\n...等共 ${urgentHws.length} 項任務` : '')
-          });
-        }
-        sessionStorage.setItem(batchKey, 'true');
-      }
-    }
-  }, [trackerData]);
-
-  // Daily task auto-refresh
-  useEffect(() => {
-    const refreshDailyTasks = () => {
-      const today = getTodayKey();
-      if (localStorage.getItem(TODAY_KEY) === today) return;
-
-      setTasks(prevTasks => prevTasks.map(t => {
-        if (t.category === 'Daily') {
-          return { ...t, completed: false };
-        }
-        return t;
-      }));
-      localStorage.setItem(TODAY_KEY, today);
-    };
-
-    const refreshTimer = window.setInterval(refreshDailyTasks, 60 * 1000);
-    return () => window.clearInterval(refreshTimer);
-  }, []);
-
-  // Sync to localStorage
+  // Local persistence for tasks, reminders, study log
   useEffect(() => {
     try {
       localStorage.setItem('wt_tasks', JSON.stringify(tasks));
-      localStorage.setItem('wt_level', level.toString());
-      localStorage.setItem('wt_xp', xp.toString());
-      localStorage.setItem('wt_weekly_schedule', JSON.stringify(weeklySchedule));
-      localStorage.setItem('wt_weekly_schedule_v2', JSON.stringify(weeklySchedule));
+      localStorage.setItem('wt_tasks_deleted', JSON.stringify(deletedTaskIds));
       localStorage.setItem('wt_reminders', JSON.stringify(reminders));
       localStorage.setItem('wt_reminder_completions', JSON.stringify(reminderCompletions));
-    } catch { }
-  }, [tasks, level, xp, weeklySchedule, reminders, reminderCompletions]);
+      localStorage.setItem('wt_study_log', JSON.stringify(studyLog));
+    } catch {}
+  }, [tasks, deletedTaskIds, reminders, reminderCompletions, studyLog]);
 
-  const handleCompleteTask = (taskId) => {
-    const task = tasks.find(currentTask => currentTask.id === taskId);
-    if (!task || task.completed) return;
+  // Helper: apply one remote cloud doc (used by Realtime subscription & startup pull)
+  const applyRemoteDoc = useCallback((key, payload) => {
+    if (!payload) return;
 
-    const reward = Number(task.xp);
-    if (!Number.isFinite(reward) || reward < 0) return;
+    if (
+      key === SYNC_KEYS.COURSES
+      || key === SYNC_KEYS.ASSIGNMENTS
+      || key === SYNC_KEYS.EXAMS
+      || key === SYNC_KEYS.DELIVERABLES
+      || key === SYNC_KEYS.EECLASS
+    ) {
+      const merged = assembleTrackerFromBuckets(trackerRef.current, { [key]: payload }, isElectron);
+      setTrackerData(merged);
+      if (isElectron && window.electronAPI?.saveTrackerData) {
+        window.electronAPI.saveTrackerData(merged);
+      }
+      return;
+    }
 
-    setTasks(prevTasks => prevTasks.map(currentTask => (
-      currentTask.id === taskId ? { ...currentTask, completed: true } : currentTask
-    )));
-    setProgress(prevProgress => addExperience(prevProgress, reward));
-  };
+    if (key === SYNC_KEYS.TASKS) {
+      const merged = mergeKeyedItems(
+        tasksRef.current,
+        deletedTaskIdsRef.current,
+        payload.items || [],
+        payload.deletedIds || []
+      );
+      setTasks(merged.items);
+      setDeletedTaskIds(merged.deletedIds);
+      return;
+    }
 
-  const handleCompleteAssignment = async (assignmentId) => {
-    if (!trackerData?.assignments) return;
+    if (key === SYNC_KEYS.REMINDERS) {
+      const merged = mergeRemindersPayload(
+        { reminders: remindersRef.current, completions: reminderCompletionsRef.current },
+        payload
+      );
+      setReminders(merged.reminders);
+      setReminderCompletions(merged.completions);
+      return;
+    }
 
-    const targetHw = trackerData.assignments.find(a => a.id === assignmentId);
-    if (!targetHw || targetHw.status === 'completed') return;
+    if (key === SYNC_KEYS.STUDY_LOG) {
+      const merged = mergeStudyLogs(studyLogRef.current, payload.log || payload);
+      setStudyLog(merged);
+      return;
+    }
 
-    const rewardXp = Number(targetHw.xp) || 500;
-    const updatedAssignments = trackerData.assignments.map(a =>
-      a.id === assignmentId ? { ...a, status: 'completed' } : a
+    if (key === SYNC_KEYS.STICKY_NOTES) {
+      const localNotes = readStorage('wt_sticky_notes', []);
+      const localDeleted = readStorage('wt_sticky_notes_deleted', []);
+      const merged = mergeKeyedItems(
+        localNotes,
+        localDeleted,
+        payload.notes || [],
+        payload.deletedIds || []
+      );
+      try {
+        localStorage.setItem('wt_sticky_notes', JSON.stringify(merged.items));
+        localStorage.setItem('wt_sticky_notes_deleted', JSON.stringify(merged.deletedIds));
+      } catch {}
+      window.dispatchEvent(new CustomEvent('tc-cloud-sticky-updated', {
+        detail: { notes: merged.items, deletedIds: merged.deletedIds },
+      }));
+      return;
+    }
+
+    if (key === SYNC_KEYS.GRADUATION_CREDITS && Array.isArray(payload.items)) {
+      try {
+        localStorage.setItem('wt_courses_v2', JSON.stringify(payload.items));
+      } catch {}
+      window.dispatchEvent(new CustomEvent('tc-cloud-credits-updated', {
+        detail: { items: payload.items },
+      }));
+      return;
+    }
+
+    if (key === SYNC_KEYS.ASSET_MANIFEST) {
+      setAssetManifestVersion((v) => v + 1);
+    }
+  }, [isElectron]);
+
+  // Full bidirectional cloud sync (startup + manual refresh)
+  const syncFromCloud = useCallback(async ({ manual = false, localTrackerOverride = null } = {}) => {
+    await loadRuntimeCloudConfig();
+    const auth = await getCloudAuthState();
+    setCloudAuth(auth);
+
+    if (!auth.configured) {
+      if (manual) showToast('尚未設定 Supabase 連線資訊，請於「設定 → 雲端同步」中設定');
+      return { success: false, unconfigured: true };
+    }
+
+    const res = await pullAllCloudDocs();
+    if (!res.success) {
+      if (manual) showToast(`雲端同步失敗：${res.error || '請檢查網路連線'}`);
+      return res;
+    }
+
+    const docs = res.docs || {};
+    const baseTracker = localTrackerOverride || trackerRef.current;
+
+    // 1. Merge Tracker
+    const hasRemoteTracker = Boolean(
+      docs[SYNC_KEYS.COURSES] || docs[SYNC_KEYS.ASSIGNMENTS] || docs[SYNC_KEYS.EXAMS]
+      || docs[SYNC_KEYS.DELIVERABLES] || docs[SYNC_KEYS.EECLASS]
     );
-
-    const updatedData = { ...trackerData, assignments: updatedAssignments };
-    setTrackerData(updatedData);
-
-    // Reward XP
-    setProgress(prev => addExperience(prev, rewardXp));
-
-    // Save back to academic_tracker.json via Electron
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
+    let mergedTracker = baseTracker;
+    if (hasRemoteTracker) {
+      mergedTracker = assembleTrackerFromBuckets(baseTracker, docs, isElectron);
+      setTrackerData(mergedTracker);
+      if (isElectron && window.electronAPI?.saveTrackerData) {
+        await window.electronAPI.saveTrackerData(mergedTracker);
+      }
     }
-  };
 
-  const handleCompleteExam = async (examId) => {
-    if (!trackerData?.exams) return;
+    // 2. Merge User Buckets
+    if (docs[SYNC_KEYS.TASKS]) applyRemoteDoc(SYNC_KEYS.TASKS, docs[SYNC_KEYS.TASKS]);
+    if (docs[SYNC_KEYS.REMINDERS]) applyRemoteDoc(SYNC_KEYS.REMINDERS, docs[SYNC_KEYS.REMINDERS]);
+    if (docs[SYNC_KEYS.STUDY_LOG]) applyRemoteDoc(SYNC_KEYS.STUDY_LOG, docs[SYNC_KEYS.STUDY_LOG]);
+    if (docs[SYNC_KEYS.STICKY_NOTES]) applyRemoteDoc(SYNC_KEYS.STICKY_NOTES, docs[SYNC_KEYS.STICKY_NOTES]);
+    if (docs[SYNC_KEYS.GRADUATION_CREDITS]) applyRemoteDoc(SYNC_KEYS.GRADUATION_CREDITS, docs[SYNC_KEYS.GRADUATION_CREDITS]);
+    if (docs[SYNC_KEYS.ASSET_MANIFEST]) setAssetManifestVersion((v) => v + 1);
 
-    const targetExam = trackerData.exams.find(e => e.id === examId);
-    if (!targetExam || targetExam.status === 'completed') return;
-
-    const rewardXp = Number(targetExam.xp) || 1000;
-    const updatedExams = trackerData.exams.map(e =>
-      e.id === examId ? { ...e, status: 'completed' } : e
-    );
-
-    const updatedData = { ...trackerData, exams: updatedExams };
-    setTrackerData(updatedData);
-
-    // Reward XP
-    setProgress(prev => addExperience(prev, rewardXp));
-
-    // Save back to academic_tracker.json via Electron
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
+    // 3. On Electron with write permission: push back merged local data (initial seed or newer AI/crawler updates)
+    if (isElectron && auth.canWrite) {
+      await pushTrackerBuckets(mergedTracker, { immediate: true });
+      if (!docs[SYNC_KEYS.TASKS]) {
+        await pushCloudDoc(SYNC_KEYS.TASKS, { items: tasksRef.current, deletedIds: deletedTaskIdsRef.current, updatedAt: new Date().toISOString() }, { immediate: true });
+      }
+      if (!docs[SYNC_KEYS.REMINDERS]) {
+        await pushCloudDoc(SYNC_KEYS.REMINDERS, { reminders: remindersRef.current, completions: reminderCompletionsRef.current, updatedAt: new Date().toISOString() }, { immediate: true });
+      }
+      if (!docs[SYNC_KEYS.STUDY_LOG] && Object.keys(studyLogRef.current || {}).length > 0) {
+        await pushCloudDoc(SYNC_KEYS.STUDY_LOG, { log: studyLogRef.current, updatedAt: new Date().toISOString() }, { immediate: true });
+      }
+      const localStickies = readStorage('wt_sticky_notes', null);
+      if (!docs[SYNC_KEYS.STICKY_NOTES] && Array.isArray(localStickies)) {
+        await pushCloudDoc(SYNC_KEYS.STICKY_NOTES, { notes: localStickies, deletedIds: readStorage('wt_sticky_notes_deleted', []), updatedAt: new Date().toISOString() }, { immediate: true });
+      }
+      const localCredits = readStorage('wt_courses_v2', null);
+      if (!docs[SYNC_KEYS.GRADUATION_CREDITS] && Array.isArray(localCredits)) {
+        await pushCloudDoc(SYNC_KEYS.GRADUATION_CREDITS, { items: localCredits, updatedAt: new Date().toISOString() }, { immediate: true });
+      }
     }
-  };
 
-  const handleAddExam = async (newExam) => {
-    if (!trackerData) return;
-    const currentExams = trackerData.exams || [];
-    const updatedExams = [newExam, ...currentExams];
-    const updatedData = { ...trackerData, exams: updatedExams };
-    setTrackerData(updatedData);
-
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
+    if (auth.canWrite) {
+      await flushPendingWrites();
     }
-  };
 
-  const handleDeleteExam = async (examId) => {
-    if (!trackerData?.exams) return;
-    const updatedExams = trackerData.exams.filter(e => e.id !== examId);
-    const updatedData = { ...trackerData, exams: updatedExams };
-    setTrackerData(updatedData);
+    if (manual) showToast('雲端資料已同步至最新狀態');
+    return { success: true };
+  }, [isElectron, applyRemoteDoc, showToast]);
 
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
-    }
-  };
-
-  const handleDeleteAssignment = async (assignmentId) => {
-    if (!trackerData?.assignments) return;
-    const updatedAssignments = trackerData.assignments.filter(a => a.id !== assignmentId);
-    const updatedData = { ...trackerData, assignments: updatedAssignments };
-    setTrackerData(updatedData);
-
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
-    }
-  };
-
-  const handleUpdateAssignments = async (newAssignments) => {
-    const updatedData = { ...trackerData, assignments: newAssignments };
-    setTrackerData(updatedData);
-
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
-    }
-  };
-
-  const handleSaveDeliverables = async (updatedDeliverables) => {
-    const updatedData = { ...trackerData, deliverables: updatedDeliverables };
-    setTrackerData(updatedData);
-    if (window.electronAPI?.saveTrackerData) {
-      await window.electronAPI.saveTrackerData(updatedData);
-    }
-  };
-
-  const handleAddDeliverable = async (newDeliverable) => {
-    const prevDeliverables = trackerData?.deliverables || [];
-    const updatedDeliverables = [newDeliverable, ...prevDeliverables];
-    await handleSaveDeliverables(updatedDeliverables);
-  };
-
-  const handleAddTask = (newTask) => {
-    if (newTask.id) {
-      setTasks(prevTasks => prevTasks.map(t => t.id === newTask.id ? newTask : t));
-    } else {
-      const taskId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
-      setTasks(prevTasks => [...prevTasks, { ...newTask, id: taskId, completed: false }]);
-    }
-    setIsModalOpen(false);
-    setEditingTask(null);
-  };
-
-  const handleDeleteTask = (taskId) => {
-    setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
-  };
-
-  const openEditModal = (task) => {
-    setEditingTask(task);
-    setIsModalOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setEditingTask(null);
-    setIsModalOpen(false);
-  };
-
-  const handleCategoryChange = (taskId, newCategory) => {
-    setTasks(prevTasks => prevTasks.map(t => t.id === taskId ? { ...t, category: newCategory } : t));
-  };
-
-  const toggleReminder = (reminder) => {
-    const reminderKey = `${today}:${reminder}`;
-    setReminderCompletions(prevCompletions => ({
-      ...prevCompletions,
-      [reminderKey]: !prevCompletions[reminderKey]
-    }));
-  };
-
-  const handlePreviewFile = useCallback((fileObj) => {
-    setSelectedFileForViewer(fileObj);
+  // Subscribe to cloud sync status, auth state, and asset manifest
+  useEffect(() => {
+    const unsubStatus = subscribeSyncStatus(setCloudStatus);
+    const unsubAuth = subscribeCloudAuth((nextAuth) => {
+      setCloudAuth(nextAuth);
+      if (nextAuth.canWrite) {
+        flushPendingWrites();
+      }
+    });
+    const unsubManifest = subscribeAssetManifest(() => setAssetManifestVersion((v) => v + 1));
+    return () => {
+      unsubStatus();
+      unsubAuth();
+      unsubManifest();
+    };
   }, []);
 
-  // 全局 ESC 鍵取消檢視器/設定（任務編輯中需透過 ABORT 離開，防止誤觸丟失輸入）
+  // Cross-window storage sync (from DesktopDailyWidget & DesktopStickyNote) -> also push to cloud
   useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (selectedFileForViewer) setSelectedFileForViewer(null);
+    const onStorage = (e) => {
+      if (e.key === 'wt_tasks' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setTasks(parsed);
+          pushCloudDoc(SYNC_KEYS.TASKS, { items: parsed, deletedIds: deletedTaskIdsRef.current, updatedAt: new Date().toISOString() });
+        } catch {}
+      }
+      if (e.key === 'wt_reminder_completions' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setReminderCompletions(parsed);
+          pushCloudDoc(SYNC_KEYS.REMINDERS, { reminders: remindersRef.current, completions: parsed, updatedAt: new Date().toISOString() });
+        } catch {}
+      }
+      if (e.key === 'wt_sticky_notes' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          const normalized = Array.isArray(parsed)
+            ? parsed.map((n) => ({
+                ...n,
+                updatedAt: n.updatedAt && /^\d{4}-\d{2}-\d{2}T/.test(n.updatedAt) ? n.updatedAt : new Date().toISOString(),
+              }))
+            : [];
+          pushCloudDoc(SYNC_KEYS.STICKY_NOTES, {
+            notes: normalized,
+            deletedIds: readStorage('wt_sticky_notes_deleted', []),
+            updatedAt: new Date().toISOString(),
+          });
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // Pomodoro Focus Countdown Effect
+  useEffect(() => {
+    if (!focusState.isRunning) return;
+    const timer = window.setInterval(() => {
+      focusSecondsAccRef.current += 1;
+      if (focusSecondsAccRef.current >= 60) {
+        focusSecondsAccRef.current -= 60;
+        const key = getLocalDateKey();
+        setStudyLog((prev) => {
+          const next = { ...prev, [key]: (Number(prev[key]) || 0) + 1 };
+          pushCloudDoc(SYNC_KEYS.STUDY_LOG, { log: next, updatedAt: new Date().toISOString() });
+          return next;
+        });
+      }
+
+      setFocusState((prev) => {
+        if (prev.secondsLeft <= 1) {
+          window.electronAPI?.sendNotification?.({
+            title: '🎉 專注讀書時段完成！',
+            body: `已完成 ${prev.presetMinutes} 分鐘專注，適度休息 5 分鐘再繼續衝刺。`,
+          });
+          return { ...prev, isRunning: false, secondsLeft: prev.presetMinutes * 60 };
+        }
+        return { ...prev, secondsLeft: prev.secondsLeft - 1 };
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [focusState.isRunning]);
+
+  const handleStartFocus = useCallback((customMinutes) => {
+    setFocusState((prev) => {
+      if (typeof customMinutes === 'number' && customMinutes > 0) {
+        return { presetMinutes: customMinutes, secondsLeft: customMinutes * 60, isRunning: true };
+      }
+      return { ...prev, isRunning: true };
+    });
+  }, []);
+
+  const handlePauseFocus = useCallback(() => {
+    setFocusState((prev) => ({ ...prev, isRunning: false }));
+  }, []);
+
+  const handleResetFocus = useCallback(() => {
+    focusSecondsAccRef.current = 0;
+    setFocusState((prev) => ({ ...prev, isRunning: false, secondsLeft: prev.presetMinutes * 60 }));
+  }, []);
+
+  const handleChangePreset = useCallback((mins) => {
+    focusSecondsAccRef.current = 0;
+    setFocusState({ presetMinutes: mins, secondsLeft: mins * 60, isRunning: false });
+  }, []);
+
+  // Sync live study & pending daily task status to Electron main alert engine
+  useEffect(() => {
+    if (!window.electronAPI?.updateStudyState) return;
+    const pendingDaily = tasks.filter((t) => t.category === 'Daily' && !t.completed).map((t) => t.title);
+    window.electronAPI.updateStudyState({
+      studyMinutesToday,
+      dailyStudyGoalMinutes: appConfig?.alerts?.dailyStudyGoalMinutes || 60,
+      pendingDailyTasks: pendingDaily,
+      isFocusActive: focusState.isRunning,
+    });
+  }, [studyMinutesToday, tasks, focusState.isRunning, appConfig?.alerts?.dailyStudyGoalMinutes]);
+
+  // Load initial Electron states, subscribe to IPC & start Cloud Sync + Realtime
+  useEffect(() => {
+    let unsubRealtime = () => {};
+
+    async function init() {
+      let loadedLocalTracker = null;
+      if (window.electronAPI?.getTrackerData) {
+        const data = await window.electronAPI.getTrackerData();
+        if (data) {
+          loadedLocalTracker = data;
+          setTrackerData(data);
+        }
+      }
+      if (window.electronAPI?.getAppConfig) {
+        const cfg = await window.electronAPI.getAppConfig();
+        if (cfg) setAppConfig(cfg);
+      }
+      if (window.electronAPI?.isWindowPinned) {
+        setIsPinned(!!(await window.electronAPI.isWindowPinned()));
+      }
+      if (window.electronAPI?.isWindowMaximized) {
+        setIsMaximized(!!(await window.electronAPI.isWindowMaximized()));
+      }
+      if (window.electronAPI?.getActiveStickyIds) {
+        const ids = await window.electronAPI.getActiveStickyIds();
+        if (Array.isArray(ids)) setActiveStickyCount(ids.length);
+      }
+
+      // 啟動雲端雙向同步與 Realtime 訂閱
+      await syncFromCloud({ manual: false, localTrackerOverride: loadedLocalTracker });
+      unsubRealtime = subscribeCloudRealtime((key, payload) => {
+        applyRemoteDoc(key, payload);
+      });
+    }
+    init();
+
+    const unsubs = [];
+    if (window.electronAPI?.onTrackerUpdated) {
+      unsubs.push(window.electronAPI.onTrackerUpdated((updated) => {
+        setTrackerData(updated);
+        // 外部 AI 或爬蟲修改本地 academic_tracker.json -> 自動推上雲端
+        pushTrackerBuckets(updated);
+      }));
+    }
+    if (window.electronAPI?.onNavigateTab) {
+      unsubs.push(window.electronAPI.onNavigateTab((tab) => { if (TAB_TITLES[tab]) setActiveTab(tab); }));
+    }
+    if (window.electronAPI?.onStartFocusTimer) {
+      unsubs.push(window.electronAPI.onStartFocusTimer(({ minutes }) => {
+        setActiveTab('dashboard');
+        handleStartFocus(minutes || 25);
+        showToast(`已啟動 ${minutes || 25} 分鐘讀書專注模式`);
+      }));
+    }
+    if (window.electronAPI?.onSyncStatusChanged) {
+      unsubs.push(window.electronAPI.onSyncStatusChanged(({ syncing, source }) => {
+        setIsSyncing(!!syncing);
+        if (!syncing && source !== 'manual') {
+          showToast('eeclass 背景自動同步完成');
+        }
+      }));
+    }
+    if (window.electronAPI?.onWindowMaximizedChanged) {
+      unsubs.push(window.electronAPI.onWindowMaximizedChanged((max) => setIsMaximized(!!max)));
+    }
+    if (window.electronAPI?.onActiveStickiesUpdated) {
+      unsubs.push(window.electronAPI.onActiveStickiesUpdated((ids) => {
+        if (Array.isArray(ids)) setActiveStickyCount(ids.length);
+      }));
+    }
+    if (window.electronAPI?.onAutoDeliverablesAdded) {
+      unsubs.push(window.electronAPI.onAutoDeliverablesAdded(({ count }) => {
+        if (count > 0) showToast(`AI 成果庫已自動收錄 ${count} 份新檔案並同步上雲`);
+      }));
+    }
+    return () => {
+      unsubRealtime();
+      unsubs.forEach((fn) => typeof fn === 'function' && fn());
+    };
+  }, [handleStartFocus, showToast, syncFromCloud, applyRemoteDoc]);
+
+  // Daily task auto-reset at midnight
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const today = new Date().toDateString();
+      if (localStorage.getItem(TODAY_KEY) === today) return;
+      setTasks((prev) => prev.map((t) => (t.category === 'Daily' ? { ...t, completed: false } : t)));
+      try { localStorage.setItem(TODAY_KEY, today); } catch {}
+    }, 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Global keyboard shortcuts (Ctrl+K, Esc)
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCmdOpen((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        if (isUnlockModalOpen) setIsUnlockModalOpen(false);
+        else if (isCmdOpen) setIsCmdOpen(false);
+        else if (selectedFileForViewer) setSelectedFileForViewer(null);
+        else if (isCreditsModalOpen) setIsCreditsModalOpen(false);
         else if (isSettingsOpen) setIsSettingsOpen(false);
       }
     };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [selectedFileForViewer, isSettingsOpen]);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isUnlockModalOpen, isCmdOpen, selectedFileForViewer, isCreditsModalOpen, isSettingsOpen]);
+
+  // Tracker Persistence Helper (Local Disk + Targeted Cloud Bucket Push)
+  const persistTracker = useCallback(async (updatedData, changedBucketKey = null) => {
+    setTrackerData(updatedData);
+    if (window.electronAPI?.saveTrackerData) {
+      await window.electronAPI.saveTrackerData(updatedData);
+    }
+    let cloudRes;
+    if (changedBucketKey === SYNC_KEYS.ASSIGNMENTS) {
+      cloudRes = await pushCloudDoc(SYNC_KEYS.ASSIGNMENTS, {
+        assignments: updatedData.assignments || [],
+        ignored_assignment_ids: updatedData.ignored_assignment_ids || [],
+        ignored_assignment_keys: updatedData.ignored_assignment_keys || [],
+        updatedAt: new Date().toISOString(),
+      });
+    } else if (changedBucketKey === SYNC_KEYS.EXAMS) {
+      cloudRes = await pushCloudDoc(SYNC_KEYS.EXAMS, {
+        exams: updatedData.exams || [],
+        deletedIds: updatedData._deleted_exam_ids || [],
+        updatedAt: new Date().toISOString(),
+      });
+    } else if (changedBucketKey === SYNC_KEYS.DELIVERABLES) {
+      cloudRes = await pushCloudDoc(SYNC_KEYS.DELIVERABLES, {
+        deliverables: updatedData.deliverables || [],
+        deletedIds: updatedData._deleted_deliverable_ids || [],
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      cloudRes = await pushTrackerBuckets(updatedData);
+    }
+
+    if (cloudRes?.authRequired) {
+      handleRequireUnlock();
+    }
+  }, [handleRequireUnlock]);
+
+  // Assignment Handlers
+  const handleChangeAssignmentStatus = useCallback(async (assignmentId, nextStatus) => {
+    if (!trackerData?.assignments) return;
+    const nowIso = new Date().toISOString();
+    const updatedAssignments = trackerData.assignments.map((a) =>
+      a.id === assignmentId ? { ...a, status: nextStatus, updatedAt: nowIso } : a
+    );
+    await persistTracker({ ...trackerData, assignments: updatedAssignments }, SYNC_KEYS.ASSIGNMENTS);
+  }, [trackerData, persistTracker]);
+
+  const handleCompleteAssignment = useCallback(async (assignmentId) => {
+    await handleChangeAssignmentStatus(assignmentId, 'completed');
+    showToast('已標記作業完成');
+  }, [handleChangeAssignmentStatus, showToast]);
+
+  const handleAddAssignment = useCallback(async (newAssignment) => {
+    const prev = trackerData?.assignments || [];
+    const stamped = { ...newAssignment, updatedAt: new Date().toISOString() };
+    await persistTracker({ ...trackerData, assignments: [stamped, ...prev] }, SYNC_KEYS.ASSIGNMENTS);
+    showToast(`已新增作業「${newAssignment.title}」`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleDeleteAssignment = useCallback(async (assignmentId) => {
+    if (!trackerData?.assignments) return;
+    const target = trackerData.assignments.find((a) => a.id === assignmentId);
+    const updatedAssignments = trackerData.assignments.filter((a) => a.id !== assignmentId);
+    const prevIgnoredIds = Array.isArray(trackerData.ignored_assignment_ids) ? trackerData.ignored_assignment_ids : [];
+    const prevIgnoredKeys = Array.isArray(trackerData.ignored_assignment_keys) ? trackerData.ignored_assignment_keys : [];
+    const nextIgnoredIds = prevIgnoredIds.includes(assignmentId) ? prevIgnoredIds : [...prevIgnoredIds, assignmentId];
+    const targetKey = target ? `${target.course}_${target.title}` : null;
+    const nextIgnoredKeys = targetKey && !prevIgnoredKeys.includes(targetKey)
+      ? [...prevIgnoredKeys, targetKey]
+      : prevIgnoredKeys;
+
+    await persistTracker({
+      ...trackerData,
+      assignments: updatedAssignments,
+      ignored_assignment_ids: nextIgnoredIds,
+      ignored_assignment_keys: nextIgnoredKeys,
+    }, SYNC_KEYS.ASSIGNMENTS);
+    showToast('已移除作業並加入忽略清單（下次同步不再出現）');
+  }, [trackerData, persistTracker, showToast]);
+
+  // Exam Handlers
+  const handleCompleteExam = useCallback(async (examId) => {
+    if (!trackerData?.exams) return;
+    const nowIso = new Date().toISOString();
+    const updatedExams = trackerData.exams.map((e) => (e.id === examId ? { ...e, status: 'completed', updatedAt: nowIso } : e));
+    await persistTracker({ ...trackerData, exams: updatedExams }, SYNC_KEYS.EXAMS);
+  }, [trackerData, persistTracker]);
+
+  const handleAddExam = useCallback(async (newExam) => {
+    const prev = trackerData?.exams || [];
+    const stamped = { ...newExam, updatedAt: new Date().toISOString() };
+    await persistTracker({ ...trackerData, exams: [stamped, ...prev] }, SYNC_KEYS.EXAMS);
+    showToast(`已新增考試「${newExam.title}」`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleDeleteExam = useCallback(async (examId) => {
+    if (!trackerData?.exams) return;
+    const updatedExams = trackerData.exams.filter((e) => e.id !== examId);
+    const prevDel = Array.isArray(trackerData._deleted_exam_ids) ? trackerData._deleted_exam_ids : [];
+    const nextDel = prevDel.includes(examId) ? prevDel : [...prevDel, examId].slice(-200);
+    await persistTracker({ ...trackerData, exams: updatedExams, _deleted_exam_ids: nextDel }, SYNC_KEYS.EXAMS);
+  }, [trackerData, persistTracker]);
+
+  // Deliverables Handlers
+  const handleSaveDeliverables = useCallback(async (updatedDeliverables) => {
+    await persistTracker({ ...trackerData, deliverables: updatedDeliverables }, SYNC_KEYS.DELIVERABLES);
+  }, [trackerData, persistTracker]);
+
+  const handleAddDeliverable = useCallback(async (newDeliverable) => {
+    const prev = trackerData?.deliverables || [];
+    const stamped = { ...newDeliverable, updatedAt: newDeliverable.updatedAt || new Date().toISOString().slice(0, 10) };
+    await persistTracker({ ...trackerData, deliverables: [stamped, ...prev] }, SYNC_KEYS.DELIVERABLES);
+  }, [trackerData, persistTracker]);
+
+  // Task Handlers (with cloud push)
+  const commitTasks = useCallback((nextTasks, nextDeleted = deletedTaskIdsRef.current) => {
+    setTasks(nextTasks);
+    setDeletedTaskIds(nextDeleted);
+    pushCloudDoc(SYNC_KEYS.TASKS, {
+      items: nextTasks,
+      deletedIds: nextDeleted,
+      updatedAt: new Date().toISOString(),
+    }).then((res) => {
+      if (res?.authRequired) handleRequireUnlock();
+    });
+  }, [handleRequireUnlock]);
+
+  const handleCompleteTask = (taskId) => {
+    const nowIso = new Date().toISOString();
+    commitTasks(tasksRef.current.map((t) => (t.id === taskId ? { ...t, completed: true, updatedAt: nowIso } : t)));
+  };
+  const handleUncompleteTask = (taskId) => {
+    const nowIso = new Date().toISOString();
+    commitTasks(tasksRef.current.map((t) => (t.id === taskId ? { ...t, completed: false, updatedAt: nowIso } : t)));
+  };
+  const handleAddTask = (taskData) => {
+    const nowIso = new Date().toISOString();
+    if (taskData.id) {
+      commitTasks(tasksRef.current.map((t) => (t.id === taskData.id ? { ...taskData, updatedAt: nowIso } : t)));
+    } else {
+      const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+      commitTasks([...tasksRef.current, { ...taskData, id, completed: false, updatedAt: nowIso }]);
+    }
+    setIsTaskModalOpen(false);
+    setEditingTask(null);
+  };
+  const handleDeleteTask = (taskId) => {
+    const nextDeleted = deletedTaskIdsRef.current.includes(taskId)
+      ? deletedTaskIdsRef.current
+      : [...deletedTaskIdsRef.current, taskId].slice(-200);
+    commitTasks(tasksRef.current.filter((t) => t.id !== taskId), nextDeleted);
+  };
+  const handleCategoryChange = (taskId, newCategory) => {
+    const nowIso = new Date().toISOString();
+    commitTasks(tasksRef.current.map((t) => (t.id === taskId ? { ...t, category: newCategory, updatedAt: nowIso } : t)));
+  };
+
+  // Reminders Handlers (with cloud push)
+  const handleUpdateReminders = useCallback((updater) => {
+    setReminders((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      pushCloudDoc(SYNC_KEYS.REMINDERS, {
+        reminders: next,
+        completions: reminderCompletionsRef.current,
+        updatedAt: new Date().toISOString(),
+      }).then((res) => {
+        if (res?.authRequired) handleRequireUnlock();
+      });
+      return next;
+    });
+  }, [handleRequireUnlock]);
+
+  const toggleReminder = (reminder) => {
+    const key = `${todayDateStr}:${reminder}`;
+    const next = { ...reminderCompletionsRef.current, [key]: !reminderCompletionsRef.current[key] };
+    setReminderCompletions(next);
+    pushCloudDoc(SYNC_KEYS.REMINDERS, {
+      reminders: remindersRef.current,
+      completions: next,
+      updatedAt: new Date().toISOString(),
+    }).then((res) => {
+      if (res?.authRequired) handleRequireUnlock();
+    });
+  };
+
+  // Sync & Alert Handlers
+  const handleTriggerSync = useCallback(async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      if (window.electronAPI?.syncEEClass) {
+        const res = await window.electronAPI.syncEEClass();
+        if (res?.data) {
+          setTrackerData(res.data);
+          await pushTrackerBuckets(res.data, { immediate: true });
+        }
+        await syncFromCloud({ manual: false, localTrackerOverride: res?.data || trackerRef.current });
+        showToast(res?.success ? 'eeclass 與雲端資料同步完成' : `同步提示：${res?.error || '請檢查網路或登入狀態'}`);
+      } else {
+        await syncFromCloud({ manual: true });
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, showToast, syncFromCloud]);
+
+  const handleTriggerAlertTest = useCallback(async () => {
+    if (window.electronAPI?.triggerAlertCheck) {
+      await window.electronAPI.triggerAlertCheck({ manual: true, reason: 'manual' });
+    } else {
+      showToast('置頂警告視窗為 Windows 桌面程式專屬功能');
+    }
+  }, [showToast]);
+
+  const handleSaveAppConfig = useCallback(async (nextCfg) => {
+    setAppConfig(nextCfg);
+    if (window.electronAPI?.saveAppConfig) {
+      const saved = await window.electronAPI.saveAppConfig(nextCfg);
+      if (saved) setAppConfig(saved);
+    }
+    showToast('系統與提醒設定已儲存');
+  }, [showToast]);
+
+  const handleLockCloud = useCallback(async () => {
+    await lockCloudWrite();
+    const auth = await getCloudAuthState();
+    setCloudAuth(auth);
+    showToast('已鎖定寫入權限，切換回公開唯讀模式');
+  }, [showToast]);
+
+  // Window Controls
+  const handleTogglePin = async () => {
+    if (window.electronAPI?.togglePinWindow) {
+      setIsPinned(!!(await window.electronAPI.togglePinWindow()));
+    }
+  };
+  const handleToggleMaximize = async () => {
+    if (window.electronAPI?.toggleMaximizeWindow) {
+      setIsMaximized(!!(await window.electronAPI.toggleMaximizeWindow()));
+    }
+  };
+
+  // Badges for Sidebar & Mobile Bottom Nav
+  const alertSummary = useMemo(
+    () => computeAcademicAlerts(trackerData, appConfig?.alerts),
+    [trackerData, appConfig?.alerts]
+  );
+  const pendingDailyCount = useMemo(
+    () => tasks.filter((t) => t.category === 'Daily' && !t.completed).length,
+    [tasks]
+  );
+  const courseOptions = useMemo(
+    () => [...new Set((trackerData?.courses || []).map((c) => c.name).filter(Boolean))],
+    [trackerData?.courses]
+  );
+
+  const navItems = [
+    { id: 'dashboard', label: '總覽首頁', icon: Home },
+    {
+      id: 'assignments',
+      label: '作業管理',
+      icon: CheckSquare,
+      badge: alertSummary.activeAssignments.length || null,
+      badgeUrgent: alertSummary.urgentAssignmentCount > 0,
+    },
+    {
+      id: 'exams',
+      label: '考試日程',
+      icon: Calendar,
+      badge: alertSummary.urgentExamCount || null,
+      badgeUrgent: alertSummary.urgentExamCount > 0,
+    },
+    {
+      id: 'missions',
+      label: '每日任務',
+      icon: ListTodo,
+      badge: pendingDailyCount || null,
+      badgeUrgent: false,
+    },
+    {
+      id: 'notes',
+      label: isElectron ? '桌面便條' : '雲端便條',
+      icon: StickyNote,
+      badge: isElectron ? (activeStickyCount || null) : null,
+      badgeUrgent: false,
+    },
+    {
+      id: 'vault',
+      label: 'AI 成果庫',
+      icon: FolderGit2,
+      badge: trackerData?.deliverables?.length || null,
+      badgeUrgent: false,
+    },
+    { id: 'courses', label: '科目與課表', icon: BookOpen },
+  ];
+
+  const focusTimerLabel = `${String(Math.floor(focusState.secondsLeft / 60)).padStart(2, '0')}:${String(focusState.secondsLeft % 60).padStart(2, '0')}`;
+
+  const renderCloudPill = (compact = false) => {
+    if (!cloudAuth.configured) {
+      return (
+        <button
+          type="button"
+          className="cloud-status-pill is-unconfigured"
+          onClick={() => setIsSettingsOpen(true)}
+          title="點擊前往設定 Supabase 雲端同步"
+        >
+          <CloudOff size={13} />
+          {!compact && <span>未連雲端</span>}
+        </button>
+      );
+    }
+    const isSynced = cloudStatus.status === 'synced';
+    const isSyncingNow = cloudStatus.status === 'syncing';
+    const isOffline = cloudStatus.status === 'offline';
+
+    return (
+      <button
+        type="button"
+        className={`cloud-status-pill ${cloudAuth.canWrite ? 'is-unlocked' : 'is-readonly'} ${isOffline ? 'is-offline' : ''}`}
+        onClick={() => setIsUnlockModalOpen(true)}
+        title={cloudAuth.canWrite ? '雲端雙向即時同步中（點擊管理解鎖狀態）' : '公開唯讀模式（點擊輸入密碼解鎖寫入）'}
+      >
+        {isOffline ? (
+          <CloudOff size={13} />
+        ) : cloudAuth.canWrite ? (
+          isSynced || isSyncingNow ? <Cloud size={13} className={isSyncingNow ? 'spin' : ''} /> : <Unlock size={13} />
+        ) : (
+          <Lock size={13} />
+        )}
+        {!compact && (
+          <span>
+            {isOffline
+              ? '離線快取'
+              : isSyncingNow
+                ? '雲端同步中'
+                : cloudAuth.canWrite
+                  ? '雲端已同步'
+                  : '唯讀 · 解鎖'}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   return (
     <>
-      <div className={`app-container ${isCompactMode ? 'compact-mode' : ''}`}>
-        {/* 需求 1: 整合式固定標題與視窗控制列 (統一位置、膠囊 1:1 拖曳範圍) */}
-        <header className="gemini-header">
-          <div className="brand-wrapper">
-            <div className="gemini-sparkle-icon">
-              <Sparkles size={22} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 className="brand-title">TASK COMMANDER</h1>
-                {/* 需求 1: 拖動位置膠囊按鈕固定於標題旁，且互動區域嚴格受限於膠囊自身 */}
-                <div
-                  className="drag-handle-pill"
-                  title="按住拖動便條紙位置"
-                >
-                  <Move size={13} />
-                  <span>按住拖動位置</span>
-                </div>
+      <div className={`app-shell ${isMaximized ? 'is-maximized' : ''} ${isMobile ? 'is-mobile-layout' : ''}`}>
+        {/* ===== 左側現代側邊欄 (桌面 / Laptop / iPadOS) ===== */}
+        {!isMobile && (
+          <aside className={`app-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-brand">
+              <div className="sidebar-logo-wrap">
+                <TaskCommanderLogo size={30} />
               </div>
-              <div className="brand-subtitle">中央大學學業任務指揮中心 • Powered by Gemini</div>
+              {!sidebarCollapsed && (
+                <div className="sidebar-brand-text">
+                  <div className="sidebar-title">Task Commander</div>
+                  <div className="sidebar-sub">NCU 115-1 學習中樞</div>
+                </div>
+              )}
+              <button
+                type="button"
+                className="sidebar-collapse-btn"
+                onClick={() => setSidebarCollapsed((p) => !p)}
+                title={sidebarCollapsed ? '展開側邊欄' : '收合側邊欄'}
+              >
+                {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+              </button>
             </div>
-          </div>
 
-          {/* Center Pill Navigation (完整模式下顯示) */}
-          {!isCompactMode && (
-            <nav className="nav-pills window-no-drag">
-              <button
-                className={`nav-pill-btn ${activeTab === 'notes' ? 'active' : ''}`}
-                onClick={() => setActiveTab('notes')}
-              >
-                <StickyNote size={16} /> 桌面便條
-              </button>
-              <button
-                className={`nav-pill-btn ${activeTab === 'courses' ? 'active' : ''}`}
-                onClick={() => setActiveTab('courses')}
-              >
-                <BookOpen size={16} /> 科目總覽
-              </button>
-              <button
-                className={`nav-pill-btn ${activeTab === 'assignments' ? 'active' : ''}`}
-                onClick={() => setActiveTab('assignments')}
-              >
-                <CheckSquare size={16} /> 作業管理
-              </button>
-              <button
-                className={`nav-pill-btn ${activeTab === 'exams' ? 'active' : ''}`}
-                onClick={() => setActiveTab('exams')}
-              >
-                <Calendar size={16} /> 考試日程
-              </button>
-              <button
-                className={`nav-pill-btn ${activeTab === 'vault' ? 'active' : ''}`}
-                onClick={() => setActiveTab('vault')}
-              >
-                <FolderGit2 size={16} /> AI 成果庫
-              </button>
-              <button
-                className={`nav-pill-btn ${activeTab === 'missions' ? 'active' : ''}`}
-                onClick={() => setActiveTab('missions')}
-              >
-                <ListTodo size={16} /> 每日任務
-              </button>
+            <nav className="sidebar-nav">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                    onClick={() => setActiveTab(item.id)}
+                    title={sidebarCollapsed ? item.label : undefined}
+                  >
+                    <Icon size={17} className="sidebar-nav-icon" />
+                    {!sidebarCollapsed && <span className="sidebar-nav-label">{item.label}</span>}
+                    {item.badge !== null && item.badge !== undefined && (
+                      <span className={`sidebar-badge ${item.badgeUrgent ? 'urgent' : ''}`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </nav>
-          )}
 
-          {/* 需求 1: 圖 2、3 按鈕群組有明確固定的整合位置，統一置於右側操作區 */}
-          <div className="header-actions-group window-no-drag">
-            <button
-              className="window-ctrl-btn"
-              onClick={toggleTheme}
-              title={`切換為${theme === 'light' ? '深色' : '淺色'}主題`}
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
+            {/* 側欄底部狀態與快捷工具 */}
+            <div className="sidebar-footer">
+              {focusState.isRunning && (
+                <button
+                  type="button"
+                  className="sidebar-focus-pill"
+                  onClick={() => setActiveTab('dashboard')}
+                  title="點擊回到專注計時器"
+                >
+                  <Flame size={14} />
+                  {!sidebarCollapsed && <span>專注中 {focusTimerLabel}</span>}
+                </button>
+              )}
 
-            <button
-              className="window-ctrl-btn"
-              onClick={() => setIsSettingsOpen(true)}
-              title="系統設定"
-            >
-              <Settings size={16} />
-            </button>
+              {renderCloudPill(sidebarCollapsed)}
 
-            <div className="header-divider" />
+              <button
+                type="button"
+                className="sidebar-util-btn"
+                onClick={handleTriggerSync}
+                disabled={isSyncing}
+                title={isElectron ? '同步 eeclass 與雲端資料' : '重新同步雲端最新資料'}
+              >
+                <RefreshCw size={15} className={isSyncing ? 'spin' : ''} />
+                {!sidebarCollapsed && <span>{isSyncing ? '同步中...' : (isElectron ? '同步 eeclass' : '重新同步')}</span>}
+              </button>
 
-            {/* 置頂按鈕 */}
-            <button
-              className={`window-ctrl-btn ${isPinned ? 'active-pin' : ''}`}
-              onClick={handleTogglePin}
-              title={isPinned ? '已置頂桌面（點擊解除）' : '釘選至桌面最上層 (Always on top)'}
-            >
-              <Pin size={14} />
-            </button>
+              <div className="sidebar-footer-row">
+                <button
+                  type="button"
+                  className="sidebar-util-btn"
+                  onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+                  title={`切換為${theme === 'light' ? '深色' : '淺色'}主題`}
+                >
+                  {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+                  {!sidebarCollapsed && <span>{theme === 'light' ? '深色' : '淺色'}</span>}
+                </button>
 
-            {/* 便條紙精簡模式 / 完整儀表板模式 切換 */}
-            <button
-              className={`window-ctrl-btn ${isCompactMode ? 'active-pin' : ''}`}
-              onClick={toggleCompactMode}
-              title={isCompactMode ? '展開完整儀表板' : '切換為精簡便條紙模式'}
-            >
-              <StickyNote size={14} />
-            </button>
-
-            {/* 最小化 */}
-            <button
-              className="window-ctrl-btn"
-              onClick={handleMinimize}
-              title="最小化"
-            >
-              <Minus size={14} />
-            </button>
-
-            {/* 關閉 */}
-            <button
-              className="window-ctrl-btn btn-close"
-              onClick={handleClose}
-              title="關閉"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        </header>
-
-        {/* 需求 1: 滾動內容容器，包含在具有永久圓角 overflow: hidden 的 app-container 內部，滑動時外部圓角永久維持 */}
-        <main className="app-main-scrollable">
-          {/* Level & XP Progress Bar & Reminders (Hidden in compact mode for clean desktop sticky look) */}
-          {!isCompactMode && (
-            <>
-              <LevelProgressBar level={level} xp={xp} maxXp={xpNeeded} />
-              <DailyReminders
-                weeklySchedule={weeklySchedule}
-                reminders={reminders}
-                reminderCompletions={reminderCompletions}
-                today={today}
-                tasks={tasks}
-                onCompleteTask={handleCompleteTask}
-                onToggleReminder={toggleReminder}
-              />
-              <EEClassWidget trackerData={trackerData} />
-            </>
-          )}
-
-          {/* Main Tab Content */}
-          {activeTab === 'notes' && (
-            <StickyNotesBoard />
-          )}
-
-          {activeTab === 'courses' && (
-            <CourseSchedule currentCourses={trackerData?.courses || []} />
-          )}
-
-          {activeTab === 'assignments' && (
-            <AssignmentsBoard
-              assignments={trackerData?.assignments || []}
-              courses={trackerData?.courses || []}
-              onCompleteAssignment={handleCompleteAssignment}
-              onDeleteAssignment={handleDeleteAssignment}
-              onUpdateAssignments={handleUpdateAssignments}
-              onPreviewFile={handlePreviewFile}
-            />
-          )}
-
-          {activeTab === 'exams' && (
-            <ExamsDashboard
-              exams={trackerData?.exams || []}
-              calendarEvents={trackerData?.calendar_events || []}
-              courses={trackerData?.courses || []}
-              onPreviewFile={handlePreviewFile}
-              onCompleteExam={handleCompleteExam}
-              onDeleteExam={handleDeleteExam}
-              onAddExam={handleAddExam}
-            />
-          )}
-
-          {activeTab === 'vault' && (
-            <ArtifactVault
-              deliverables={trackerData?.deliverables || []}
-              courses={trackerData?.courses || []}
-              onPreviewFile={handlePreviewFile}
-              onSaveDeliverables={handleSaveDeliverables}
-              onAddDeliverable={handleAddDeliverable}
-            />
-          )}
-
-          {activeTab === 'missions' && (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
-                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-                  <Plus size={18} /> 新增任務
+                <button
+                  type="button"
+                  className="sidebar-util-btn"
+                  onClick={() => setIsSettingsOpen(true)}
+                  title="系統與雲端設定"
+                >
+                  <Settings size={15} />
+                  {!sidebarCollapsed && <span>設定</span>}
                 </button>
               </div>
+            </div>
+          </aside>
+        )}
+
+        {/* ===== 右側主區域（桌機頂欄或手機極簡頂欄 + 滿版捲動主區）===== */}
+        <div className="app-content-shell">
+          {isMobile ? (
+            <header className="app-mobile-header">
+              <div className="mobile-header-left">
+                <TaskCommanderLogo size={24} />
+                <h1 className="mobile-header-title">{TAB_TITLES[activeTab] || 'Task Commander'}</h1>
+              </div>
+              <div className="mobile-header-actions">
+                {renderCloudPill(true)}
+                <button
+                  type="button"
+                  className="win-btn"
+                  onClick={() => setIsCmdOpen(true)}
+                  aria-label="搜尋"
+                  title="搜尋作業與教材"
+                >
+                  <Search size={17} />
+                </button>
+              </div>
+            </header>
+          ) : (
+            <header
+              className="app-titlebar"
+              onDoubleClick={isElectron ? handleToggleMaximize : undefined}
+            >
+              <div className="titlebar-left">
+                <h1 className="titlebar-page-name">{TAB_TITLES[activeTab] || 'Task Commander'}</h1>
+              </div>
+
+              <button
+                type="button"
+                className="titlebar-search-trigger window-no-drag"
+                onClick={() => setIsCmdOpen(true)}
+                title="快速搜尋與指令面板 (Ctrl+K)"
+              >
+                <Search size={14} />
+                <span>搜尋作業、教材或執行指令...</span>
+                <kbd className="kbd-chip">Ctrl K</kbd>
+              </button>
+
+              <div className="titlebar-controls window-no-drag">
+                {isElectron ? (
+                  <>
+                    <button
+                      type="button"
+                      className="win-btn"
+                      onClick={handleTriggerAlertTest}
+                      title="立即檢查／預覽警告彈窗"
+                    >
+                      <BellRing size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className={`win-btn ${isPinned ? 'active' : ''}`}
+                      onClick={handleTogglePin}
+                      title={isPinned ? '已置頂（點擊解除）' : '視窗置頂'}
+                    >
+                      <Pin size={14} />
+                    </button>
+                    <div className="win-divider" />
+                    <button
+                      type="button"
+                      className="win-btn"
+                      onClick={() => window.electronAPI?.minimizeWindow?.()}
+                      title="最小化"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="win-btn"
+                      onClick={handleToggleMaximize}
+                      title={isMaximized ? '還原視窗大小' : '最大化'}
+                    >
+                      {isMaximized ? <Copy size={13} /> : <Square size={12} />}
+                    </button>
+                    <button
+                      type="button"
+                      className="win-btn close"
+                      onClick={() => window.electronAPI?.closeWindow?.()}
+                      title={appConfig?.minimizeToTray ? '縮小至系統匣背景執行' : '關閉視窗'}
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
+                ) : (
+                  renderCloudPill(false)
+                )}
+              </div>
+            </header>
+          )}
+
+          <main className="app-main-scrollable">
+            {activeTab === 'dashboard' && (
+              <DashboardHome
+                trackerData={trackerData}
+                alertConfig={appConfig?.alerts}
+                tasks={tasks}
+                reminders={reminders}
+                reminderCompletions={reminderCompletions}
+                todayKey={todayDateStr}
+                onToggleReminder={toggleReminder}
+                onCompleteTask={handleCompleteTask}
+                onCompleteAssignment={handleCompleteAssignment}
+                onNavigateTab={setActiveTab}
+                onTriggerSync={handleTriggerSync}
+                isSyncing={isSyncing}
+                onTriggerAlertTest={handleTriggerAlertTest}
+                focusState={focusState}
+                onStartFocus={handleStartFocus}
+                onPauseFocus={handlePauseFocus}
+                onResetFocus={handleResetFocus}
+                onChangePreset={handleChangePreset}
+                studyMinutesToday={studyMinutesToday}
+                dailyStudyGoalMinutes={appConfig?.alerts?.dailyStudyGoalMinutes || 60}
+              />
+            )}
+
+            {activeTab === 'assignments' && (
+              <AssignmentsBoard
+                assignments={trackerData?.assignments || []}
+                courses={trackerData?.courses || []}
+                onChangeStatus={handleChangeAssignmentStatus}
+                onDeleteAssignment={handleDeleteAssignment}
+                onAddAssignment={handleAddAssignment}
+                onPreviewFile={setSelectedFileForViewer}
+                isMobile={isMobile}
+              />
+            )}
+
+            {activeTab === 'exams' && (
+              <ExamsDashboard
+                exams={trackerData?.exams || []}
+                calendarEvents={trackerData?.calendar_events || []}
+                courses={trackerData?.courses || []}
+                onPreviewFile={setSelectedFileForViewer}
+                onCompleteExam={handleCompleteExam}
+                onDeleteExam={handleDeleteExam}
+                onAddExam={handleAddExam}
+                onNavigateVault={() => setActiveTab('vault')}
+              />
+            )}
+
+            {activeTab === 'missions' && (
               <TaskBoard
-                tasks={tasks.filter(t => !t.completed)}
+                tasks={tasks}
+                courses={trackerData?.courses || []}
                 onComplete={handleCompleteTask}
-                onEdit={openEditModal}
+                onUncomplete={handleUncompleteTask}
+                onEdit={(task) => { setEditingTask(task); setIsTaskModalOpen(true); }}
                 onDelete={handleDeleteTask}
                 onCategoryChange={handleCategoryChange}
+                onAddNew={() => { setEditingTask(null); setIsTaskModalOpen(true); }}
               />
-            </>
-          )}
-        </main>
+            )}
 
+            {activeTab === 'notes' && <StickyNotesBoard onRequireUnlock={handleRequireUnlock} />}
+
+            {activeTab === 'vault' && (
+              <ArtifactVault
+                deliverables={trackerData?.deliverables || []}
+                courses={trackerData?.courses || []}
+                onPreviewFile={setSelectedFileForViewer}
+                onSaveDeliverables={handleSaveDeliverables}
+                onAddDeliverable={handleAddDeliverable}
+                onRequireUnlock={handleRequireUnlock}
+                assetManifestVersion={assetManifestVersion}
+              />
+            )}
+
+            {activeTab === 'courses' && (
+              <CourseSchedule
+                currentCourses={trackerData?.courses || []}
+                onOpenGraduationCredits={() => setIsCreditsModalOpen(true)}
+              />
+            )}
+          </main>
+
+          {/* iOS 底部固定精簡導覽列 */}
+          {isMobile && (
+            <MobileBottomNav
+              activeTab={activeTab}
+              onNavigateTab={setActiveTab}
+              urgentAssignmentCount={alertSummary.urgentAssignmentCount}
+              urgentExamCount={alertSummary.urgentExamCount}
+              theme={theme}
+              onToggleTheme={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenCredits={() => setIsCreditsModalOpen(true)}
+              onOpenUnlock={() => setIsUnlockModalOpen(true)}
+              onForceSync={handleTriggerSync}
+              isSyncing={isSyncing}
+              cloudCanWrite={cloudAuth.canWrite}
+              cloudConfigured={cloudAuth.configured}
+            />
+          )}
+        </div>
       </div>
 
-      {/* 需求 2: Modals 渲染在 app-container 外部，避免被 backdrop-filter 限制或裁切，確保覆蓋整個視窗並在點擊外部時順利取消 */}
+      {/* Global Toast */}
+      {globalToast && (
+        <div className="explorer-toast">{globalToast}</div>
+      )}
+
+      {/* Modals rendered outside app-shell */}
+      {isCmdOpen && (
+        <CommandPalette
+          onClose={() => setIsCmdOpen(false)}
+          trackerData={trackerData}
+          theme={theme}
+          onNavigateTab={setActiveTab}
+          onPreviewFile={setSelectedFileForViewer}
+          onTriggerSync={handleTriggerSync}
+          onTriggerAlertTest={handleTriggerAlertTest}
+          onStartFocus={handleStartFocus}
+          onToggleTheme={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenNewTask={() => { setEditingTask(null); setIsTaskModalOpen(true); }}
+        />
+      )}
+
       {selectedFileForViewer && (
         <ArtifactViewerModal
+          key={selectedFileForViewer.path || selectedFileForViewer.title}
           file={selectedFileForViewer}
           onClose={() => setSelectedFileForViewer(null)}
         />
       )}
 
-      {isModalOpen && (
+      {isTaskModalOpen && (
         <CreateTaskModal
-          onClose={closeEditModal}
+          onClose={() => { setIsTaskModalOpen(false); setEditingTask(null); }}
           onAdd={handleAddTask}
           initialTask={editingTask}
           courseOptions={courseOptions}
@@ -711,10 +1340,46 @@ function App() {
       {isSettingsOpen && (
         <SettingsModal
           onClose={() => setIsSettingsOpen(false)}
-          weeklySchedule={weeklySchedule}
-          setWeeklySchedule={setWeeklySchedule}
+          appConfig={appConfig}
+          onSaveAppConfig={handleSaveAppConfig}
           reminders={reminders}
-          setReminders={setReminders}
+          setReminders={handleUpdateReminders}
+          onTriggerAlertTest={handleTriggerAlertTest}
+          onOpenGraduationCredits={() => setIsCreditsModalOpen(true)}
+          cloudStatus={cloudStatus}
+          cloudAuth={cloudAuth}
+          onForceCloudSync={() => syncFromCloud({ manual: true })}
+          onOpenCloudUnlock={() => setIsUnlockModalOpen(true)}
+          onLockCloudWrite={handleLockCloud}
+          onCloudConfigSaved={() => syncFromCloud({ manual: true })}
+        />
+      )}
+
+      {isCreditsModalOpen && (
+        <GraduationCreditsModal
+          onClose={() => setIsCreditsModalOpen(false)}
+          onRequireUnlock={handleRequireUnlock}
+        />
+      )}
+
+      {isUnlockModalOpen && (
+        <CloudUnlockModal
+          isOpen={isUnlockModalOpen}
+          onClose={() => setIsUnlockModalOpen(false)}
+          canWrite={cloudAuth.canWrite}
+          currentEmail={cloudAuth.email}
+          pendingCount={cloudStatus.pendingCount}
+          onUnlocked={async () => {
+            const auth = await getCloudAuthState();
+            setCloudAuth(auth);
+            await syncFromCloud({ manual: false });
+            showToast('已解鎖雲端寫入並同步完成');
+          }}
+          onLocked={async () => {
+            const auth = await getCloudAuthState();
+            setCloudAuth(auth);
+            showToast('已切換回唯讀模式');
+          }}
         />
       )}
     </>

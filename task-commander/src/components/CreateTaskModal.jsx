@@ -1,62 +1,35 @@
-import React, { useState } from 'react';
-
-function calculateTaskMeta(title, desc) {
-  let calculatedXp = 100;
-  let calculatedDifficulty = 'Easy';
-  const text = `${title} ${desc}`;
-
-  if (text.length > 20) calculatedXp += 50;
-  if (text.length > 50) calculatedXp += 100;
-
-  if (text.includes('轉學') || text.includes('期末') || text.includes('考古題') || text.includes('專題')) {
-    calculatedXp += 500;
-    calculatedDifficulty = 'Hard';
-  } else if (text.includes('複習') || text.includes('作業') || text.includes('整理')) {
-    calculatedXp += 200;
-    calculatedDifficulty = 'Medium';
-  } else if (text.length > 100) {
-    calculatedDifficulty = 'Medium';
-  }
-
-  return { calculatedXp, calculatedDifficulty };
-}
+import { useState, useEffect } from 'react';
+import { Target, X } from 'lucide-react';
 
 export default function CreateTaskModal({ onClose, onAdd, initialTask = null, courseOptions = [] }) {
   const [title, setTitle] = useState(initialTask ? initialTask.title : '');
-  const [desc, setDesc] = useState(initialTask ? initialTask.desc : '');
+  const [desc, setDesc] = useState(initialTask ? initialTask.desc || '' : '');
   const [category, setCategory] = useState(initialTask ? initialTask.category : 'Daily');
-  const [difficulty, setDifficulty] = useState(initialTask ? initialTask.difficulty : 'Easy');
-  const [xp, setXp] = useState(initialTask ? initialTask.xp : 100);
-  const [relatedCourse, setRelatedCourse] = useState(initialTask && initialTask.relatedCourse ? initialTask.relatedCourse : '');
-  const [dueDate, setDueDate] = useState(initialTask && initialTask.dueDate ? initialTask.dueDate : '');
-  const [isManualOverride, setIsManualOverride] = useState(!!initialTask);
-  const [validationError, setValidationError] = useState('');
+  const [difficulty, setDifficulty] = useState(initialTask ? initialTask.difficulty || 'Medium' : 'Medium');
+  const [relatedCourse, setRelatedCourse] = useState(initialTask?.relatedCourse || '');
+  const [dueDate, setDueDate] = useState(initialTask?.dueDate || '');
 
-  const { calculatedXp, calculatedDifficulty } = calculateTaskMeta(title, desc);
-  const displayedXp = isManualOverride ? xp : calculatedXp;
-  const displayedDifficulty = isManualOverride ? difficulty : calculatedDifficulty;
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   const availableCourseOptions = [...new Set([
     ...courseOptions,
-    ...(initialTask?.relatedCourse ? [initialTask.relatedCourse] : [])
+    ...(initialTask?.relatedCourse ? [initialTask.relatedCourse] : []),
   ])];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    const normalizedXp = Number(displayedXp);
-    if (!Number.isInteger(normalizedXp) || normalizedXp < 0) {
-      setValidationError('XP must be a non-negative whole number.');
-      return;
-    }
-
-    const taskData = { 
-      title: title.trim(), 
-      desc: desc.trim(), 
-      category, 
-      difficulty: displayedDifficulty, 
-      xp: normalizedXp,
+    const taskData = {
+      title: title.trim(),
+      desc: desc.trim(),
+      category,
+      difficulty,
       relatedCourse: relatedCourse.trim() || undefined,
-      dueDate: dueDate || undefined
+      dueDate: dueDate || undefined,
     };
     if (initialTask) {
       taskData.id = initialTask.id;
@@ -66,111 +39,83 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
   };
 
   return (
-    <div 
-      className="modal-overlay" 
-      style={{ cursor: 'default' }}
-    >
-      <div 
-        className="modal-content" 
-        onClick={e => e.stopPropagation()}
-        onMouseDown={e => e.stopPropagation()}
-      >
-        <h2 className="modal-title">{initialTask ? 'UPDATE MISSION BRIEFING' : 'NEW MISSION BRIEFING'}</h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Target size={19} style={{ color: 'var(--accent-primary)' }} />
+            <h2 className="modal-title" style={{ margin: 0 }}>
+              {initialTask ? '編輯任務' : '新增任務'}
+            </h2>
+          </div>
+          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={onClose}>
+            <X size={16} />
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit}>
-          
           <div className="form-group">
-            <label>Mission Title</label>
-            <input 
-              type="text" 
-              className="form-control" 
-              value={title} 
-              onChange={e => setTitle(e.target.value)} 
-              placeholder="Enter objective..."
+            <label>任務名稱 *</label>
+            <input
+              type="text"
+              className="form-control"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="例如：複習作業系統 Ch6、每天背 50 個單字..."
               required
+              autoFocus
             />
           </div>
 
           <div className="form-group">
-            <label>Intel / Description</label>
-            <textarea 
-              className="form-control" 
-              value={desc} 
-              onChange={e => setDesc(e.target.value)} 
+            <label>補充說明</label>
+            <textarea
+              className="form-control"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
               rows="3"
+              placeholder="記錄執行步驟或重點備忘..."
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div className="form-group">
-              <label>Classification</label>
-              <select className="form-control" value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="Daily">Daily Objective</option>
-                <option value="Main">Main Campaign</option>
-                <option value="Challenge">Special Challenge</option>
+              <label>任務分類</label>
+              <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
+                <option value="Daily">每日核心目標</option>
+                <option value="Main">學期主線任務</option>
+                <option value="Challenge">轉學考／衝刺挑戰</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label>Difficulty Rating</label>
-              <select className="form-control" value={displayedDifficulty} onChange={e => {
-                setDifficulty(e.target.value);
-                setIsManualOverride(true);
-              }}>
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
+              <label>優先級</label>
+              <select className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                <option value="Easy">一般</option>
+                <option value="Medium">中優先</option>
+                <option value="Hard">高優先</option>
               </select>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div className="form-group">
-              <label>Related Course (Optional)</label>
-              <select
-                className="form-control"
-                value={relatedCourse}
-                onChange={e => setRelatedCourse(e.target.value)}
-                disabled={availableCourseOptions.length === 0}
-              >
-                <option value="">No related course</option>
-                {availableCourseOptions.map(course => <option key={course} value={course}>{course}</option>)}
+              <label>所屬科目（選填）</label>
+              <select className="form-control" value={relatedCourse} onChange={(e) => setRelatedCourse(e.target.value)}>
+                <option value="">不限科目</option>
+                {availableCourseOptions.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+
             <div className="form-group">
-              <label>Due Date (Optional)</label>
-              <input 
-                type="date" 
-                className="form-control" 
-                value={dueDate} 
-                onChange={e => setDueDate(e.target.value)} 
-              />
+              <label>預計期限（選填）</label>
+              <input type="date" className="form-control" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
 
-          <div className="form-group" style={{ marginTop: '1rem' }}>
-            <label>Experience Reward (XP)</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input 
-                type="number" 
-                className="form-control" 
-                min="0"
-                step="1"
-                value={displayedXp} 
-                onChange={e => {
-                  setXp(e.target.value);
-                  setIsManualOverride(true);
-                }} 
-              />
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                {isManualOverride ? '(Manual)' : '(Auto)'}
-              </span>
-            </div>
-            {validationError && <div role="alert" style={{ color: 'var(--danger, #ff4444)', marginTop: '0.5rem' }}>{validationError}</div>}
-          </div>
-
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button type="submit" className="btn btn-primary" style={{ flexGrow: 1 }}>{initialTask ? 'UPDATE MISSION' : 'CREATE MISSION'}</button>
-            <button type="button" className="btn" onClick={onClose}>ABORT</button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>取消</button>
+            <button type="submit" className="btn btn-primary">{initialTask ? '儲存變更' : '建立任務'}</button>
           </div>
         </form>
       </div>

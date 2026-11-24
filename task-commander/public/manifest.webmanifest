@@ -1,0 +1,26 @@
+{
+  "name": "Task Commander · 學業任務指揮中心",
+  "short_name": "TaskCmd",
+  "description": "中央大學學業任務、作業倒數、考試日程、雲端便條與 AI 學習教材庫",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1116",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
