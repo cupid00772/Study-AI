@@ -246,15 +246,16 @@ function getRoundedRectRegions(width, height, radius) {
   const r = Math.min(radius, Math.floor(width / 2), Math.floor(height / 2));
   if (r <= 0) return [{ x: 0, y: 0, width, height }];
   for (let y = 0; y < r; y++) {
-    const dy = r - y - 1;
+    const dy = r - y - 0.5;
     const dx = Math.round(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
-    rects.push({ x: dx, y, width: width - 2 * dx, height: 1 });
+    rects.push({ x: dx, y, width: Math.max(0, width - 2 * dx), height: 1 });
   }
-  rects.push({ x: 0, y: r, width, height: height - 2 * r });
+  rects.push({ x: 0, y: r, width, height: Math.max(0, height - 2 * r) });
   for (let i = 0; i < r; i++) {
     const y = height - r + i;
-    const dx = Math.round(r - Math.sqrt(Math.max(0, r * r - i * i)));
-    rects.push({ x: dx, y, width: width - 2 * dx, height: 1 });
+    const dy = i + 0.5;
+    const dx = Math.round(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
+    rects.push({ x: dx, y, width: Math.max(0, width - 2 * dx), height: 1 });
   }
   return rects;
 }
@@ -274,6 +275,21 @@ function applyWindowShape(win, radius = 22) {
   } catch (err) {
     console.error('Error applying window shape:', err);
   }
+}
+
+function attachTransparentWindowGuards(win) {
+  if (!win || win.isDestroyed()) return;
+  const keepTransparent = () => {
+    if (win && !win.isDestroyed()) {
+      try {
+        win.setBackgroundColor('#00000000');
+      } catch {}
+    }
+  };
+  win.on('show', keepTransparent);
+  win.on('focus', keepTransparent);
+  win.on('blur', keepTransparent);
+  win.on('resize', keepTransparent);
 }
 
 function attachExternalLinkHandler(win) {
@@ -819,10 +835,11 @@ function createAlertWindow(payload) {
   });
 
   alertWindow.setMenuBarVisibility(false);
+  attachTransparentWindowGuards(alertWindow);
   attachExternalLinkHandler(alertWindow);
   alertWindow.webContents.on('page-title-updated', (e) => e.preventDefault());
 
-  const applyAlertShape = () => applyWindowShape(alertWindow, 20);
+  const applyAlertShape = () => applyWindowShape(alertWindow, 18);
   alertWindow.once('ready-to-show', () => {
     if (alertWindow && !alertWindow.isDestroyed()) {
       applyAlertShape();
@@ -1410,6 +1427,7 @@ function createStickyWindow(noteId) {
   });
 
   win.setMenuBarVisibility(false);
+  attachTransparentWindowGuards(win);
   attachExternalLinkHandler(win);
   win.webContents.on('page-title-updated', (e) => e.preventDefault());
 
@@ -1501,6 +1519,7 @@ function createDailyWindow() {
   });
 
   dailyWindow.setMenuBarVisibility(false);
+  attachTransparentWindowGuards(dailyWindow);
   attachExternalLinkHandler(dailyWindow);
   dailyWindow.webContents.on('page-title-updated', (e) => e.preventDefault());
 

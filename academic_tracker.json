@@ -3507,5 +3507,8 @@
   "ignored_assignment_ids": [],
   "ignored_assignment_keys": [],
   "_deleted_exam_ids": [],
-  "_deleted_deliverable_ids": []
+  "_deleted_deliverable_ids": [],
+  "_ignored_deliverable_paths": [],
+  "vault_subjects": [],
+  "_deleted_vault_subject_ids": []
 }

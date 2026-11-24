@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { CheckCircle2, Circle, X, CalendarDays, Bell, ListTodo, Plus } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { CheckCircle2, Circle, X, CalendarDays, Bell, ListTodo, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import TaskCommanderLogo from './TaskCommanderLogo';
+import PencilStrikeText from './PencilStrikeText';
 import defaultTracker from '../data/defaultTracker.json';
 import { getCoursesForOffsetDays, DAY_LABELS } from '../utils/academicUtils';
 
@@ -23,11 +24,26 @@ export default function DesktopDailyWidget() {
   const [completions, setCompletions] = useState(() => loadJson('wt_reminder_completions', {}));
   const [courses, setCourses] = useState(defaultTracker?.courses || []);
   const [quickTitle, setQuickTitle] = useState('');
+  const [completingIds, setCompletingIds] = useState([]);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem('wt_theme') === 'dark'; } catch { return false; }
   });
+  const timersRef = useRef([]);
 
   const todayKey = getTodayKey();
+
+  // Sync theme attribute on <html> so CSS variables & custom dark/light scrollbars apply cleanly
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, []);
 
   useEffect(() => {
     window.electronAPI?.getTrackerData?.().then((d) => {
@@ -52,17 +68,36 @@ export default function DesktopDailyWidget() {
 
   const tomorrowInfo = useMemo(() => getCoursesForOffsetDays(courses, 1), [courses]);
 
-  const dailyTasks = tasks.filter((t) => t.category === 'Daily' || !t.category);
-  const completedDailyCount = dailyTasks.filter((t) => t.completed).length;
+  const dailyTasks = useMemo(
+    () => tasks.filter((t) => t.category === 'Daily' || !t.category),
+    [tasks]
+  );
+  const activeDailyTasks = useMemo(() => dailyTasks.filter((t) => !t.completed), [dailyTasks]);
+  const completedDailyTasks = useMemo(() => dailyTasks.filter((t) => t.completed), [dailyTasks]);
+  const completedDailyCount = completedDailyTasks.length;
   const completionRate = dailyTasks.length > 0 ? Math.round((completedDailyCount / dailyTasks.length) * 100) : 0;
 
-  const handleToggleTask = useCallback((taskId) => {
+  const commitToggleTask = useCallback((taskId) => {
     setTasks((prev) => {
       const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
       try { localStorage.setItem('wt_tasks', JSON.stringify(updated)); } catch {}
       return updated;
     });
   }, []);
+
+  const handleClickTask = useCallback((task) => {
+    if (task.completed) {
+      commitToggleTask(task.id);
+      return;
+    }
+    if (completingIds.includes(task.id)) return;
+    setCompletingIds((prev) => [...prev, task.id]);
+    const timer = window.setTimeout(() => {
+      commitToggleTask(task.id);
+      setCompletingIds((prev) => prev.filter((id) => id !== task.id));
+    }, 760);
+    timersRef.current.push(timer);
+  }, [completingIds, commitToggleTask]);
 
   const handleToggleReminder = useCallback((reminder) => {
     setCompletions((prev) => {
@@ -100,102 +135,273 @@ export default function DesktopDailyWidget() {
     else window.close();
   };
 
-  const bgColor = isDark ? 'rgba(20, 22, 28, 0.96)' : 'rgba(255, 255, 255, 0.96)';
-  const textColor = isDark ? '#e2e8f0' : '#0f172a';
-  const mutedColor = isDark ? '#94a3b8' : '#64748b';
-  const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.09)';
-  const accentColor = '#4f46e5';
-  const checkColor = '#10b981';
+  // Solid opaque surfaces eliminate semi-transparent white corner halos on Windows frameless windows
+  const palette = isDark
+    ? {
+        surface: '#141720',
+        surfaceSub: '#1b1f2c',
+        surfaceHover: '#222838',
+        border: '#272d3f',
+        borderSubtle: '#1f2433',
+        text: '#eef2f8',
+        muted: '#94a3b8',
+        dim: '#64748b',
+        accent: '#818cf8',
+        accentSolid: '#6366f1',
+        emerald: '#34d399',
+        emeraldBg: '#122923',
+        emeraldBorder: '#1f4a3c',
+      }
+    : {
+        surface: '#ffffff',
+        surfaceSub: '#f6f8fc',
+        surfaceHover: '#eef2f9',
+        border: '#e2e8f0',
+        borderSubtle: '#edf1f7',
+        text: '#0f172a',
+        muted: '#475569',
+        dim: '#94a3b8',
+        accent: '#4f46e5',
+        accentSolid: '#4f46e5',
+        emerald: '#059669',
+        emeraldBg: '#ecfdf5',
+        emeraldBorder: '#a7f3d0',
+      };
 
   const now = new Date();
   const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${DAY_LABELS[now.getDay()]}`;
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'transparent', fontFamily: "'Segoe UI', 'Noto Sans TC', system-ui, sans-serif" }}>
-      <div style={{ width: '100%', height: '100%', background: bgColor, borderRadius: '16px', border: `1px solid ${borderColor}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', color: textColor }}>
-        {/* Header */}
-        <div style={{ WebkitAppRegion: 'drag', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px 8px', borderBottom: `1px solid ${borderColor}`, flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.86rem', fontWeight: 800, userSelect: 'none' }}>
-            <ListTodo size={16} style={{ color: accentColor }} />
-            <span>每日任務小工具</span>
-            <span style={{ fontSize: '0.72rem', color: mutedColor, fontWeight: 600 }}>{dateStr}</span>
+    <div className="desktop-widget-root">
+      <div
+        className="desktop-widget-shell"
+        style={{
+          background: palette.surface,
+          borderRadius: '16px',
+          border: `1px solid ${palette.border}`,
+          color: palette.text,
+        }}
+      >
+        {/* Draggable Header */}
+        <div
+          className="desktop-widget-header"
+          style={{ borderBottom: `1px solid ${palette.borderSubtle}` }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+            <ListTodo size={16} style={{ color: palette.accent, flexShrink: 0 }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+              每日任務
+            </span>
+            <span
+              style={{
+                fontSize: '0.74rem',
+                fontWeight: 500,
+                color: palette.muted,
+                background: palette.surfaceSub,
+                border: `1px solid ${palette.borderSubtle}`,
+                padding: '2px 8px',
+                borderRadius: '999px',
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {dateStr}
+            </span>
           </div>
+
           <button
             type="button"
+            className="desktop-widget-close-btn"
             onClick={handleClose}
-            style={{ WebkitAppRegion: 'no-drag', background: 'rgba(128,128,128,0.12)', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: textColor }}
+            style={{
+              background: palette.surfaceSub,
+              color: palette.muted,
+              border: `1px solid ${palette.borderSubtle}`,
+            }}
             title="關閉小工具"
           >
             <X size={13} />
           </button>
         </div>
 
-        {/* Progress */}
-        <div style={{ padding: '6px 14px', borderBottom: `1px solid ${borderColor}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 600, color: mutedColor, marginBottom: '4px' }}>
-            <span>今日完成度</span>
-            <span style={{ color: completionRate === 100 ? checkColor : accentColor }}>{completedDailyCount} / {dailyTasks.length} ({completionRate}%)</span>
+        {/* Progress Strip */}
+        <div style={{ padding: '9px 14px 10px', borderBottom: `1px solid ${palette.borderSubtle}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.77rem', fontWeight: 500, color: palette.muted, marginBottom: '6px', letterSpacing: '0.015em' }}>
+            <span>今日目標進度</span>
+            <span style={{ color: completionRate === 100 ? palette.emerald : palette.accent, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {completedDailyCount} / {dailyTasks.length}（{completionRate}%）
+            </span>
           </div>
-          <div style={{ width: '100%', height: '4px', background: borderColor, borderRadius: '999px', overflow: 'hidden' }}>
-            <div style={{ width: `${completionRate}%`, height: '100%', background: 'linear-gradient(90deg, #4f46e5, #10b981)', transition: 'width 0.3s ease' }} />
+          <div style={{ width: '100%', height: '5px', background: palette.surfaceSub, borderRadius: '999px', overflow: 'hidden' }}>
+            <div style={{ width: `${completionRate}%`, height: '100%', background: 'linear-gradient(90deg, #6366f1, #10b981)', borderRadius: '999px', transition: 'width 0.35s ease' }} />
           </div>
         </div>
 
         {/* Quick Add */}
-        <form onSubmit={handleQuickAdd} style={{ padding: '8px 12px', display: 'flex', gap: '6px', borderBottom: `1px solid ${borderColor}` }}>
+        <form onSubmit={handleQuickAdd} style={{ padding: '10px 14px', display: 'flex', gap: '8px', borderBottom: `1px solid ${palette.borderSubtle}`, flexShrink: 0 }}>
           <input
             type="text"
-            placeholder="+ 快速新增今日待辦..."
+            placeholder="新增今日目標，按 Enter 送出..."
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
-            style={{ flex: 1, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)', border: `1px solid ${borderColor}`, borderRadius: '8px', padding: '5px 10px', fontSize: '0.8rem', color: textColor, outline: 'none' }}
+            style={{
+              flex: 1,
+              background: palette.surfaceSub,
+              border: `1px solid ${palette.border}`,
+              borderRadius: '9px',
+              padding: '7px 11px',
+              fontSize: '0.83rem',
+              letterSpacing: '0.015em',
+              color: palette.text,
+              outline: 'none',
+              fontFamily: 'inherit',
+            }}
           />
-          <button type="submit" disabled={!quickTitle.trim()} style={{ background: quickTitle.trim() ? accentColor : borderColor, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 10px', cursor: quickTitle.trim() ? 'pointer' : 'default', display: 'flex', alignItems: 'center' }}>
+          <button
+            type="submit"
+            disabled={!quickTitle.trim()}
+            style={{
+              background: quickTitle.trim() ? palette.accentSolid : palette.surfaceSub,
+              color: quickTitle.trim() ? '#ffffff' : palette.dim,
+              border: `1px solid ${quickTitle.trim() ? palette.accentSolid : palette.border}`,
+              borderRadius: '9px',
+              padding: '0 11px',
+              cursor: quickTitle.trim() ? 'pointer' : 'default',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.16s ease',
+            }}
+            title="新增"
+          >
             <Plus size={15} />
           </button>
         </form>
 
         {/* Scrollable Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Daily Goals */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', fontWeight: 700, marginBottom: '6px', color: '#3b82f6' }}>
-              <span>每日目標</span>
-              <span>{dailyTasks.filter((t) => !t.completed).length} 待辦</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '8px', color: palette.accent }}>
+              <span>每日核心目標</span>
+              <span style={{ color: palette.muted, fontWeight: 500 }}>{activeDailyTasks.length} 項待完成</span>
             </div>
-            {dailyTasks.length === 0 ? (
-              <div style={{ fontSize: '0.76rem', color: mutedColor, textAlign: 'center', padding: '8px 0' }}>尚無每日目標</div>
+
+            {activeDailyTasks.length === 0 ? (
+              <div style={{ fontSize: '0.81rem', color: palette.emerald, background: palette.emeraldBg, border: `1px solid ${palette.emeraldBorder}`, borderRadius: '10px', textAlign: 'center', padding: '10px 12px', fontWeight: 500, letterSpacing: '0.02em' }}>
+                {dailyTasks.length === 0 ? '尚無每日目標，從上方新增一項吧' : '今日所有目標皆已完成！'}
+              </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {dailyTasks.map((t) => (
-                  <div
-                    key={t.id}
-                    onClick={() => handleToggleTask(t.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.81rem', cursor: 'pointer', padding: '6px 9px', borderRadius: '8px', background: t.completed ? 'rgba(16,185,129,0.08)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'), border: `1px solid ${t.completed ? 'rgba(16,185,129,0.22)' : borderColor}`, opacity: t.completed ? 0.65 : 1 }}
-                  >
-                    {t.completed ? <CheckCircle2 size={15} style={{ color: checkColor, flexShrink: 0 }} /> : <Circle size={15} style={{ color: '#3b82f6', flexShrink: 0 }} />}
-                    <span style={{ textDecoration: t.completed ? 'line-through' : 'none', flex: 1, fontWeight: 600 }}>{t.title}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                {activeDailyTasks.map((t) => {
+                  const isCompleting = completingIds.includes(t.id);
+                  return (
+                    <div
+                      key={t.id}
+                      onClick={() => handleClickTask(t)}
+                      className={`desktop-widget-item ${isCompleting ? 'is-completing-drop' : ''}`}
+                      style={{
+                        background: isCompleting ? palette.emeraldBg : palette.surfaceSub,
+                        border: `1px solid ${isCompleting ? palette.emeraldBorder : palette.border}`,
+                      }}
+                    >
+                      {isCompleting ? (
+                        <CheckCircle2 size={16} className="is-completing-check" style={{ color: palette.emerald, flexShrink: 0 }} />
+                      ) : (
+                        <Circle size={16} style={{ color: palette.accent, flexShrink: 0 }} />
+                      )}
+                      <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.5, letterSpacing: '0.02em', wordBreak: 'break-word' }}>
+                        <PencilStrikeText active={isCompleting} strokeColor={palette.muted}>
+                          {t.title}
+                        </PencilStrikeText>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Collapsible Completed Daily Goals */}
+            {completedDailyTasks.length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCompleted((v) => !v)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'transparent',
+                    border: 'none',
+                    padding: '4px 2px',
+                    fontSize: '0.76rem',
+                    fontWeight: 500,
+                    color: palette.muted,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span>已完成（{completedDailyTasks.length}）</span>
+                  {showCompleted ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+                {showCompleted && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '5px' }}>
+                    {completedDailyTasks.map((t) => (
+                      <div
+                        key={t.id}
+                        onClick={() => handleClickTask(t)}
+                        className="desktop-widget-item"
+                        style={{
+                          background: palette.emeraldBg,
+                          border: `1px solid ${palette.emeraldBorder}`,
+                          opacity: 0.78,
+                        }}
+                      >
+                        <CheckCircle2 size={15} style={{ color: palette.emerald, flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: '0.83rem', fontWeight: 400, lineHeight: 1.5, letterSpacing: '0.02em' }}>
+                          <PencilStrikeText active instant strokeColor={palette.muted}>
+                            {t.title}
+                          </PencilStrikeText>
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
 
+          {/* Life Reminders */}
           {reminders.length > 0 && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '6px', color: accentColor }}>
-                <Bell size={12} /> <span>生活叮嚀</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '8px', color: palette.accent }}>
+                <Bell size={13} /> <span>生活叮嚀</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {reminders.map((r, i) => {
                   const done = !!completions[`${todayKey}:${r}`];
                   return (
                     <div
                       key={i}
                       onClick={() => handleToggleReminder(r)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer', padding: '5px 9px', borderRadius: '8px', background: done ? 'rgba(16,185,129,0.08)' : 'transparent', border: `1px solid ${borderColor}`, opacity: done ? 0.6 : 1 }}
+                      className="desktop-widget-item"
+                      style={{
+                        background: done ? palette.emeraldBg : palette.surfaceSub,
+                        border: `1px solid ${done ? palette.emeraldBorder : palette.borderSubtle}`,
+                        opacity: done ? 0.72 : 1,
+                      }}
                     >
-                      {done ? <CheckCircle2 size={14} style={{ color: checkColor }} /> : <Circle size={14} style={{ color: accentColor }} />}
-                      <span style={{ textDecoration: done ? 'line-through' : 'none' }}>{r}</span>
+                      {done ? (
+                        <CheckCircle2 size={15} style={{ color: palette.emerald, flexShrink: 0 }} />
+                      ) : (
+                        <Circle size={15} style={{ color: palette.accent, flexShrink: 0 }} />
+                      )}
+                      <span style={{ fontSize: '0.84rem', fontWeight: 400, lineHeight: 1.5, letterSpacing: '0.02em' }}>
+                        <PencilStrikeText active={done} strokeColor={palette.muted}>
+                          {r}
+                        </PencilStrikeText>
+                      </span>
                     </div>
                   );
                 })}
@@ -203,18 +409,34 @@ export default function DesktopDailyWidget() {
             </div>
           )}
 
+          {/* Tomorrow Classes */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '6px', color: mutedColor }}>
-              <CalendarDays size={12} /> <span>明日課堂（{tomorrowInfo.dateLabel} {tomorrowInfo.dayLabel}）</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '8px', color: palette.muted }}>
+              <CalendarDays size={13} /> <span>明日課堂（{tomorrowInfo.dateLabel} {tomorrowInfo.dayLabel}）</span>
             </div>
             {tomorrowInfo.courses.length === 0 ? (
-              <div style={{ fontSize: '0.76rem', color: mutedColor }}>明天沒有排課</div>
+              <div style={{ fontSize: '0.8rem', color: palette.dim, padding: '2px 2px' }}>明天沒有排課</div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {tomorrowInfo.courses.map((c) => (
-                  <div key={c.id} style={{ fontSize: '0.78rem', padding: '5px 9px', borderRadius: '8px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 600 }}>{c.name}</span>
-                    <span style={{ fontSize: '0.7rem', color: mutedColor }}>{c.time}</span>
+                  <div
+                    key={c.id}
+                    style={{
+                      fontSize: '0.83rem',
+                      padding: '8px 11px',
+                      borderRadius: '10px',
+                      background: palette.surfaceSub,
+                      border: `1px solid ${palette.borderSubtle}`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '10px',
+                      lineHeight: 1.45,
+                      letterSpacing: '0.015em',
+                    }}
+                  >
+                    <span style={{ fontWeight: 500 }}>{c.name}</span>
+                    <span style={{ fontSize: '0.75rem', color: palette.muted, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{c.time}</span>
                   </div>
                 ))}
               </div>
@@ -223,7 +445,7 @@ export default function DesktopDailyWidget() {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '6px 12px', fontSize: '0.68rem', color: mutedColor, borderTop: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+        <div style={{ padding: '7px 14px', fontSize: '0.72rem', color: palette.dim, borderTop: `1px solid ${palette.borderSubtle}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexShrink: 0, letterSpacing: '0.02em' }}>
           <TaskCommanderLogo size={13} />
           <span>Task Commander</span>
         </div>

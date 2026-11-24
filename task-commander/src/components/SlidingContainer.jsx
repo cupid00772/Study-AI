@@ -18,8 +18,6 @@ export default function SlidingContainer({
 }) {
   const Component = as;
   const containerRef = useRef(null);
-  const initializedRef = useRef(false);
-  const rafRef = useRef(0);
 
   const [rect, setRect] = useState({
     x: 0,
@@ -67,16 +65,6 @@ export default function SlidingContainer({
       }
       return { x, y, width, height, visible: true };
     });
-
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          setAnimated(true);
-        });
-      });
-    }
   }, [activeSelector]);
 
   const depsSignature = deps.map((d) => String(d)).join('|');
@@ -92,9 +80,26 @@ export default function SlidingContainer({
     };
   }, [activeKey, depsSignature, measure]);
 
+  // Enable CSS gliding transition only AFTER the initial position has painted
+  // (StrictMode-safe: never latches a ref before rAF commits)
+  useEffect(() => {
+    if (!rect.visible || animated) return undefined;
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        setAnimated(true);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [rect.visible, animated]);
+
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
     let ro = null;
     if (typeof ResizeObserver !== 'undefined') {
@@ -114,9 +119,10 @@ export default function SlidingContainer({
     return () => {
       if (ro) ro.disconnect();
       window.removeEventListener('resize', onResize);
-      cancelAnimationFrame(rafRef.current);
     };
   }, [activeKey, activeSelector, depsSignature, measure]);
+
+  const isAnimated = animated && rect.visible;
 
   return (
     <Component
@@ -127,7 +133,7 @@ export default function SlidingContainer({
     >
       <span
         aria-hidden="true"
-        className={`${indicatorClassName} ${animated ? 'is-animated' : ''} ${rect.visible ? 'is-visible' : ''}`.trim()}
+        className={`${indicatorClassName} ${isAnimated ? 'is-animated' : ''} ${rect.visible ? 'is-visible' : ''}`.trim()}
         style={{
           transform: `translate3d(${rect.x}px, ${rect.y}px, 0)`,
           width: `${rect.width}px`,

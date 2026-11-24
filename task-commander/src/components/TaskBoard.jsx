@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import PencilStrikeText from './PencilStrikeText';
 import {
   Crosshair,
   Check,
@@ -21,8 +22,24 @@ import { getLocalDateKey } from '../utils/academicUtils';
 
 function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const completeTimerRef = useRef(null);
   const todayKey = getLocalDateKey();
   const isOverdue = task.dueDate && task.dueDate < todayKey && !task.completed;
+
+  useEffect(() => {
+    return () => {
+      if (completeTimerRef.current) window.clearTimeout(completeTimerRef.current);
+    };
+  }, []);
+
+  const triggerCompleteAnimation = () => {
+    if (isCompleting || task.completed) return;
+    setIsCompleting(true);
+    completeTimerRef.current = window.setTimeout(() => {
+      onComplete?.(task.id);
+    }, 760);
+  };
 
   const getPriorityBadge = (diff) => {
     if (diff === 'Easy') return <span className="diff-badge-easy">一般</span>;
@@ -33,26 +50,26 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
   return (
     <>
       <div
-        className={`mission-card ${task.completed ? 'is-completed' : ''}`}
-        draggable={!task.completed}
+        className={`mission-card ${task.completed ? 'is-completed' : ''} ${isCompleting ? 'is-completing-drop' : ''}`}
+        draggable={!task.completed && !isCompleting}
         onDragStart={(e) => {
           e.dataTransfer.setData('text/plain', task.id);
           e.dataTransfer.effectAllowed = 'move';
         }}
-        onClick={() => setIsOpen(true)}
+        onClick={() => { if (!isCompleting) setIsOpen(true); }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
           <button
             type="button"
-            className="mission-check-btn"
+            className={`mission-check-btn ${isCompleting ? 'is-completing-check' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
               if (task.completed) onUncomplete?.(task.id);
-              else onComplete?.(task.id);
+              else triggerCompleteAnimation();
             }}
             title={task.completed ? '標記為未完成' : '標記完成'}
           >
-            {task.completed ? (
+            {task.completed || isCompleting ? (
               <CheckCircle2 size={18} style={{ color: 'var(--accent-emerald)' }} />
             ) : (
               <Circle size={18} />
@@ -60,11 +77,17 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
           </button>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mission-title-text" style={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.4, marginBottom: '3px' }}>
-              {task.title}
+            <div className="mission-title-text" style={{ fontWeight: 600, fontSize: '0.9rem', lineHeight: 1.48, letterSpacing: '0.015em', marginBottom: '3px' }}>
+              <PencilStrikeText
+                active={Boolean(isCompleting || task.completed)}
+                instant={Boolean(task.completed && !isCompleting)}
+                strokeColor="var(--text-muted)"
+              >
+                {task.title}
+              </PencilStrikeText>
             </div>
             {task.desc && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              <div style={{ fontSize: '0.79rem', color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {task.desc}
               </div>
             )}
@@ -154,7 +177,7 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
                   <RotateCcw size={14} /> 改回未完成
                 </button>
               ) : (
-                <button type="button" className="btn btn-primary" onClick={() => { onComplete?.(task.id); setIsOpen(false); }}>
+                <button type="button" className="btn btn-primary" onClick={() => { setIsOpen(false); triggerCompleteAnimation(); }}>
                   <Check size={15} /> 標記完成
                 </button>
               )}

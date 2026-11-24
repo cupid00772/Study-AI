@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import SlidingContainer from './SlidingContainer';
+import PencilStrikeText from './PencilStrikeText';
 import {
   AlertTriangle,
   Flame,
@@ -59,6 +60,36 @@ export default function DashboardHome({
   dailyStudyGoalMinutes,
 }) {
   const [scheduleDayOffset, setScheduleDayOffset] = useState(0); // 0=今日, 1=明日
+  const [completingTaskIds, setCompletingTaskIds] = useState([]);
+  const [completingHwIds, setCompletingHwIds] = useState([]);
+  const animTimersRef = useRef([]);
+
+  useEffect(() => {
+    const timers = animTimersRef.current;
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, []);
+
+  const handleAnimatedCompleteTask = (taskId) => {
+    if (completingTaskIds.includes(taskId)) return;
+    setCompletingTaskIds((prev) => [...prev, taskId]);
+    const timer = window.setTimeout(() => {
+      onCompleteTask?.(taskId);
+      setCompletingTaskIds((prev) => prev.filter((id) => id !== taskId));
+    }, 760);
+    animTimersRef.current.push(timer);
+  };
+
+  const handleAnimatedCompleteAssignment = (hwId) => {
+    if (completingHwIds.includes(hwId)) return;
+    setCompletingHwIds((prev) => [...prev, hwId]);
+    const timer = window.setTimeout(() => {
+      onCompleteAssignment?.(hwId);
+      setCompletingHwIds((prev) => prev.filter((id) => id !== hwId));
+    }, 760);
+    animTimersRef.current.push(timer);
+  };
 
   const alerts = useMemo(
     () => computeAcademicAlerts(trackerData, alertConfig),
@@ -242,18 +273,27 @@ export default function DashboardHome({
               topAssignments.map((hw) => {
                 const isOverdue = hw.daysLeft !== null && hw.daysLeft < 0;
                 const isSoon = hw.daysLeft !== null && hw.daysLeft >= 0 && hw.daysLeft <= 3;
+                const isCompletingHw = completingHwIds.includes(hw.id);
                 return (
-                  <div key={hw.id} className="compact-row-item">
+                  <div key={hw.id} className={`compact-row-item ${isCompletingHw ? 'is-completing-drop' : ''}`}>
                     <button
                       type="button"
-                      className="row-check-btn"
-                      onClick={() => onCompleteAssignment?.(hw.id)}
+                      className={`row-check-btn ${isCompletingHw ? 'is-completing-check' : ''}`}
+                      onClick={() => handleAnimatedCompleteAssignment(hw.id)}
                       title="標記完成"
                     >
-                      <Circle size={16} />
+                      {isCompletingHw ? (
+                        <CheckCircle2 size={16} style={{ color: 'var(--accent-emerald)' }} />
+                      ) : (
+                        <Circle size={16} />
+                      )}
                     </button>
                     <div className="row-main">
-                      <div className="row-title" title={hw.title}>{hw.title}</div>
+                      <div className="row-title" title={hw.title}>
+                        <PencilStrikeText active={isCompletingHw} strokeColor="var(--text-muted)">
+                          {hw.title}
+                        </PencilStrikeText>
+                      </div>
                       <div className="row-sub">
                         <span>{hw.course}</span>
                         {hw.dueDate && (
@@ -384,22 +424,33 @@ export default function DashboardHome({
                     onClick={() => onToggleReminder?.(r)}
                   >
                     <CheckCircle2 size={13} />
-                    <span>{r}</span>
+                    <PencilStrikeText active={done} strokeColor="currentColor">
+                      {r}
+                    </PencilStrikeText>
                   </button>
                 );
               })}
-              {dailyTasks.filter((t) => !t.completed).slice(0, 3).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="reminder-chip is-task"
-                  onClick={() => onCompleteTask?.(t.id)}
-                  title="點擊直接完成此每日任務"
-                >
-                  <Circle size={13} />
-                  <span>{t.title}</span>
-                </button>
-              ))}
+              {dailyTasks.filter((t) => !t.completed).slice(0, 3).map((t) => {
+                const isCompleting = completingTaskIds.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`reminder-chip is-task ${isCompleting ? 'is-completing-drop' : ''}`}
+                    onClick={() => handleAnimatedCompleteTask(t.id)}
+                    title="點擊完成此每日目標"
+                  >
+                    {isCompleting ? (
+                      <CheckCircle2 size={13} className="is-completing-check" style={{ color: 'var(--accent-emerald)' }} />
+                    ) : (
+                      <Circle size={13} />
+                    )}
+                    <PencilStrikeText active={isCompleting} strokeColor="var(--text-muted)">
+                      {t.title}
+                    </PencilStrikeText>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

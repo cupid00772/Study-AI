@@ -320,7 +320,7 @@ export default function DesktopAlertWindow() {
               </div>
               {study.pendingDailyTasks?.length > 0 && (
                 <div className="alert-pending-tasks">
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 500, lineHeight: 1.45, color: 'var(--text-muted)', marginBottom: 4 }}>
                     尚未勾選的今日任務：
                   </div>
                   {study.pendingDailyTasks.slice(0, 4).map((t, idx) => (
@@ -329,7 +329,7 @@ export default function DesktopAlertWindow() {
                 </div>
               )}
               {exams.length === 0 && allAssignments.length === 0 && study.studiedMinutes >= study.goalMinutes && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 600, marginTop: 6 }}>
+                <div style={{ fontSize: '0.83rem', color: 'var(--accent-emerald)', fontWeight: 600, lineHeight: 1.45, marginTop: 6 }}>
                   今日讀書目標已達成，目前無急迫警告！
                 </div>
               )}
