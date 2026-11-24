@@ -28,6 +28,13 @@ import {
 } from 'lucide-react';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
 import {
+  getAssetManifest,
+  fetchCloudAssetText,
+  uploadTextAssetToCloud,
+} from '../services/cloudAssetService';
+import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
+import { getCloudAuthState } from '../services/supabaseClient';
+import {
   ARENA_PATHS,
   SUBJECT_CONFIG,
   CONFIDENCE_OPTIONS,
@@ -73,7 +80,7 @@ function MarkdownBlock({ content, className = '' }) {
   );
 }
 
-export default function ExamArena({ onPreviewFile, showToast }) {
+export default function ExamArena({ onPreviewFile, showToast, assetManifestVersion = 0 }) {
   const isElectron = Boolean(window.electronAPI?.isElectron);
 
   const [subTab, setSubTab] = useState('library'); // 'library' | 'mistakes' | 'decay' | 'history'
@@ -107,27 +114,92 @@ export default function ExamArena({ onPreviewFile, showToast }) {
       if (res?.success && Array.isArray(res.exams)) {
         out.exams = res.exams;
       }
+
+      if (window.electronAPI?.readFileContent) {
+        const histRes = await window.electronAPI.readFileContent(ARENA_PATHS.HISTORY_JSON);
+        if (histRes?.success && histRes.content) {
+          try {
+            const parsed = JSON.parse(histRes.content);
+            if (Array.isArray(parsed.history)) out.history = parsed.history;
+            if (Array.isArray(parsed.mistakes)) out.mistakes = parsed.mistakes;
+          } catch {
+            // ignore malformed history
+          }
+        }
+
+        const statusRes = await window.electronAPI.readFileContent(ARENA_PATHS.CONSOLIDATED_STATUS);
+        if (statusRes?.success && statusRes.content) {
+          out.decayRows = parseConsolidatedLearningStatus(statusRes.content);
+        } else {
+          out.decayError = '尚未讀取到 Consolidated_Learning_Status.md';
+        }
+      }
+      return out;
     }
 
-    if (isElectron && window.electronAPI?.readFileContent) {
-      const histRes = await window.electronAPI.readFileContent(ARENA_PATHS.HISTORY_JSON);
+    // Web / Vercel mode: load .exam.json & Consolidated_Learning_Status.md from Supabase Cloud Asset Manifest
+    const manifest = getAssetManifest();
+    const manifestFiles = manifest?.files || {};
+    const examPaths = Object.keys(manifestFiles).filter(
+      (p) =>
+        p.startsWith('Test_Bank/Exam_paper/') &&
+        !p.includes('/archive/') &&
+        p.toLowerCase().endsWith('.exam.json')
+    );
+
+    if (examPaths.length > 0) {
+      const loaded = await Promise.all(
+        examPaths.map(async (relPath) => {
+          const res = await fetchCloudAssetText(relPath);
+          if (!res?.success || !res.content) return null;
+          try {
+            const data = JSON.parse(res.content);
+            const updatedMs = manifestFiles[relPath]?.updatedAt
+              ? Date.parse(manifestFiles[relPath].updatedAt) || 0
+              : 0;
+            return { relativePath: relPath, mtimeMs: updatedMs, data };
+          } catch {
+            return null;
+          }
+        })
+      );
+      const validExams = loaded.filter(Boolean).sort((a, b) => {
+        const da = String(a.data?.createdAt || '');
+        const db = String(b.data?.createdAt || '');
+        if (db !== da) return db.localeCompare(da);
+        return (b.mtimeMs || 0) - (a.mtimeMs || 0);
+      });
+      out.exams = validExams;
+    }
+
+    if (manifestFiles[ARENA_PATHS.HISTORY_JSON]) {
+      const histRes = await fetchCloudAssetText(ARENA_PATHS.HISTORY_JSON);
       if (histRes?.success && histRes.content) {
         try {
           const parsed = JSON.parse(histRes.content);
-          if (Array.isArray(parsed.history)) out.history = parsed.history;
-          if (Array.isArray(parsed.mistakes)) out.mistakes = parsed.mistakes;
+          const localHist = readLocalJson(LOCAL_HISTORY_KEY, []);
+          const localMist = readLocalJson(LOCAL_MISTAKES_KEY, []);
+          if (Array.isArray(parsed.history) && parsed.history.length >= localHist.length) {
+            out.history = parsed.history;
+          }
+          if (Array.isArray(parsed.mistakes) && parsed.mistakes.length >= localMist.length) {
+            out.mistakes = parsed.mistakes;
+          }
         } catch {
-          // ignore malformed history
+          // ignore malformed cloud history
         }
       }
+    }
 
-      const statusRes = await window.electronAPI.readFileContent(ARENA_PATHS.CONSOLIDATED_STATUS);
+    if (manifestFiles[ARENA_PATHS.CONSOLIDATED_STATUS]) {
+      const statusRes = await fetchCloudAssetText(ARENA_PATHS.CONSOLIDATED_STATUS);
       if (statusRes?.success && statusRes.content) {
         out.decayRows = parseConsolidatedLearningStatus(statusRes.content);
-      } else {
-        out.decayError = '尚未讀取到 Consolidated_Learning_Status.md';
       }
+    } else {
+      out.decayError = '雲端資產清單載入中或尚未同步 Consolidated_Learning_Status.md（可點右上角重新同步）';
     }
+
     return out;
   }, [isElectron]);
 
@@ -168,9 +240,9 @@ export default function ExamArena({ onPreviewFile, showToast }) {
     return () => {
       cancelled = true;
     };
-  }, [fetchWorkspaceArenaPayload, applyWorkspaceArenaPayload]);
+  }, [fetchWorkspaceArenaPayload, applyWorkspaceArenaPayload, assetManifestVersion]);
 
-  // Persist history & mistakes to workspace JSON + localStorage
+  // Persist history & mistakes to workspace JSON (Electron) or Cloud Storage (Web unlocked) + localStorage
   const persistArenaStore = useCallback(
     async (nextHistory, nextMistakes) => {
       setHistory(nextHistory);
@@ -178,19 +250,28 @@ export default function ExamArena({ onPreviewFile, showToast }) {
       writeLocalJson(LOCAL_HISTORY_KEY, nextHistory);
       writeLocalJson(LOCAL_MISTAKES_KEY, nextMistakes);
 
+      const serialized = JSON.stringify(
+        {
+          updatedAt: new Date().toISOString(),
+          history: nextHistory,
+          mistakes: nextMistakes,
+        },
+        null,
+        2
+      );
+
       if (isElectron && window.electronAPI?.writeFileContent) {
         await window.electronAPI.writeFileContent({
           relativePath: ARENA_PATHS.HISTORY_JSON,
-          content: JSON.stringify(
-            {
-              updatedAt: new Date().toISOString(),
-              history: nextHistory,
-              mistakes: nextMistakes,
-            },
-            null,
-            2
-          ),
+          content: serialized,
         });
+      } else {
+        const auth = await getCloudAuthState();
+        if (auth?.canWrite) {
+          await uploadTextAssetToCloud(serialized, ARENA_PATHS.HISTORY_JSON, (nextManifest) =>
+            pushCloudDoc(SYNC_KEYS.ASSET_MANIFEST, nextManifest)
+          );
+        }
       }
     },
     [isElectron]
@@ -431,13 +512,52 @@ export default function ExamArena({ onPreviewFile, showToast }) {
         if (refreshedStatus?.success && refreshedStatus.content) {
           setDecayRows(parseConsolidatedLearningStatus(refreshedStatus.content));
         }
+      } else {
+        const auth = await getCloudAuthState();
+        if (auth?.canWrite) {
+          const pushManifestFn = (nextManifest) => pushCloudDoc(SYNC_KEYS.ASSET_MANIFEST, nextManifest);
+          const chapterUpdates = computeChapterUpdatesFromGrade(exam, responses, currentGrade);
+          const targetStatusFiles = [ARENA_PATHS.CONSOLIDATED_STATUS];
+          if (ARENA_PATHS.SUBJECT_STATUS[exam.subject]) {
+            targetStatusFiles.push(ARENA_PATHS.SUBJECT_STATUS[exam.subject]);
+          }
+          for (const relPath of targetStatusFiles) {
+            const readRes = await fetchCloudAssetText(relPath);
+            if (readRes?.success && readRes.content) {
+              const updatedMd = updateLearningStatusMarkdown(readRes.content, chapterUpdates);
+              if (updatedMd !== readRes.content) {
+                const upRes = await uploadTextAssetToCloud(updatedMd, relPath, pushManifestFn);
+                if (upRes?.success) syncedFilesCount += 1;
+              }
+            }
+          }
+          if (currentGrade.blindSpotQuestions.length > 0) {
+            const fcRes = await fetchCloudAssetText(ARENA_PATHS.FLASHCARDS);
+            const appendBlock = buildFlashcardAppendBlock(exam, currentGrade.blindSpotQuestions);
+            if (appendBlock) {
+              const existingFc = fcRes?.success ? fcRes.content : '# ⚡ 主動回憶閃卡庫\n';
+              const upFc = await uploadTextAssetToCloud(
+                `${existingFc.trimEnd()}\n${appendBlock}`,
+                ARENA_PATHS.FLASHCARDS,
+                pushManifestFn
+              );
+              if (upFc?.success) syncedFilesCount += 1;
+            }
+          }
+          const refreshedStatus = await fetchCloudAssetText(ARENA_PATHS.CONSOLIDATED_STATUS);
+          if (refreshedStatus?.success && refreshedStatus.content) {
+            setDecayRows(parseConsolidatedLearningStatus(refreshedStatus.content));
+          }
+        }
       }
 
       setActiveSession((prev) => (prev ? { ...prev, synced: true } : prev));
       notify(
         syncedFilesCount > 0
           ? `已儲存成績並同步更新 ${syncedFilesCount} 份狀態表／閃卡庫`
-          : '已儲存本次作答紀錄與錯題本'
+          : isElectron
+            ? '已儲存本次作答紀錄與錯題本'
+            : '已儲存至本機瀏覽器（若需同步回寫雲端狀態表，請先點鎖頭解鎖編輯）'
       );
     } finally {
       setIsSyncingResults(false);
@@ -1244,7 +1364,7 @@ export default function ExamArena({ onPreviewFile, showToast }) {
               <p>
                 {isElectron
                   ? '請點擊右上角「重新掃描」，或使用 Antigravity 的 Mock Exam Generator / Question Sweeper 產出新考卷後自動載入。'
-                  : '目前為瀏覽器模式，可點擊右上角「匯入 JSON」載入工作區內的 .exam.json 互動試卷。'}
+                  : '網頁版會自動從 Supabase 雲端載入試卷；若剛新增考卷請先於桌面端執行同步，或點擊右上角「重新掃描」／「匯入 JSON」。'}
               </p>
             </div>
           ) : (
@@ -1428,7 +1548,7 @@ export default function ExamArena({ onPreviewFile, showToast }) {
             <div className="arena-empty-card">
               <Filter size={26} />
               <h3>{decayLoadError}</h3>
-              <p>請在桌面端（Electron）開啟 Task Commander 以即時讀取工作區學習狀態表。</p>
+              <p>請點擊上方「重新掃描」或等待雲端同步完成，即可自動載入 26 個章節記憶衰減狀態。</p>
             </div>
           ) : (
             <div className="arena-decay-grid">

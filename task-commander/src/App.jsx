@@ -1414,6 +1414,7 @@ function App() {
               <ExamArena
                 onPreviewFile={setSelectedFileForViewer}
                 showToast={showToast}
+                assetManifestVersion={assetManifestVersion}
               />
             )}
 

@@ -4,6 +4,7 @@ import {
   Home,
   CheckSquare,
   Calendar,
+  Crosshair,
   StickyNote,
   FolderGit2,
   MoreHorizontal,
@@ -39,12 +40,12 @@ export default function MobileBottomNav({
   const primaryTabs = [
     { id: 'dashboard', label: '首頁', icon: Home },
     { id: 'assignments', label: '作業', icon: CheckSquare, badge: urgentAssignmentCount || null, urgent: urgentAssignmentCount > 0 },
+    { id: 'arena', label: '刷題', icon: Crosshair },
     { id: 'exams', label: '考試', icon: Calendar, badge: urgentExamCount || null, urgent: urgentExamCount > 0 },
-    { id: 'notes', label: '便條', icon: StickyNote },
     { id: 'vault', label: '教材', icon: FolderGit2 },
   ];
 
-  const isSecondaryActive = activeTab === 'missions' || activeTab === 'courses';
+  const isSecondaryActive = activeTab === 'notes' || activeTab === 'missions' || activeTab === 'courses';
 
   const pickSecondary = (tabId) => {
     onNavigateTab(tabId);
@@ -112,6 +113,10 @@ export default function MobileBottomNav({
             </div>
 
             <div className="mobile-sheet-grid">
+              <button type="button" className={`mobile-sheet-tile ${activeTab === 'notes' ? 'active' : ''}`} onClick={() => pickSecondary('notes')}>
+                <StickyNote size={20} />
+                <span>雲端便條</span>
+              </button>
               <button type="button" className={`mobile-sheet-tile ${activeTab === 'missions' ? 'active' : ''}`} onClick={() => pickSecondary('missions')}>
                 <ListTodo size={20} />
                 <span>每日任務</span>

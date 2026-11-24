@@ -4924,3 +4924,34 @@ html.is-web .sidebar-brand {
     position: static;
   }
 }
+
+@media (max-width: 767px) {
+  .arena-hero-card {
+    padding: 14px 15px;
+  }
+  .arena-hero-total {
+    font-size: 1.6rem;
+  }
+  .arena-subtabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .arena-subtab {
+    white-space: nowrap;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+  .arena-exam-grid,
+  .arena-decay-grid {
+    grid-template-columns: 1fr;
+  }
+  .arena-session-topbar {
+    padding: 10px 12px;
+  }
+  .arena-question-pane,
+  .arena-passage-pane,
+  .arena-review-card {
+    padding: 14px;
+  }
+}
