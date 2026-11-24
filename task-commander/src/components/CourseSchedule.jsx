@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SlidingContainer from './SlidingContainer';
 import { BookOpen, Calendar, GraduationCap, ExternalLink, MapPin, Clock, User } from 'lucide-react';
 import { deriveWeeklyScheduleFromCourses, openExternalUrl } from '../utils/academicUtils';
 
@@ -27,7 +28,12 @@ export default function CourseSchedule({ currentCourses = [], onOpenGraduationCr
     <div className="assignments-container">
       {/* Toolbar */}
       <div className="filter-bar">
-        <div className="nav-pills" style={{ padding: '3px' }}>
+        <SlidingContainer
+          className="nav-pills"
+          activeKey={viewTab}
+          indicatorClassName="sliding-pill-indicator pill-slider"
+          style={{ padding: '3px' }}
+        >
           <button
             type="button"
             className={`nav-pill-btn ${viewTab === 'timetable' ? 'active' : ''}`}
@@ -44,7 +50,7 @@ export default function CourseSchedule({ currentCourses = [], onOpenGraduationCr
           >
             <BookOpen size={14} /> 修課明細 ({displayCourses.length})
           </button>
-        </div>
+        </SlidingContainer>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto', flexWrap: 'wrap' }}>
           <span className="badge-chip badge-blue">本學期共 {totalCredits} 學分</span>

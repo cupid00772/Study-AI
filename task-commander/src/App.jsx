@@ -14,6 +14,7 @@ import GraduationCreditsModal from './components/GraduationCreditsModal';
 import CloudUnlockModal from './components/CloudUnlockModal';
 import MobileBottomNav from './components/MobileBottomNav';
 import TaskCommanderLogo from './components/TaskCommanderLogo';
+import SlidingContainer from './components/SlidingContainer';
 import defaultTracker from './data/defaultTracker.json';
 import {
   computeAcademicAlerts,
@@ -99,6 +100,14 @@ const DEFAULT_APP_CONFIG = {
     showWindowsToast: true,
     snoozeMinutes: 30,
     dailyStudyGoalMinutes: 60,
+    soundConfig: {
+      volume: 0.75,
+      repeatIntervalMs: 2500,
+      shakeEnabled: true,
+      separateCriticalSound: false,
+      normalSound: { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' },
+      criticalSound: { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' },
+    },
   },
 };
 
@@ -193,6 +202,7 @@ function App() {
   // Modals & Overlays
   const [selectedFileForViewer, setSelectedFileForViewer] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState(null);
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const [isCmdOpen, setIsCmdOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -683,6 +693,9 @@ function App() {
       cloudRes = await pushCloudDoc(SYNC_KEYS.DELIVERABLES, {
         deliverables: updatedData.deliverables || [],
         deletedIds: updatedData._deleted_deliverable_ids || [],
+        ignoredPaths: updatedData._ignored_deliverable_paths || [],
+        vaultSubjects: updatedData.vault_subjects || [],
+        deletedSubjectIds: updatedData._deleted_vault_subject_ids || [],
         updatedAt: new Date().toISOString(),
       });
     } else {
@@ -760,7 +773,7 @@ function App() {
     await persistTracker({ ...trackerData, exams: updatedExams, _deleted_exam_ids: nextDel }, SYNC_KEYS.EXAMS);
   }, [trackerData, persistTracker]);
 
-  // Deliverables Handlers
+  // Deliverables & Vault-Only Subjects Handlers
   const handleSaveDeliverables = useCallback(async (updatedDeliverables) => {
     await persistTracker({ ...trackerData, deliverables: updatedDeliverables }, SYNC_KEYS.DELIVERABLES);
   }, [trackerData, persistTracker]);
@@ -768,8 +781,139 @@ function App() {
   const handleAddDeliverable = useCallback(async (newDeliverable) => {
     const prev = trackerData?.deliverables || [];
     const stamped = { ...newDeliverable, updatedAt: newDeliverable.updatedAt || new Date().toISOString().slice(0, 10) };
-    await persistTracker({ ...trackerData, deliverables: [stamped, ...prev] }, SYNC_KEYS.DELIVERABLES);
+    const normNewPath = String(stamped.path || '').replace(/\\/g, '/').replace(/^\/+/, '');
+    const nextIgnored = (trackerData?._ignored_deliverable_paths || []).filter(
+      (p) => String(p || '').replace(/\\/g, '/').replace(/^\/+/, '') !== normNewPath
+    );
+    await persistTracker(
+      {
+        ...trackerData,
+        deliverables: [stamped, ...prev],
+        _ignored_deliverable_paths: nextIgnored,
+      },
+      SYNC_KEYS.DELIVERABLES
+    );
   }, [trackerData, persistTracker]);
+
+  const handleUpdateDeliverable = useCallback(async (updatedItem) => {
+    const prev = trackerData?.deliverables || [];
+    const next = prev.map((d) => (d.id === updatedItem.id ? { ...d, ...updatedItem } : d));
+    await persistTracker({ ...trackerData, deliverables: next }, SYNC_KEYS.DELIVERABLES);
+    showToast(`已更新「${updatedItem.title}」資訊`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleDeleteDeliverable = useCallback(async (item, { deleteLocalFile = false } = {}) => {
+    if (!item) return;
+    const prev = trackerData?.deliverables || [];
+    const nextDeliverables = prev.filter((d) => d.id !== item.id);
+    const prevDelIds = Array.isArray(trackerData?._deleted_deliverable_ids) ? trackerData._deleted_deliverable_ids : [];
+    const nextDelIds = item.id && !prevDelIds.includes(item.id)
+      ? [...prevDelIds, item.id].slice(-200)
+      : prevDelIds;
+    const normPath = String(item.path || '').replace(/\\/g, '/').replace(/^\/+/, '');
+    const prevIgnored = Array.isArray(trackerData?._ignored_deliverable_paths) ? trackerData._ignored_deliverable_paths : [];
+    const nextIgnored = !deleteLocalFile && normPath && !prevIgnored.includes(normPath)
+      ? [...prevIgnored, normPath].slice(-300)
+      : prevIgnored;
+
+    if (deleteLocalFile && window.electronAPI?.trashFile && normPath) {
+      const trashRes = await window.electronAPI.trashFile(normPath);
+      if (!trashRes?.success) {
+        showToast(`回收桶移除失敗：${trashRes?.error || '未知錯誤'}`);
+      }
+    }
+
+    await persistTracker(
+      {
+        ...trackerData,
+        deliverables: nextDeliverables,
+        _deleted_deliverable_ids: nextDelIds,
+        _ignored_deliverable_paths: nextIgnored,
+      },
+      SYNC_KEYS.DELIVERABLES
+    );
+    showToast(deleteLocalFile ? `已將「${item.title}」移至系統回收桶並自成果庫移除` : `已自成果庫清單移除「${item.title}」`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleSaveVaultSubject = useCallback(async (subjectData) => {
+    const prevSubjects = Array.isArray(trackerData?.vault_subjects) ? trackerData.vault_subjects : [];
+    const existsIdx = prevSubjects.findIndex((s) => s.id === subjectData.id || (subjectData.previousName && s.name === subjectData.previousName));
+    const cleaned = {
+      id: subjectData.id,
+      name: subjectData.name,
+      categories: subjectData.categories || ['Study_Materials', 'Test_Bank'],
+      color: subjectData.color || '#4285F4',
+      icon: subjectData.icon || 'book',
+      updatedAt: subjectData.updatedAt || new Date().toISOString(),
+    };
+    const nextSubjects = existsIdx >= 0
+      ? prevSubjects.map((s, i) => (i === existsIdx ? cleaned : s))
+      : [cleaned, ...prevSubjects];
+
+    // If renaming a subject, also update deliverables referencing old name
+    let nextDeliverables = trackerData?.deliverables || [];
+    if (subjectData.previousName && subjectData.previousName !== subjectData.name) {
+      nextDeliverables = nextDeliverables.map((d) =>
+        d.course === subjectData.previousName
+          ? { ...d, course: subjectData.name, updatedAt: new Date().toISOString().slice(0, 10) }
+          : d
+      );
+    }
+
+    if (window.electronAPI?.ensureVaultSubjectDir) {
+      await window.electronAPI.ensureVaultSubjectDir({
+        subjectName: cleaned.name,
+        categories: cleaned.categories,
+      });
+    }
+
+    await persistTracker(
+      {
+        ...trackerData,
+        vault_subjects: nextSubjects,
+        deliverables: nextDeliverables,
+      },
+      SYNC_KEYS.DELIVERABLES
+    );
+    showToast(existsIdx >= 0 ? `已更新成果庫科目「${cleaned.name}」` : `已新增成果庫科目「${cleaned.name}」`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleDeleteVaultSubject = useCallback(async (subject) => {
+    if (!subject) return;
+    const prevSubjects = Array.isArray(trackerData?.vault_subjects) ? trackerData.vault_subjects : [];
+    const nextSubjects = prevSubjects.filter((s) => s.id !== subject.id && s.name !== subject.name);
+    const prevDel = Array.isArray(trackerData?._deleted_vault_subject_ids) ? trackerData._deleted_vault_subject_ids : [];
+    const nextDel = subject.id && !prevDel.includes(subject.id)
+      ? [...prevDel, subject.id].slice(-200)
+      : prevDel;
+
+    await persistTracker(
+      {
+        ...trackerData,
+        vault_subjects: nextSubjects,
+        _deleted_vault_subject_ids: nextDel,
+      },
+      SYNC_KEYS.DELIVERABLES
+    );
+    showToast(`已移除自訂科目資料夾「${subject.name}」`);
+  }, [trackerData, persistTracker, showToast]);
+
+  const handleFileContentSaved = useCallback(async (savedFile) => {
+    if (!savedFile?.path) return;
+    const normPath = String(savedFile.path).replace(/\\/g, '/').replace(/^\/+/, '');
+    const today = new Date().toISOString().slice(0, 10);
+    const prev = trackerRef.current?.deliverables || [];
+    const matched = prev.some((d) => String(d.path || '').replace(/\\/g, '/').replace(/^\/+/, '') === normPath);
+    if (matched) {
+      const next = prev.map((d) =>
+        String(d.path || '').replace(/\\/g, '/').replace(/^\/+/, '') === normPath
+          ? { ...d, updatedAt: today }
+          : d
+      );
+      await persistTracker({ ...trackerRef.current, deliverables: next }, SYNC_KEYS.DELIVERABLES);
+    }
+    setAssetManifestVersion((v) => v + 1);
+  }, [persistTracker]);
 
   // Task Handlers (with cloud push)
   const commitTasks = useCallback((nextTasks, nextDeleted = deletedTaskIdsRef.current) => {
@@ -1028,7 +1172,14 @@ function App() {
               </button>
             </div>
 
-            <nav className="sidebar-nav">
+            <SlidingContainer
+              as="nav"
+              className="sidebar-nav"
+              activeKey={activeTab}
+              indicatorClassName="sliding-pill-indicator sidebar-slider"
+              deps={[sidebarCollapsed]}
+              aria-label="主功能導覽"
+            >
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -1050,7 +1201,7 @@ function App() {
                   </button>
                 );
               })}
-            </nav>
+            </SlidingContainer>
 
             {/* 側欄底部狀態與快捷工具 */}
             <div className="sidebar-footer">
@@ -1198,6 +1349,7 @@ function App() {
           )}
 
           <main className="app-main-scrollable">
+            <div key={activeTab} className="tab-view-stage">
             {activeTab === 'dashboard' && (
               <DashboardHome
                 trackerData={trackerData}
@@ -1266,11 +1418,17 @@ function App() {
             {activeTab === 'vault' && (
               <ArtifactVault
                 deliverables={trackerData?.deliverables || []}
+                vaultSubjects={trackerData?.vault_subjects || []}
                 courses={trackerData?.courses || []}
                 onPreviewFile={setSelectedFileForViewer}
                 onSaveDeliverables={handleSaveDeliverables}
                 onAddDeliverable={handleAddDeliverable}
+                onUpdateDeliverable={handleUpdateDeliverable}
+                onDeleteDeliverable={handleDeleteDeliverable}
+                onSaveVaultSubject={handleSaveVaultSubject}
+                onDeleteVaultSubject={handleDeleteVaultSubject}
                 onRequireUnlock={handleRequireUnlock}
+                onOpenAiSettings={() => { setSettingsInitialTab('ai'); setIsSettingsOpen(true); }}
                 assetManifestVersion={assetManifestVersion}
               />
             )}
@@ -1281,6 +1439,7 @@ function App() {
                 onOpenGraduationCredits={() => setIsCreditsModalOpen(true)}
               />
             )}
+            </div>
           </main>
 
           {/* iOS 底部固定精簡導覽列 */}
@@ -1328,9 +1487,11 @@ function App() {
 
       {selectedFileForViewer && (
         <ArtifactViewerModal
-          key={selectedFileForViewer.path || selectedFileForViewer.title}
+          key={`${selectedFileForViewer.path || selectedFileForViewer.title}-${selectedFileForViewer.startInEditMode ? 'edit' : 'view'}`}
           file={selectedFileForViewer}
           assetManifestVersion={assetManifestVersion}
+          onContentSaved={handleFileContentSaved}
+          onRequireUnlock={handleRequireUnlock}
           onClose={() => setSelectedFileForViewer(null)}
         />
       )}
@@ -1346,7 +1507,8 @@ function App() {
 
       {isSettingsOpen && (
         <SettingsModal
-          onClose={() => setIsSettingsOpen(false)}
+          onClose={() => { setIsSettingsOpen(false); setSettingsInitialTab(null); }}
+          initialTab={settingsInitialTab}
           appConfig={appConfig}
           onSaveAppConfig={handleSaveAppConfig}
           reminders={reminders}

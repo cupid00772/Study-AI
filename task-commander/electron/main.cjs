@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, Notification, dialog, Menu, Tray, screen, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 // Windows 通知與工作列識別碼（確保 Toast 顯示正確名稱與圖示）
 app.setAppUserModelId('com.cupid.task-commander');
@@ -149,6 +149,20 @@ function setWorkspaceRoot(newRoot) {
 // ==========================================
 // 3. 系統與警告設定持久化
 // ==========================================
+let alertWindowAnchor = null;
+let alertShakeTimers = [];
+let isAlertShakingPulse = false;
+let alertWindowShownAt = 0;
+
+const DEFAULT_ALERT_SOUND_CONFIG = {
+  volume: 0.75,
+  repeatIntervalMs: 2500,
+  shakeEnabled: true,
+  separateCriticalSound: false,
+  normalSound: { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' },
+  criticalSound: { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' },
+};
+
 const DEFAULT_APP_CONFIG = {
   minimizeToTray: true,
   autoLaunch: true,
@@ -168,11 +182,15 @@ const DEFAULT_APP_CONFIG = {
     showWindowsToast: true,
     snoozeMinutes: 30,
     dailyStudyGoalMinutes: 60,
+    soundConfig: { ...DEFAULT_ALERT_SOUND_CONFIG },
   },
 };
 
 function mergeConfig(saved) {
   const base = saved && typeof saved === 'object' ? saved : {};
+  const savedSound = base.alerts?.soundConfig && typeof base.alerts.soundConfig === 'object'
+    ? base.alerts.soundConfig
+    : {};
   return {
     ...DEFAULT_APP_CONFIG,
     ...base,
@@ -182,6 +200,16 @@ function mergeConfig(saved) {
       dailyTriggerTimes: Array.isArray(base.alerts?.dailyTriggerTimes) && base.alerts.dailyTriggerTimes.length > 0
         ? base.alerts.dailyTriggerTimes
         : DEFAULT_APP_CONFIG.alerts.dailyTriggerTimes,
+      soundConfig: {
+        ...DEFAULT_ALERT_SOUND_CONFIG,
+        ...savedSound,
+        normalSound: savedSound.normalSound?.type
+          ? { ...savedSound.normalSound }
+          : { ...DEFAULT_ALERT_SOUND_CONFIG.normalSound },
+        criticalSound: savedSound.criticalSound?.type
+          ? { ...savedSound.criticalSound }
+          : { ...DEFAULT_ALERT_SOUND_CONFIG.criticalSound },
+      },
     },
   };
 }
@@ -658,18 +686,98 @@ function computeAlertPayload(reason = 'scheduled') {
       isFocusActive: !!lastStudyState.isFocusActive,
     },
     playSound: cfg.playAlertSound !== false,
+    soundConfig: cfg.soundConfig || { ...DEFAULT_ALERT_SOUND_CONFIG },
     snoozeMinutes: Number(cfg.snoozeMinutes || 30),
   };
 }
 
+function stopAlertWindowShake() {
+  for (const t of alertShakeTimers) clearTimeout(t);
+  alertShakeTimers = [];
+  if (alertWindow && !alertWindow.isDestroyed()) {
+    try {
+      alertWindow.flashFrame(false);
+      if (isAlertShakingPulse && alertWindowAnchor) {
+        alertWindow.setPosition(alertWindowAnchor.x, alertWindowAnchor.y);
+      }
+    } catch {}
+  }
+  isAlertShakingPulse = false;
+}
+
+function pulseAlertWindowShake() {
+  if (!alertWindow || alertWindow.isDestroyed() || !alertWindow.isVisible()) return false;
+  for (const t of alertShakeTimers) clearTimeout(t);
+  alertShakeTimers = [];
+
+  try {
+    if (!isAlertShakingPulse || !alertWindowAnchor) {
+      const [bx, by] = alertWindow.getPosition();
+      alertWindowAnchor = { x: bx, y: by };
+    }
+    const { x: baseX, y: baseY } = alertWindowAnchor;
+    isAlertShakingPulse = true;
+    alertWindow.flashFrame(true);
+
+    const offsets = [-9, 9, -7, 7, -5, 5, -3, 3, 0];
+    offsets.forEach((dx, idx) => {
+      const timer = setTimeout(() => {
+        if (!alertWindow || alertWindow.isDestroyed()) return;
+        try {
+          alertWindow.setPosition(Math.round(baseX + dx), Math.round(baseY));
+          if (idx === offsets.length - 1) {
+            isAlertShakingPulse = false;
+          }
+        } catch {
+          isAlertShakingPulse = false;
+        }
+      }, idx * 42);
+      alertShakeTimers.push(timer);
+    });
+    return true;
+  } catch {
+    isAlertShakingPulse = false;
+    return false;
+  }
+}
+
+function getAlertSoundsDir() {
+  const dir = path.join(app.getPath('userData'), 'alert-sounds');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+function loadCustomAlertSoundsIndex() {
+  const indexPath = path.join(getAlertSoundsDir(), 'index.json');
+  const list = readJsonSafe(indexPath, []);
+  if (!Array.isArray(list)) return [];
+  const soundsDir = getAlertSoundsDir();
+  return list.filter((item) => {
+    if (!item?.fileName) return false;
+    const safeName = path.basename(item.fileName);
+    return fs.existsSync(path.join(soundsDir, safeName));
+  });
+}
+
+function saveCustomAlertSoundsIndex(list) {
+  const indexPath = path.join(getAlertSoundsDir(), 'index.json');
+  writeJsonSafe(indexPath, list);
+}
+
 function createAlertWindow(payload) {
   latestAlertPayload = payload;
+  const isManual = payload?.reason === 'manual';
 
   if (alertWindow && !alertWindow.isDestroyed()) {
+    alertWindowShownAt = Date.now();
     alertWindow.webContents.send('alert-payload-updated', payload);
     if (alertWindow.isMinimized()) alertWindow.restore();
-    alertWindow.show();
-    alertWindow.focus();
+    if (isManual) {
+      alertWindow.show();
+      alertWindow.focus();
+    } else {
+      alertWindow.showInactive();
+    }
     return alertWindow;
   }
 
@@ -679,6 +787,7 @@ function createAlertWindow(payload) {
   const winHeight = Math.min(645, sh - 48);
   const posX = Math.round(sx + sw - winWidth - 24);
   const posY = Math.round(sy + sh - winHeight - 24);
+  alertWindowAnchor = { x: posX, y: posY };
 
   alertWindow = new BrowserWindow({
     width: winWidth,
@@ -717,13 +826,39 @@ function createAlertWindow(payload) {
   alertWindow.once('ready-to-show', () => {
     if (alertWindow && !alertWindow.isDestroyed()) {
       applyAlertShape();
-      alertWindow.show();
-      alertWindow.focus();
+      alertWindowShownAt = Date.now();
+      if (isManual) {
+        alertWindow.show();
+        alertWindow.focus();
+      } else {
+        alertWindow.showInactive();
+      }
     }
   });
   alertWindow.on('resize', applyAlertShape);
+  alertWindow.on('will-move', () => {
+    if (!isAlertShakingPulse && alertWindow && !alertWindow.isDestroyed()) {
+      stopAlertWindowShake();
+      alertWindow.webContents.send('alert-user-interacted');
+    }
+  });
+  alertWindow.on('focus', () => {
+    // Ignore initial auto-focus right after popup; clicking anywhere (including drag header) after 450ms acknowledges alert
+    if (Date.now() - alertWindowShownAt > 450 && alertWindow && !alertWindow.isDestroyed()) {
+      stopAlertWindowShake();
+      alertWindow.webContents.send('alert-user-interacted');
+    }
+  });
+  alertWindow.on('moved', () => {
+    if (!isAlertShakingPulse && alertWindow && !alertWindow.isDestroyed()) {
+      const [nx, ny] = alertWindow.getPosition();
+      alertWindowAnchor = { x: nx, y: ny };
+    }
+  });
   alertWindow.on('closed', () => {
+    stopAlertWindowShake();
     alertWindow = null;
+    alertWindowAnchor = null;
   });
 
   if (isDev) {
@@ -1005,10 +1140,16 @@ function autoIngestNewDeliverables() {
     if (!tracker) return [];
     const existingList = Array.isArray(tracker.deliverables) ? tracker.deliverables : [];
     const existingPaths = new Set(existingList.map((d) => String(d.path || '').replace(/\\/g, '/')));
+    const ignoredPaths = new Set(
+      (Array.isArray(tracker._ignored_deliverable_paths) ? tracker._ignored_deliverable_paths : [])
+        .map((p) => String(p || '').replace(/\\/g, '/').replace(/^\/+/, ''))
+    );
 
     // 自動收錄只監控 Study_Materials 與 Test_Bank（避免把 Reference 裡大量原始作業/考古 PDF 全部塞進去）
     const scanned = scanDeliverablesFiles().filter(
-      (f) => (f.category === 'Study_Materials' || f.category === 'Test_Bank') && !existingPaths.has(f.path)
+      (f) => (f.category === 'Study_Materials' || f.category === 'Test_Bank')
+        && !existingPaths.has(f.path)
+        && !ignoredPaths.has(f.path)
     );
 
     if (scanned.length === 0) return [];
@@ -1545,15 +1686,90 @@ ipcMain.handle('select-workspace-dir', async () => {
   return { success: false, canceled: true };
 });
 
+function resolveSafeWorkspacePath(relativePath) {
+  const norm = String(relativePath || '')
+    .trim()
+    .replace(/\\/g, '/')
+    .replace(/^\.\//, '')
+    .replace(/^\/+/, '')
+    .replace(/\/{2,}/g, '/');
+  if (!norm) return null;
+  const fullPath = path.resolve(workspaceRoot, norm);
+  const rel = path.relative(workspaceRoot, fullPath);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return null;
+  return { norm, fullPath };
+}
+
 ipcMain.handle('read-file', async (_event, relativePath) => {
   try {
-    const fullPath = path.resolve(workspaceRoot, relativePath);
+    const resolved = resolveSafeWorkspacePath(relativePath);
+    if (!resolved) {
+      return { success: false, error: '無效的檔案路徑' };
+    }
+    const { fullPath } = resolved;
     if (!fs.existsSync(fullPath)) {
       return { success: false, error: `找不到檔案：${relativePath}` };
     }
     const content = fs.readFileSync(fullPath, 'utf-8');
     const ext = path.extname(fullPath).toLowerCase();
     return { success: true, content, ext, fullPath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('write-file-content', async (_event, { relativePath, content }) => {
+  try {
+    const resolved = resolveSafeWorkspacePath(relativePath);
+    if (!resolved) {
+      return { success: false, error: '無效或不安全的寫入路徑（必須位於 Study-space 工作區內）' };
+    }
+    const { norm, fullPath } = resolved;
+    const dir = path.dirname(fullPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    const text = typeof content === 'string' ? content : String(content ?? '');
+    fs.writeFileSync(fullPath, text, 'utf-8');
+    return { success: true, relativePath: norm, fullPath, bytes: Buffer.byteLength(text, 'utf-8') };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('trash-file', async (_event, relativePath) => {
+  try {
+    const resolved = resolveSafeWorkspacePath(relativePath);
+    if (!resolved) {
+      return { success: false, error: '無效或不安全的檔案路徑' };
+    }
+    const { fullPath } = resolved;
+    if (!fs.existsSync(fullPath)) {
+      return { success: true, alreadyMissing: true };
+    }
+    await shell.trashItem(fullPath);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('ensure-vault-subject-dir', async (_event, { subjectName, categories }) => {
+  try {
+    const safeName = String(subjectName || '').trim().replace(/[\\/:*?"<>|]/g, '_');
+    if (!safeName) return { success: false, error: '科目名稱不可為空' };
+    const cats = Array.isArray(categories) && categories.length > 0 ? categories : ['Study_Materials', 'Test_Bank'];
+    const createdDirs = [];
+    for (const cat of cats) {
+      if (cat !== 'Study_Materials' && cat !== 'Test_Bank') continue;
+      const resolved = resolveSafeWorkspacePath(`${cat}/${safeName}`);
+      if (!resolved) continue;
+      if (!fs.existsSync(resolved.fullPath)) {
+        fs.mkdirSync(resolved.fullPath, { recursive: true });
+      }
+      createdDirs.push(resolved.norm);
+    }
+    return { success: true, createdDirs };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -1672,6 +1888,87 @@ ipcMain.handle('update-study-state', (_event, state = {}) => {
   lastStudyState = { ...lastStudyState, ...state, updatedAt: new Date().toISOString() };
   return true;
 });
+ipcMain.handle('alert-shake-pulse', () => pulseAlertWindowShake());
+ipcMain.handle('alert-shake-stop', () => {
+  stopAlertWindowShake();
+  return true;
+});
+ipcMain.handle('list-custom-alert-sounds', () => loadCustomAlertSoundsIndex());
+ipcMain.handle('import-alert-sound', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '匯入自訂警告音效檔（MP3 / WAV / OGG / M4A）',
+      properties: ['openFile'],
+      filters: [
+        { name: '音訊檔案', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'webm'] },
+      ],
+    });
+    if (result.canceled || !result.filePaths?.length) {
+      return { success: false, canceled: true };
+    }
+    const srcPath = result.filePaths[0];
+    const stat = fs.statSync(srcPath);
+    if (stat.size > 10 * 1024 * 1024) {
+      return { success: false, error: '音訊檔案過大（上限 10 MB）' };
+    }
+    const ext = path.extname(srcPath).toLowerCase() || '.mp3';
+    const rawBase = path.basename(srcPath, ext);
+    const safeSlug = rawBase.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '_').slice(0, 48) || 'custom_sound';
+    const fileName = `${Date.now()}_${safeSlug}${ext}`;
+    const destPath = path.join(getAlertSoundsDir(), fileName);
+    fs.copyFileSync(srcPath, destPath);
+
+    const entry = {
+      id: `custom-${Date.now()}`,
+      type: 'custom',
+      fileName,
+      label: rawBase,
+      size: stat.size,
+      importedAt: new Date().toISOString(),
+    };
+    const list = loadCustomAlertSoundsIndex();
+    list.unshift(entry);
+    saveCustomAlertSoundsIndex(list);
+    return { success: true, sound: entry, list };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+ipcMain.handle('delete-custom-alert-sound', (_event, fileName) => {
+  try {
+    const safeName = path.basename(String(fileName || ''));
+    if (!safeName) return { success: false, error: '無效檔名' };
+    const targetPath = path.join(getAlertSoundsDir(), safeName);
+    if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
+    const nextList = loadCustomAlertSoundsIndex().filter((item) => item.fileName !== safeName);
+    saveCustomAlertSoundsIndex(nextList);
+    return { success: true, list: nextList };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+ipcMain.handle('read-alert-sound-data', (_event, fileName) => {
+  try {
+    const safeName = path.basename(String(fileName || ''));
+    if (!safeName) return { success: false, error: '無效檔名' };
+    const targetPath = path.join(getAlertSoundsDir(), safeName);
+    if (!fs.existsSync(targetPath)) return { success: false, error: '找不到自訂音效檔' };
+    const ext = path.extname(safeName).toLowerCase();
+    const mimeMap = {
+      '.mp3': 'audio/mpeg',
+      '.wav': 'audio/wav',
+      '.ogg': 'audio/ogg',
+      '.m4a': 'audio/mp4',
+      '.flac': 'audio/flac',
+      '.webm': 'audio/webm',
+    };
+    const mime = mimeMap[ext] || 'audio/mpeg';
+    const b64 = fs.readFileSync(targetPath).toString('base64');
+    return { success: true, dataUrl: `data:${mime};base64,${b64}` };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
 
 // Window Control IPC
 ipcMain.handle('window-minimize', () => {
@@ -1777,12 +2074,213 @@ ipcMain.handle('close-current-window', (event) => {
 ipcMain.handle('sync-eeclass', async () => runEEClassSync('manual'));
 
 // ==========================================
+// 11.5 Local Antigravity CLI (agy) AI Engine IPC
+// ==========================================
+const activeAgyProcesses = new Map(); // requestId -> ChildProcess
+
+function resolveAgyExecutable() {
+  const candidates = [];
+  if (process.env.LOCALAPPDATA) {
+    candidates.push(path.join(process.env.LOCALAPPDATA, 'agy', 'bin', 'agy.exe'));
+  }
+  candidates.push('agy');
+  for (const cand of candidates) {
+    if (cand === 'agy' || fs.existsSync(cand)) return cand;
+  }
+  return 'agy';
+}
+
+ipcMain.handle('ai-check-agy', async () => {
+  const agyBin = resolveAgyExecutable();
+  return new Promise((resolve) => {
+    const child = spawn(agyBin, ['models'], {
+      cwd: workspaceRoot,
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+    const timer = setTimeout(() => {
+      try { child.kill(); } catch {}
+      resolve({ available: false, models: [], error: '檢查 agy models 逾時' });
+    }, 12000);
+
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString('utf-8'); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString('utf-8'); });
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      resolve({ available: false, models: [], error: err.message });
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      const models = [];
+      for (const rawLine of stdout.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('Fetching')) continue;
+        const parts = line.split('\t');
+        if (parts.length >= 2) {
+          models.push({ id: parts[0].trim(), label: parts[1].trim() });
+        } else {
+          const m = line.match(/^([a-z0-9._-]+)\s+(.+)$/i);
+          if (m) models.push({ id: m[1].trim(), label: m[2].trim() });
+        }
+      }
+      if (code === 0 && models.length > 0) {
+        resolve({ available: true, bin: agyBin, models });
+      } else {
+        resolve({
+          available: false,
+          models,
+          error: (stderr || stdout || `agy models 結束代碼 ${code}`).trim().slice(0, 240),
+        });
+      }
+    });
+  });
+});
+
+ipcMain.handle('ai-generate-agy', async (event, { requestId, model, prompt }) => {
+  if (!requestId || !prompt) {
+    return { success: false, error: '缺少生成請求參數' };
+  }
+  const agyBin = resolveAgyExecutable();
+  const sender = event.sender;
+  const sendEv = (payload) => {
+    if (sender && !sender.isDestroyed()) {
+      sender.send('agy-stream-event', { requestId, ...payload });
+    }
+  };
+
+  try {
+    const args = [
+      '--model',
+      String(model || 'gemini-4-neon-high'),
+      '--disable-slash-commands',
+      '--input-format',
+      'stream-json',
+      '--output-format',
+      'stream-json',
+    ];
+
+    const child = spawn(agyBin, args, {
+      cwd: workspaceRoot,
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    activeAgyProcesses.set(requestId, child);
+    let stdoutBuf = '';
+    let stderrText = '';
+    let finished = false;
+    let accumulatedDelta = '';
+
+    const handleJsonLine = (line) => {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('{')) return;
+      try {
+        const obj = JSON.parse(trimmed);
+        if (obj.event === 'init') {
+          sendEv({ type: 'status', message: `已連線 ${obj.init?.model || model}，正在思考與生成中...` });
+        } else if (obj.event === 'step_update' && obj.step_update) {
+          const su = obj.step_update;
+          if (su.step_type === 'agent_response' && typeof su.text_delta === 'string' && su.text_delta) {
+            accumulatedDelta += su.text_delta;
+            sendEv({ type: 'delta', text: su.text_delta });
+          } else if (su.step_type === 'tool' && su.tool_name) {
+            sendEv({ type: 'status', message: `模型處理步驟：${su.tool_name}...` });
+          }
+        } else if (obj.event === 'result' && obj.result) {
+          finished = true;
+          if (obj.result.status === 'SUCCESS') {
+            sendEv({
+              type: 'done',
+              response: obj.result.response || accumulatedDelta,
+              usage: obj.result.usage || null,
+            });
+          } else {
+            sendEv({
+              type: 'error',
+              error: obj.result.error || `生成狀態異常 (${obj.result.status})`,
+            });
+          }
+        }
+      } catch {
+        // Ignore non-JSON diagnostic lines
+      }
+    };
+
+    child.stdout.on('data', (chunk) => {
+      stdoutBuf += chunk.toString('utf-8');
+      const lines = stdoutBuf.split(/\r?\n/);
+      stdoutBuf = lines.pop() || '';
+      for (const line of lines) handleJsonLine(line);
+    });
+
+    child.stderr.on('data', (chunk) => {
+      stderrText += chunk.toString('utf-8');
+    });
+
+    child.on('error', (err) => {
+      activeAgyProcesses.delete(requestId);
+      if (!finished) {
+        finished = true;
+        sendEv({ type: 'error', error: `啟動 agy CLI 失敗：${err.message}` });
+      }
+    });
+
+    child.on('close', (code) => {
+      activeAgyProcesses.delete(requestId);
+      if (stdoutBuf.trim()) handleJsonLine(stdoutBuf);
+      if (!finished) {
+        finished = true;
+        if (code === 0 && accumulatedDelta) {
+          sendEv({ type: 'done', response: accumulatedDelta, usage: null });
+        } else {
+          sendEv({
+            type: 'error',
+            error: (stderrText || `agy 行程異常中止 (code ${code})`).trim().slice(0, 320),
+          });
+        }
+      }
+    });
+
+    // Write NDJSON prompt event cleanly over UTF-8 stdin (no Windows CLI length limits)
+    const msg = JSON.stringify({
+      event: 'user',
+      message: { content: String(prompt) },
+    });
+    child.stdin.write(`${msg}\n`, 'utf-8');
+    child.stdin.end();
+
+    return { success: true, requestId };
+  } catch (err) {
+    activeAgyProcesses.delete(requestId);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('ai-cancel-agy', (_event, requestId) => {
+  const child = activeAgyProcesses.get(requestId);
+  if (child) {
+    activeAgyProcesses.delete(requestId);
+    try { child.kill(); } catch {}
+    return { success: true };
+  }
+  return { success: false };
+});
+
+// ==========================================
 // 12. 應用程式啟動與生命週期
 // ==========================================
 app.on('second-instance', () => showMainWindow());
 
 app.on('before-quit', () => {
   isQuitting = true;
+  stopAlertWindowShake();
+  for (const [, proc] of activeAgyProcesses) {
+    try { proc.kill(); } catch {}
+  }
+  activeAgyProcesses.clear();
   if (alertSchedulerInterval) clearInterval(alertSchedulerInterval);
   if (autoSyncInterval) clearInterval(autoSyncInterval);
   if (trackerWatcher) {

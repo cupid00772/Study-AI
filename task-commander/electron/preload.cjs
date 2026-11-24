@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTrackerData: () => ipcRenderer.invoke('read-tracker'),
   saveTrackerData: (data) => ipcRenderer.invoke('save-tracker', data),
   readFileContent: (relativePath) => ipcRenderer.invoke('read-file', relativePath),
+  writeFileContent: (payload) => ipcRenderer.invoke('write-file-content', payload),
+  trashFile: (relativePath) => ipcRenderer.invoke('trash-file', relativePath),
+  ensureVaultSubjectDir: (payload) => ipcRenderer.invoke('ensure-vault-subject-dir', payload),
   openExternalPath: (relativePath) => ipcRenderer.invoke('open-path', relativePath),
   showItemInFolder: (relativePath) => ipcRenderer.invoke('show-in-folder', relativePath),
   selectFile: () => ipcRenderer.invoke('select-file'),
@@ -28,6 +31,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dismissAlertToday: () => ipcRenderer.invoke('dismiss-alert-today'),
   alertAction: (action) => ipcRenderer.invoke('alert-action', action),
   updateStudyState: (state) => ipcRenderer.invoke('update-study-state', state),
+  pulseAlertWindowShake: () => ipcRenderer.invoke('alert-shake-pulse'),
+  stopAlertWindowShake: () => ipcRenderer.invoke('alert-shake-stop'),
+  importAlertSound: () => ipcRenderer.invoke('import-alert-sound'),
+  listCustomAlertSounds: () => ipcRenderer.invoke('list-custom-alert-sounds'),
+  deleteCustomAlertSound: (fileName) => ipcRenderer.invoke('delete-custom-alert-sound', fileName),
+  readAlertSoundData: (fileName) => ipcRenderer.invoke('read-alert-sound-data', fileName),
 
   // App Config & Auto Launch
   getAppConfig: () => ipcRenderer.invoke('get-app-config'),
@@ -59,10 +68,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCloudConfig: () => ipcRenderer.invoke('get-cloud-config'),
   syncCloudAssets: (options) => ipcRenderer.invoke('sync-cloud-assets', options),
 
+  // Local Antigravity CLI (agy) AI Engine
+  checkAgyCli: () => ipcRenderer.invoke('ai-check-agy'),
+  startAgyGenerate: (payload) => ipcRenderer.invoke('ai-generate-agy', payload),
+  cancelAgyGenerate: (requestId) => ipcRenderer.invoke('ai-cancel-agy', requestId),
+
   // Event Subscriptions
+  onAgyStreamEvent: (cb) => subscribe('agy-stream-event', cb),
   onTrackerUpdated: (cb) => subscribe('tracker-updated', cb),
   onActiveStickiesUpdated: (cb) => subscribe('active-stickies-updated', cb),
   onAlertPayloadUpdated: (cb) => subscribe('alert-payload-updated', cb),
+  onAlertUserInteracted: (cb) => subscribe('alert-user-interacted', cb),
   onNavigateTab: (cb) => subscribe('navigate-tab', cb),
   onStartFocusTimer: (cb) => subscribe('start-focus-timer', cb),
   onSyncStatusChanged: (cb) => subscribe('sync-status-changed', cb),

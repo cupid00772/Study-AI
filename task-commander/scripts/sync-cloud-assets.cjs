@@ -372,6 +372,9 @@ async function main() {
           payload: {
             deliverables: tracker.deliverables || [],
             deletedIds: tracker._deleted_deliverable_ids || [],
+            ignoredPaths: tracker._ignored_deliverable_paths || [],
+            vaultSubjects: tracker.vault_subjects || [],
+            deletedSubjectIds: tracker._deleted_vault_subject_ids || [],
             updatedAt: now,
           },
         },

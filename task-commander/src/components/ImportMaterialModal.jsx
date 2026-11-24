@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import SlidingContainer from './SlidingContainer';
 import { X, FolderPlus, CheckCircle2, Sparkles, FolderOpen, UploadCloud, AlertCircle } from 'lucide-react';
 import { uploadBrowserFileToCloud } from '../services/cloudAssetService';
 import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
@@ -190,7 +191,12 @@ export default function ImportMaterialModal({
           {/* 1. Category selector */}
           <div>
             <label className="setting-label">1. 導入目的地分類 (Category)</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            <SlidingContainer
+              className="nav-pills category-grid-pills"
+              activeKey={category}
+              indicatorClassName="sliding-pill-indicator pill-slider"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', padding: '4px' }}
+            >
               {[
                 { key: 'Study_Materials', label: '📘 Study_Materials' },
                 { key: 'Test_Bank', label: '📝 Test_Bank' },
@@ -201,12 +207,12 @@ export default function ImportMaterialModal({
                   type="button"
                   className={`nav-pill-btn ${category === cat.key ? 'active' : ''}`}
                   onClick={() => setCategory(cat.key)}
-                  style={{ textAlign: 'center', padding: '0.6rem 0.4rem', justifyContent: 'center', fontSize: '0.8rem', border: '1px solid var(--border-color)' }}
+                  style={{ textAlign: 'center', padding: '0.55rem 0.4rem', justifyContent: 'center', fontSize: '0.8rem' }}
                 >
                   {cat.label}
                 </button>
               ))}
-            </div>
+            </SlidingContainer>
           </div>
 
           {/* 2. Course selection */}

@@ -234,3 +234,12 @@ export async function uploadBrowserFileToCloud(file, targetRelativePath, pushMan
   }
 }
 
+export async function uploadTextAssetToCloud(content, targetRelativePath, pushManifestFn) {
+  const normPath = normalizeAssetPath(targetRelativePath);
+  const contentType = guessContentType(normPath, 'text/markdown; charset=utf-8');
+  const blob = new Blob([typeof content === 'string' ? content : String(content ?? '')], {
+    type: contentType,
+  });
+  return uploadBrowserFileToCloud(blob, normPath, pushManifestFn);
+}
+

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SlidingContainer from './SlidingContainer';
 import {
   CheckCircle2,
   Clock,
@@ -276,7 +277,13 @@ export default function AssignmentsBoard({
             />
           </div>
 
-          <div className="nav-pills" style={{ padding: '3px', flexWrap: 'wrap' }}>
+          <SlidingContainer
+            className="nav-pills"
+            activeKey={selectedCourse}
+            deps={[courseList.length]}
+            indicatorClassName="sliding-pill-indicator pill-slider"
+            style={{ padding: '3px', flexWrap: 'wrap' }}
+          >
             {courseList.map((c) => (
               <button
                 key={c}
@@ -288,11 +295,16 @@ export default function AssignmentsBoard({
                 {c === 'ALL' ? `全部 (${cleanAssignments.length})` : c}
               </button>
             ))}
-          </div>
+          </SlidingContainer>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: 'auto' }}>
-          <div className="nav-pills" style={{ padding: '3px' }}>
+          <SlidingContainer
+            className="nav-pills"
+            activeKey={viewMode}
+            indicatorClassName="sliding-pill-indicator pill-slider"
+            style={{ padding: '3px' }}
+          >
             <button
               type="button"
               className={`nav-pill-btn ${viewMode === 'kanban' ? 'active' : ''}`}
@@ -309,7 +321,7 @@ export default function AssignmentsBoard({
             >
               清單
             </button>
-          </div>
+          </SlidingContainer>
 
           <button type="button" className="btn btn-primary btn-sm" onClick={() => setIsAddModalOpen(true)}>
             <Plus size={15} /> 新增作業

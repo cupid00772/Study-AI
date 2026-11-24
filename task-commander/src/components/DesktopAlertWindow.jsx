@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   AlertTriangle,
   Flame,
@@ -8,70 +8,61 @@ import {
   X,
   Play,
   BellOff,
+  BellRing,
   CheckSquare,
   ArrowRight,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import TaskCommanderLogo from './TaskCommanderLogo';
-
-async function playShortAlertSound(isCritical) {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-
-    const ctx = new AudioCtx();
-    if (ctx.state === 'suspended') {
-      await ctx.resume();
-    }
-
-    const now = ctx.currentTime + 0.02;
-    // 緊急警告（考前／逾期／1天內）：短促清脆三短音；一般提醒：簡短雙音提醒
-    const tones = isCritical
-      ? [
-          { freq: 987.77, start: 0, duration: 0.11, gain: 0.18, type: 'triangle' },
-          { freq: 987.77, start: 0.14, duration: 0.11, gain: 0.18, type: 'triangle' },
-          { freq: 1318.51, start: 0.28, duration: 0.18, gain: 0.2, type: 'triangle' },
-        ]
-      : [
-          { freq: 880.0, start: 0, duration: 0.11, gain: 0.15, type: 'sine' },
-          { freq: 1108.73, start: 0.14, duration: 0.17, gain: 0.16, type: 'triangle' },
-        ];
-
-    for (const tone of tones) {
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      osc.type = tone.type;
-      osc.frequency.setValueAtTime(tone.freq, now + tone.start);
-
-      const startAt = now + tone.start;
-      const endAt = startAt + tone.duration;
-      gainNode.gain.setValueAtTime(0.0001, startAt);
-      gainNode.gain.linearRampToValueAtTime(tone.gain, startAt + 0.015);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, endAt);
-
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      osc.start(startAt);
-      osc.stop(endAt + 0.02);
-    }
-
-    window.setTimeout(() => {
-      ctx.close().catch(() => {});
-    }, 750);
-  } catch {
-    // 忽略無音訊裝置或播放受限情況
-  }
-}
+import {
+  createAlertAlarmLoop,
+  normalizeSoundConfig,
+  resolveActiveSoundSpec,
+} from '../utils/alertSoundEngine';
 
 export default function DesktopAlertWindow() {
   const [payload, setPayload] = useState(null);
-  const lastPlayedAlertKeyRef = useRef(null);
+  const [acknowledgedKey, setAcknowledgedKey] = useState(null);
+  const [isPulsing, setIsPulsing] = useState(false);
+  const alarmLoopRef = useRef(null);
+  const pulseTimerRef = useRef(null);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem('wt_theme') === 'dark'; } catch { return false; }
   });
 
+  const currentAlertKey = payload?.generatedAt || (payload ? 'initial' : null);
+  const acknowledged = Boolean(currentAlertKey && acknowledgedKey === currentAlertKey);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  const stopAlarmResources = useCallback(() => {
+    if (alarmLoopRef.current) {
+      alarmLoopRef.current.stop();
+      alarmLoopRef.current = null;
+    }
+    if (pulseTimerRef.current) {
+      window.clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = null;
+    }
+    window.electronAPI?.stopAlertWindowShake?.();
+  }, []);
+
+  const stopAlarm = useCallback(() => {
+    stopAlarmResources();
+    setIsPulsing(false);
+  }, [stopAlarmResources]);
+
+  const acknowledgeAlert = useCallback(() => {
+    if (!currentAlertKey) return;
+    setAcknowledgedKey((prev) => {
+      if (prev === currentAlertKey) return prev;
+      stopAlarm();
+      return currentAlertKey;
+    });
+  }, [currentAlertKey, stopAlarm]);
 
   useEffect(() => {
     const handleStorage = (e) => {
@@ -89,36 +80,25 @@ export default function DesktopAlertWindow() {
     if (window.electronAPI?.onAlertPayloadUpdated) {
       unsub = window.electronAPI.onAlertPayloadUpdated((next) => setPayload(next));
     }
+    let unsubInteract = null;
+    if (window.electronAPI?.onAlertUserInteracted) {
+      unsubInteract = window.electronAPI.onAlertUserInteracted(() => acknowledgeAlert());
+    }
+
+    const onKeyDown = () => acknowledgeAlert();
+    const onBeforeUnload = () => stopAlarmResources();
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('beforeunload', onBeforeUnload);
 
     return () => {
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('beforeunload', onBeforeUnload);
       if (typeof unsub === 'function') unsub();
+      if (typeof unsubInteract === 'function') unsubInteract();
+      stopAlarmResources();
     };
-  }, []);
-
-  const handleClose = () => {
-    window.electronAPI?.closeCurrentWindow?.();
-  };
-
-  const handleSnooze = () => {
-    window.electronAPI?.snoozeAlert?.(payload?.snoozeMinutes || 30);
-  };
-
-  const handleDismissToday = () => {
-    window.electronAPI?.dismissAlertToday?.();
-  };
-
-  const handleStartFocus = () => {
-    window.electronAPI?.alertAction?.({ type: 'start-focus', minutes: 25 });
-  };
-
-  const handleOpenTab = (tab) => {
-    window.electronAPI?.alertAction?.({ type: 'open-tab', tab });
-  };
-
-  const handleOpenUrl = (url) => {
-    window.electronAPI?.alertAction?.({ type: 'open-url', url });
-  };
+  }, [acknowledgeAlert, stopAlarmResources]);
 
   const exams = payload?.upcomingExams || [];
   const overdue = payload?.overdueAssignments || [];
@@ -127,25 +107,94 @@ export default function DesktopAlertWindow() {
   const allAssignments = [...overdue, ...urgent];
 
   const isCritical = exams.length > 0 || overdue.length > 0 || urgent.some((u) => u.daysLeft <= 1);
+  const soundConfig = useMemo(() => normalizeSoundConfig(payload?.soundConfig), [payload?.soundConfig]);
+  const shouldPlaySound = payload?.playSound !== false;
+  const shouldShake = soundConfig.shakeEnabled !== false;
 
+  // Continuous synchronized sound + physical/visual shake loop until user clicks window
   useEffect(() => {
-    if (!payload || payload.playSound === false) return;
-    const alertKey = payload.generatedAt || 'initial';
-    if (lastPlayedAlertKeyRef.current === alertKey) return;
-    lastPlayedAlertKeyRef.current = alertKey;
-    playShortAlertSound(isCritical);
-  }, [payload, isCritical]);
+    if (!payload || acknowledged) return undefined;
+    if (!shouldPlaySound && !shouldShake) return undefined;
+
+    const soundSpec = resolveActiveSoundSpec(soundConfig, isCritical);
+
+    const loop = createAlertAlarmLoop({
+      soundSpec,
+      isCritical,
+      volume: soundConfig.volume,
+      repeatIntervalMs: soundConfig.repeatIntervalMs,
+      playSound: shouldPlaySound,
+      onPulse: () => {
+        if (!shouldShake) return;
+        setIsPulsing(true);
+        window.electronAPI?.pulseAlertWindowShake?.();
+        if (pulseTimerRef.current) window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = window.setTimeout(() => {
+          setIsPulsing(false);
+        }, 520);
+      },
+    });
+
+    alarmLoopRef.current = loop;
+    return () => {
+      loop.stop();
+      if (alarmLoopRef.current === loop) alarmLoopRef.current = null;
+      if (pulseTimerRef.current) {
+        window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = null;
+      }
+      window.electronAPI?.stopAlertWindowShake?.();
+    };
+  }, [payload, acknowledged, isCritical, shouldPlaySound, shouldShake, soundConfig]);
+
+  const handleClose = () => {
+    stopAlarm();
+    window.electronAPI?.closeCurrentWindow?.();
+  };
+
+  const handleSnooze = () => {
+    stopAlarm();
+    window.electronAPI?.snoozeAlert?.(payload?.snoozeMinutes || 30);
+  };
+
+  const handleDismissToday = () => {
+    stopAlarm();
+    window.electronAPI?.dismissAlertToday?.();
+  };
+
+  const handleStartFocus = () => {
+    stopAlarm();
+    window.electronAPI?.alertAction?.({ type: 'start-focus', minutes: 25 });
+  };
+
+  const handleOpenTab = (tab) => {
+    stopAlarm();
+    window.electronAPI?.alertAction?.({ type: 'open-tab', tab });
+  };
+
+  const handleOpenUrl = (url) => {
+    stopAlarm();
+    window.electronAPI?.alertAction?.({ type: 'open-url', url });
+  };
+
+  const isRingingActive = Boolean(payload && !acknowledged && (shouldPlaySound || shouldShake));
 
   return (
-    <div className="alert-popup-root">
-      <div className={`alert-popup-card ${isCritical ? 'critical' : 'warning'}`}>
+    <div
+      className="alert-popup-root"
+      onPointerDownCapture={acknowledgeAlert}
+      onMouseDownCapture={acknowledgeAlert}
+    >
+      <div
+        className={`alert-popup-card ${isCritical ? 'critical' : 'warning'} ${isRingingActive ? 'is-ringing' : ''} ${isPulsing ? 'is-pulsing' : ''}`}
+      >
         {/* Draggable Header */}
         <div className="alert-popup-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className={`alert-pulse-badge ${isCritical ? 'critical' : 'warning'}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            <div className={`alert-pulse-badge ${isCritical ? 'critical' : 'warning'} ${isRingingActive ? 'is-ringing' : ''}`}>
               {isCritical ? <Flame size={18} /> : <AlertTriangle size={18} />}
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div className="alert-popup-title">
                 {exams.length > 0
                   ? '考前倒數 & 任務緊急警告'
@@ -163,6 +212,23 @@ export default function DesktopAlertWindow() {
             <X size={15} />
           </button>
         </div>
+
+        {/* Live Sound / Shake Acknowledge Strip */}
+        {(shouldPlaySound || shouldShake) && (
+          <div className={`alert-ack-bar ${isRingingActive ? 'is-ringing' : 'is-acked'}`}>
+            {isRingingActive ? (
+              <>
+                <Volume2 size={14} className="alert-bell-wiggle" />
+                <span>持續震動響鈴中 · 點擊視窗任意處即可停止並安心檢視</span>
+              </>
+            ) : (
+              <>
+                <VolumeX size={14} />
+                <span>已停止震動與提示音，可安心檢視事項</span>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Scrollable Body */}
         <div className="alert-popup-body">
@@ -289,7 +355,10 @@ export default function DesktopAlertWindow() {
           </div>
           <div className="alert-footer-brand">
             <TaskCommanderLogo size={13} />
-            <span>可在系統設定自訂提前天數與提醒時段</span>
+            <span>
+              <BellRing size={10} style={{ verticalAlign: '-1px', marginRight: 3 }} />
+              可在系統設定自訂鈴聲、震動節奏與提醒時段
+            </span>
           </div>
         </div>
       </div>

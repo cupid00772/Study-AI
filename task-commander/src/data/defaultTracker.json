@@ -1,6 +1,6 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-24T23:13:10.701968+08:00",
+  "last_updated": "2026-11-25T04:58:52.227356+08:00",
   "academic_year": "115",
   "courses": [
     {
@@ -223,16 +223,17 @@
     },
     {
       "id": "hw-41261-75642",
-      "course": "資料與檔案結構",
-      "title": "程式作業－Parsing 與 Infix to Postfix",
-      "dueDate": "2026-11-29",
-      "status": "pending",
-      "grade": "",
-      "description": "來自 eeclass 之作業任務：程式作業－Parsing 與 Infix to Postfix",
-      "difficulty": "Medium",
       "xp": 500,
       "link": "https://ncueeclass.ncu.edu.tw/course/homework/75642",
+      "grade": "尚未批改",
+      "title": "程式作業－Parsing 與 Infix to Postfix",
+      "course": "資料與檔案結構",
+      "status": "completed",
+      "dueDate": "2026-11-29",
+      "updatedAt": "2026-11-24T16:33:32.520Z",
+      "difficulty": "Medium",
       "promptFile": null,
+      "description": "來自 eeclass 之作業任務：程式作業－Parsing 與 Infix to Postfix",
       "deliverableFile": null
     },
     {

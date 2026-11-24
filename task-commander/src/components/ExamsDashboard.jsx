@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SlidingContainer from './SlidingContainer';
 import {
   Calendar,
   BookOpen,
@@ -154,7 +155,13 @@ export default function ExamsDashboard({
       </div>
 
       {/* Filter Pills */}
-      <div className="nav-pills" style={{ padding: '3px', width: 'fit-content', flexWrap: 'wrap' }}>
+      <SlidingContainer
+        className="nav-pills"
+        activeKey={filterChip}
+        deps={[courseNames.length, upcomingCount, completedCount]}
+        indicatorClassName="sliding-pill-indicator pill-slider"
+        style={{ padding: '3px', width: 'fit-content', flexWrap: 'wrap' }}
+      >
         <button type="button" className={`nav-pill-btn ${filterChip === 'upcoming' ? 'active' : ''}`} onClick={() => setFilterChip('upcoming')} style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}>
           即將考試 ({upcomingCount})
         </button>
@@ -169,7 +176,7 @@ export default function ExamsDashboard({
         <button type="button" className={`nav-pill-btn ${filterChip === 'completed' ? 'active' : ''}`} onClick={() => setFilterChip('completed')} style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}>
           已結束 ({completedCount})
         </button>
-      </div>
+      </SlidingContainer>
 
       {/* Exam List */}
       {sortedExams.length === 0 ? (

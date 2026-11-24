@@ -50,7 +50,7 @@ async function main() {
 
   // 4. 準備暫存檔案 (聚焦於 Task Commander 相關檔案及聯動追蹤檔)
   console.log('\n[2/5] 暫存 Task Commander 變更檔案與推送腳本...');
-  run('git add task-commander/ academic_tracker.json .gitignore push_task_commander.bat update_task_commander.bat _Tools/eeclass_crawler.py _Tools/sync.bat', { cwd: repoRoot });
+  run('git add task-commander/ academic_tracker.json .gitignore .gitattributes push_task_commander.bat update_task_commander.bat _Tools/eeclass_crawler.py _Tools/sync.bat', { cwd: repoRoot });
 
   const stagedFiles = getOutput('git diff --staged --name-only', { cwd: repoRoot });
   

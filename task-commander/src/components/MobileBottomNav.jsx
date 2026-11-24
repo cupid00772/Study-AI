@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SlidingContainer from './SlidingContainer';
 import {
   Home,
   CheckSquare,
@@ -52,7 +53,13 @@ export default function MobileBottomNav({
 
   return (
     <>
-      <nav className="mobile-bottom-nav" aria-label="行動端主導覽">
+      <SlidingContainer
+        as="nav"
+        className="mobile-bottom-nav"
+        activeKey={isSecondaryActive || moreOpen ? '__more__' : activeTab}
+        indicatorClassName="sliding-pill-indicator mobile-nav-slider"
+        aria-label="行動端主導覽"
+      >
         {primaryTabs.map((item) => {
           const Icon = item.icon;
           const active = activeTab === item.id;
@@ -86,7 +93,7 @@ export default function MobileBottomNav({
           </span>
           <span className="mobile-nav-label">更多</span>
         </button>
-      </nav>
+      </SlidingContainer>
 
       {/* Slide-up More Action Sheet */}
       {moreOpen && (

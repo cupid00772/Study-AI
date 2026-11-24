@@ -136,6 +136,9 @@ export function splitTrackerToBuckets(tracker = {}) {
     [SYNC_KEYS.DELIVERABLES]: {
       deliverables: Array.isArray(tracker.deliverables) ? tracker.deliverables : [],
       deletedIds: Array.isArray(tracker._deleted_deliverable_ids) ? tracker._deleted_deliverable_ids : [],
+      ignoredPaths: Array.isArray(tracker._ignored_deliverable_paths) ? tracker._ignored_deliverable_paths : [],
+      vaultSubjects: Array.isArray(tracker.vault_subjects) ? tracker.vault_subjects : [],
+      deletedSubjectIds: Array.isArray(tracker._deleted_vault_subject_ids) ? tracker._deleted_vault_subject_ids : [],
       updatedAt: now,
     },
     [SYNC_KEYS.EECLASS]: {
@@ -205,6 +208,10 @@ export function mergeDeliverablesBucket(localBucket = {}, remoteBucket = {}) {
     ...(localBucket.deletedIds || []),
     ...(remoteBucket.deletedIds || []),
   ]);
+  const ignoredPaths = new Set([
+    ...(localBucket.ignoredPaths || []).map(normalizeAssetPath),
+    ...(remoteBucket.ignoredPaths || []).map(normalizeAssetPath),
+  ].filter(Boolean));
 
   const byPath = new Map();
   const ingest = (list) => {
@@ -229,9 +236,19 @@ export function mergeDeliverablesBucket(localBucket = {}, remoteBucket = {}) {
   ingest(localBucket.deliverables);
   ingest(remoteBucket.deliverables);
 
+  const mergedSubjects = mergeKeyedItems(
+    localBucket.vaultSubjects || [],
+    localBucket.deletedSubjectIds || [],
+    remoteBucket.vaultSubjects || [],
+    remoteBucket.deletedSubjectIds || []
+  );
+
   return {
     deliverables: Array.from(byPath.values()),
     deletedIds: Array.from(deletedIds).slice(-200),
+    ignoredPaths: Array.from(ignoredPaths).slice(-300),
+    vaultSubjects: mergedSubjects.items,
+    deletedSubjectIds: mergedSubjects.deletedIds,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -344,7 +361,7 @@ export function assembleTrackerFromBuckets(baseTracker = {}, remoteDocs = {}, is
     }
   }
 
-  // 4. Deliverables
+  // 4. Deliverables & Vault-only Subjects
   const rDel = remoteDocs[SYNC_KEYS.DELIVERABLES];
   if (rDel) {
     const mergedDel = isElectronLocalFirst
@@ -352,9 +369,15 @@ export function assembleTrackerFromBuckets(baseTracker = {}, remoteDocs = {}, is
       : {
           deliverables: Array.isArray(rDel.deliverables) ? rDel.deliverables : (next.deliverables || []),
           deletedIds: rDel.deletedIds || [],
+          ignoredPaths: rDel.ignoredPaths || [],
+          vaultSubjects: Array.isArray(rDel.vaultSubjects) ? rDel.vaultSubjects : (next.vault_subjects || []),
+          deletedSubjectIds: rDel.deletedSubjectIds || [],
         };
     next.deliverables = mergedDel.deliverables;
     next._deleted_deliverable_ids = mergedDel.deletedIds;
+    next._ignored_deliverable_paths = mergedDel.ignoredPaths;
+    next.vault_subjects = mergedDel.vaultSubjects;
+    next._deleted_vault_subject_ids = mergedDel.deletedSubjectIds;
   }
 
   // 5. EEClass dashboard & announcements

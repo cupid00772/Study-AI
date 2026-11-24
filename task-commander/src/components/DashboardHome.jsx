@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SlidingContainer from './SlidingContainer';
 import {
   AlertTriangle,
   Flame,
@@ -175,7 +176,11 @@ export default function DashboardHome({
 
           <div className="focus-timer-display">
             <div className="focus-digits">{formatTimer(focusState.secondsLeft)}</div>
-            <div className="focus-presets">
+            <SlidingContainer
+              className="focus-presets"
+              activeKey={focusState.presetMinutes}
+              indicatorClassName="sliding-pill-indicator preset-slider"
+            >
               {[25, 45, 60].map((mins) => (
                 <button
                   key={mins}
@@ -187,7 +192,7 @@ export default function DashboardHome({
                   {mins}分
                 </button>
               ))}
-            </div>
+            </SlidingContainer>
           </div>
 
           <div className="focus-controls">
@@ -283,7 +288,11 @@ export default function DashboardHome({
               <span>課堂與每日叮嚀</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div className="mini-segment">
+              <SlidingContainer
+                className="mini-segment"
+                activeKey={scheduleDayOffset}
+                indicatorClassName="sliding-pill-indicator segment-slider"
+              >
                 <button
                   type="button"
                   className={scheduleDayOffset === 0 ? 'active' : ''}
@@ -298,7 +307,7 @@ export default function DashboardHome({
                 >
                   明日
                 </button>
-              </div>
+              </SlidingContainer>
               {window.electronAPI?.createDailyWindow && (
                 <button
                   type="button"
