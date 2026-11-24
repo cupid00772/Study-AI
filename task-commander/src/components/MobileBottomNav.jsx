@@ -90,8 +90,8 @@ export default function MobileBottomNav({
 
       {/* Slide-up More Action Sheet */}
       {moreOpen && (
-        <div className="mobile-sheet-overlay" onClick={() => setMoreOpen(false)}>
-          <div className="mobile-sheet-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="mobile-sheet-overlay">
+          <div className="mobile-sheet-panel">
             <div className="mobile-sheet-header">
               <span style={{ fontWeight: 800, fontSize: '0.96rem' }}>更多功能與工具</span>
               <button

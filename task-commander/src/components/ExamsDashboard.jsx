@@ -271,8 +271,8 @@ export default function ExamsDashboard({
 
       {/* Add Exam Modal */}
       {isAddModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsAddModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 520 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
               <h2 className="modal-title" style={{ margin: 0 }}>新增考試日程</h2>
               <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)}>

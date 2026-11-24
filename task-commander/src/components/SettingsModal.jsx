@@ -57,6 +57,7 @@ export default function SettingsModal({
       dailyTriggerTimes: [...(appConfig?.alerts?.dailyTriggerTimes || ['09:00', '20:00'])],
       triggerOnStartup: appConfig?.alerts?.triggerOnStartup ?? true,
       showPopupWindow: appConfig?.alerts?.showPopupWindow ?? true,
+      playAlertSound: appConfig?.alerts?.playAlertSound ?? true,
       showWindowsToast: appConfig?.alerts?.showWindowsToast ?? true,
       snoozeMinutes: appConfig?.alerts?.snoozeMinutes ?? 30,
       dailyStudyGoalMinutes: appConfig?.alerts?.dailyStudyGoalMinutes ?? 60,
@@ -187,10 +188,9 @@ export default function SettingsModal({
   const badgeInfo = statusBadgeMap[cloudStatus?.status || 'idle'] || statusBadgeMap.idle;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div
         className="modal-content"
-        onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '660px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: '1.35rem' }}
       >
         {/* Header */}
@@ -466,6 +466,19 @@ export default function SettingsModal({
 
               <div className="setting-toggle-row">
                 <div>
+                  <div className="setting-row-title">彈出警告時播放簡短警告聲</div>
+                  <div className="setting-row-desc">顯示警告視窗時發出清脆短促提醒音（考前／逾期為三短音，一般提醒為雙短音）</div>
+                </div>
+                <input
+                  type="checkbox"
+                  className="toggle-switch"
+                  checked={draft.alerts.playAlertSound}
+                  onChange={(e) => updateAlertField('playAlertSound', e.target.checked)}
+                />
+              </div>
+
+              <div className="setting-toggle-row">
+                <div>
                   <div className="setting-row-title">同時發送 Windows 系統通知 (Toast)</div>
                   <div className="setting-row-desc">保留於 Windows 通知中心，避免漏看</div>
                 </div>
@@ -543,8 +556,8 @@ export default function SettingsModal({
 
               <div className="setting-toggle-row">
                 <div>
-                  <div className="setting-row-title">AI 成果庫自動監聽收錄</div>
-                  <div className="setting-row-desc">自動偵測 Study_Materials/ 與 Test_Bank/ 新增檔案並收錄同步</div>
+                  <div className="setting-row-title">AI 成果庫自動監聽與雲端增量同步</div>
+                  <div className="setting-row-desc">自動偵測 Study_Materials/、Test_Bank/ 與 Review_Dashboard/ 新增與修改檔案，背景收錄並增量上傳至雲端</div>
                 </div>
                 <input
                   type="checkbox"

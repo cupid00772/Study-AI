@@ -70,10 +70,9 @@ export default function CloudUnlockModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div
         className="modal-content"
-        onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '440px' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>

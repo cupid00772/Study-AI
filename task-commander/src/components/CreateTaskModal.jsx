@@ -39,8 +39,8 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+    <div className="modal-overlay">
+      <div className="modal-content" style={{ maxWidth: 520 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Target size={19} style={{ color: 'var(--accent-primary)' }} />

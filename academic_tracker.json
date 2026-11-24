@@ -1,152 +1,152 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-24T19:48:27.702742+08:00",
+  "last_updated": "2026-11-24T23:13:10.701968+08:00",
   "academic_year": "115",
   "courses": [
     {
       "id": "course-passport",
-      "eeclass_id": "30025",
-      "name": "管院國際學習護照－資管系*",
       "code": "MT9999B",
-      "category": "院推護照",
-      "instructor": "許文錦",
-      "credits": 0,
-      "schedule": "自主認證 / 彈性安排",
-      "location": "管理學院",
-      "color": "#8B5CF6",
       "icon": "Award",
+      "name": "管院國際學習護照－資管系*",
+      "color": "#8B5CF6",
+      "credits": 0,
+      "category": "院推護照",
+      "location": "管理學院",
+      "schedule": "自主認證 / 彈性安排",
+      "eeclass_id": "30025",
+      "instructor": "許文錦",
       "description": "中央大學管理學院國際學習護照：EMI英語優等獎與國際菁英獎自主認證（0 學分）。"
     },
     {
       "id": "course-mentor",
-      "eeclass_id": "42869",
-      "name": "資訊管理學系導師班",
       "code": "IM001G",
-      "category": "系訂輔導",
-      "instructor": "蘇雅惠",
-      "credits": 0,
-      "schedule": "定期導聚 / 自主安排",
-      "location": "資管系所",
-      "color": "#06B6D4",
       "icon": "Users",
+      "name": "資訊管理學系導師班",
+      "color": "#06B6D4",
+      "credits": 0,
+      "category": "系訂輔導",
+      "location": "資管系所",
+      "schedule": "定期導聚 / 自主安排",
+      "eeclass_id": "42869",
+      "instructor": "蘇雅惠",
       "description": "中央大學資訊管理學系導師輔導、職涯諮詢與班級事務聯絡（0 學分）。"
     },
     {
       "id": "course-sl",
-      "eeclass_id": "42168",
-      "name": "服務學習課程",
       "code": "SC0003W",
-      "serial": "08021",
-      "category": "校共同必修",
-      "instructor": "蔡志豐",
-      "credits": 0,
-      "schedule": "週四 12:00 - 13:00 (四Z) / 週五 12:00 - 13:00 (五Z)",
-      "location": "管二館 I1-105",
-      "color": "#34A853",
       "icon": "HeartHandshake",
+      "name": "服務學習課程",
+      "color": "#34A853",
+      "serial": "08021",
+      "credits": 0,
+      "category": "校共同必修",
+      "location": "管二館 I1-105",
+      "schedule": "週四 12:00 - 13:00 (四Z) / 週五 12:00 - 13:00 (五Z)",
+      "eeclass_id": "42168",
+      "instructor": "蔡志豐",
       "description": "中央大學全校共同必修服務學習課程（畢業門檻 0 學分）。"
     },
     {
       "id": "course-geo",
-      "eeclass_id": "41079",
-      "name": "通識地球物理",
       "code": "GS4110*",
-      "serial": "09042",
-      "category": "通識課程",
-      "instructor": "陳洲生",
-      "credits": 2,
-      "schedule": "週一 13:00 - 15:00 (一56)",
-      "location": "通識大樓 O-122",
-      "color": "#10B981",
       "icon": "Globe",
+      "name": "通識地球物理",
+      "color": "#10B981",
+      "serial": "09042",
+      "credits": 2,
+      "category": "通識課程",
+      "location": "通識大樓 O-122",
+      "schedule": "週一 13:00 - 15:00 (一56)",
+      "eeclass_id": "41079",
+      "instructor": "陳洲生",
       "description": "地球物理原理與校園實地觀測，包含直流電阻率法與暫態電磁法 (TEM) 實習。"
     },
     {
       "id": "course-stats",
-      "eeclass_id": "41741",
-      "name": "統計學",
       "code": "MT2041E",
-      "serial": "94018",
-      "category": "院訂必修",
-      "instructor": "黃子菱",
-      "credits": 3,
-      "schedule": "週三 09:00 - 12:00 (三234)",
-      "location": "志希館 I-204",
-      "color": "#1BA0E2",
       "icon": "BarChart3",
+      "name": "統計學",
+      "color": "#1BA0E2",
+      "serial": "94018",
+      "credits": 3,
+      "category": "院訂必修",
+      "location": "志希館 I-204",
+      "schedule": "週三 09:00 - 12:00 (三234)",
+      "eeclass_id": "41741",
+      "instructor": "黃子菱",
       "description": "敘述統計、機率導論、離散與連續隨機變數分配、抽樣分配與區間估計。"
     },
     {
       "id": "course-ds",
-      "eeclass_id": "41261",
-      "name": "資料與檔案結構",
       "code": "IM2011*",
-      "serial": "43005",
-      "category": "系訂必修",
-      "instructor": "蘇坤良",
-      "credits": 3,
-      "schedule": "週五 09:00 - 12:00 (五234)",
-      "location": "管二館 I1-017",
-      "color": "#9B72CF",
       "icon": "Binary",
+      "name": "資料與檔案結構",
+      "color": "#9B72CF",
+      "serial": "43005",
+      "credits": 3,
+      "category": "系訂必修",
+      "location": "管二館 I1-017",
+      "schedule": "週五 09:00 - 12:00 (五234)",
+      "eeclass_id": "41261",
+      "instructor": "蘇坤良",
       "description": "資料組織、陣列、鏈結串列、堆疊、佇列、樹、圖形結構與高階搜尋/排序演算法。"
     },
     {
       "id": "course-os",
-      "eeclass_id": "41265",
-      "name": "作業系統",
       "code": "IM2046*",
-      "serial": "43009",
-      "category": "系訂必修",
-      "instructor": "陳以錚",
-      "credits": 3,
-      "schedule": "週四 09:00 - 12:00 (四234)",
-      "location": "志希館 I-204",
-      "color": "#4285F4",
       "icon": "Cpu",
+      "name": "作業系統",
+      "color": "#4285F4",
+      "serial": "43009",
+      "credits": 3,
+      "category": "系訂必修",
+      "location": "志希館 I-204",
+      "schedule": "週四 09:00 - 12:00 (四234)",
+      "eeclass_id": "41265",
+      "instructor": "陳以錚",
       "description": "深入探討程序管理、CPU 排程、記憶體管理、虛擬記憶體與檔案系統架構。"
     },
     {
       "id": "course-econ",
-      "eeclass_id": "41725",
-      "name": "經濟學",
       "code": "MT1011E",
-      "serial": "94002",
-      "category": "院訂必修",
-      "instructor": "張李治華",
-      "credits": 3,
-      "schedule": "週一 09:00 - 12:00 (一234)",
-      "location": "志希館 I-204",
-      "color": "#D96570",
       "icon": "TrendingUp",
+      "name": "經濟學",
+      "color": "#D96570",
+      "serial": "94002",
+      "credits": 3,
+      "category": "院訂必修",
+      "location": "志希館 I-204",
+      "schedule": "週一 09:00 - 12:00 (一234)",
+      "eeclass_id": "41725",
+      "instructor": "張李治華",
       "description": "Mankiw 經濟學原理，涵蓋市場供需、價格彈性、市場福利、租稅無謂損失與國際貿易。"
     },
     {
       "id": "course-logic",
-      "eeclass_id": "40254",
-      "name": "邏輯與批判思考",
       "code": "CC0141*",
-      "serial": "07005",
-      "category": "核心通識",
-      "instructor": "黃崇修",
-      "credits": 2,
-      "schedule": "週三 14:00 - 16:00 (三67)",
-      "location": "文二館 C2-101",
-      "color": "#F59E0B",
       "icon": "Brain",
+      "name": "邏輯與批判思考",
+      "color": "#F59E0B",
+      "serial": "07005",
+      "credits": 2,
+      "category": "核心通識",
+      "location": "文二館 C2-101",
+      "schedule": "週三 14:00 - 16:00 (三67)",
+      "eeclass_id": "40254",
+      "instructor": "黃崇修",
       "description": "邏輯推論形式、論證分析、日常思維謬誤剖析與批判性思考訓練。"
     },
     {
       "id": "course-transfer",
-      "name": "台聯大/台大轉學考",
       "code": "UST_TRANSFER",
-      "category": "重點專題",
-      "instructor": "自主衝刺",
-      "credits": 0,
-      "schedule": "自主安排",
-      "location": "Study Space",
-      "color": "#FBBC04",
       "icon": "Target",
+      "name": "台聯大/台大轉學考",
+      "color": "#FBBC04",
+      "credits": 0,
+      "category": "重點專題",
+      "location": "Study Space",
+      "schedule": "自主安排",
+      "instructor": "自主衝刺",
       "description": "微積分(B)、計算機概論、機率與統計歷屆試題檢討與模擬考衝刺。"
     }
   ],
@@ -377,49 +377,49 @@
   "exams": [
     {
       "id": "exam-geo-midterm-real",
-      "course": "通識地球物理",
-      "title": "通識地球物理期中考試 (筆試)",
       "date": "2026-11-16",
       "time": "13:00 - 14:00",
+      "color": "#34A853",
       "scope": "校園地電直流法 (Wenner)、暫態電磁法 (TEM) 原理與觀測實習",
-      "status": "completed",
-      "color": "#34A853"
+      "title": "通識地球物理期中考試 (筆試)",
+      "course": "通識地球物理",
+      "status": "completed"
     },
     {
       "id": "exam-ds-midterm",
-      "course": "資料結構",
-      "title": "資料與檔案結構期中考試",
       "date": "2026-11-20",
+      "color": "#9B72CF",
       "scope": "Ch1 ~ Ch3 的 P.67 前",
-      "status": "completed",
-      "color": "#9B72CF"
+      "title": "資料與檔案結構期中考試",
+      "course": "資料結構",
+      "status": "completed"
     },
     {
       "id": "exam-stats-midterm",
-      "course": "統計學",
-      "title": "統計學期中考試",
       "date": "2026-11-20",
+      "color": "#1BA0E2",
       "scope": "Ch1 ~ Ch4",
-      "status": "completed",
-      "color": "#1BA0E2"
+      "title": "統計學期中考試",
+      "course": "統計學",
+      "status": "completed"
     },
     {
       "id": "exam-econ-midterm",
-      "course": "經濟學",
-      "title": "經濟學期中考試",
       "date": "2026-11-20",
+      "color": "#FBBC05",
       "scope": "Ch1 ~ Ch9",
-      "status": "completed",
-      "color": "#FBBC05"
+      "title": "經濟學期中考試",
+      "course": "經濟學",
+      "status": "completed"
     },
     {
       "id": "exam-os-midterm",
-      "course": "作業系統",
-      "title": "作業系統期中考試",
       "date": "2026-11-20",
+      "color": "#EA4335",
       "scope": "Ch1 ~ Ch5",
-      "status": "completed",
-      "color": "#EA4335"
+      "title": "作業系統期中考試",
+      "course": "作業系統",
+      "status": "completed"
     }
   ],
   "deliverables": [
@@ -3100,325 +3100,325 @@
     {
       "id": "ann-dash-1",
       "date": "11-23",
-      "course": "經濟學",
-      "title": "作業CH12、作業CH22、作業CH28",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
+      "title": "作業CH12、作業CH22、作業CH28",
+      "course": "經濟學"
     },
     {
       "id": "ann-dash-2",
       "date": "11-20",
-      "course": "資料與檔案結構",
-      "title": "有關程式作業的補充說明",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
+      "title": "有關程式作業的補充說明",
+      "course": "資料與檔案結構"
     },
     {
       "id": "ann-dash-3",
       "date": "11-19",
-      "course": "資料與檔案結構",
-      "title": "第五章講義已上線",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
+      "title": "第五章講義已上線",
+      "course": "資料與檔案結構"
     },
     {
       "id": "ann-dash-4",
       "date": "11-18",
-      "course": "服務學習課程",
-      "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400"
+      "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
+      "course": "服務學習課程"
     },
     {
       "id": "ann-dash-5",
       "date": "11-16",
-      "course": "經濟學",
-      "title": "期中考成績公告",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
+      "title": "期中考成績公告",
+      "course": "經濟學"
     },
     {
       "id": "ann-dash-1",
       "date": "11-23",
-      "course": "作業CH12、作業CH22、作業CH28",
-      "title": "作業CH12、作業CH22、作業CH28",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "作業CH12、作業CH22、作業CH28",
+      "course": "作業CH12、作業CH22、作業CH28"
     },
     {
       "id": "ann-dash-2",
       "date": "11-20",
-      "course": "有關程式作業的補充說明",
-      "title": "有關程式作業的補充說明",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "有關程式作業的補充說明",
+      "course": "有關程式作業的補充說明"
     },
     {
       "id": "ann-dash-3",
       "date": "11-19",
-      "course": "第五章講義已上線",
-      "title": "第五章講義已上線",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "第五章講義已上線",
+      "course": "第五章講義已上線"
     },
     {
       "id": "ann-dash-4",
       "date": "11-18",
-      "course": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
+      "link": "https://ncueeclass.ncu.edu.tw####",
+      "isHot": false,
       "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
-      "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "course": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦"
     },
     {
       "id": "ann-dash-5",
       "date": "11-16",
-      "course": "期中考成績公告",
+      "link": "https://ncueeclass.ncu.edu.tw####",
+      "isHot": false,
       "title": "期中考成績公告",
-      "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "course": "期中考成績公告"
     },
     {
       "id": "ann-dash-5",
       "date": "11-16",
-      "course": "期中考第29題詳解",
-      "title": "期中考第29題詳解",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "期中考第29題詳解",
+      "course": "期中考第29題詳解"
     },
     {
       "id": "ann-dash-5",
       "date": "11-14",
-      "course": "成績分布與停修建議",
-      "title": "成績分布與停修建議",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "成績分布與停修建議",
+      "course": "成績分布與停修建議"
     },
     {
       "id": "ann-dash-5",
       "date": "11-12",
-      "course": "通識地球物理-期中考考前提醒(一定要看完)",
-      "title": "通識地球物理-期中考考前提醒(一定要看完)",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "通識地球物理-期中考考前提醒(一定要看完)",
+      "course": "通識地球物理-期中考考前提醒(一定要看完)"
     },
     {
       "id": "ann-dash-5",
       "date": "11-10",
-      "course": "期中考成績與閱卷公告",
+      "link": "https://ncueeclass.ncu.edu.tw####",
+      "isHot": true,
       "title": "期中考成績與閱卷公告",
-      "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "course": "期中考成績與閱卷公告"
     },
     {
       "id": "ann-dash-5",
       "date": "11-09",
-      "course": "第四章講義已上線",
+      "link": "https://ncueeclass.ncu.edu.tw####",
+      "isHot": true,
       "title": "第四章講義已上線",
-      "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "course": "第四章講義已上線"
     },
     {
       "id": "ann-dash-5",
       "date": "11-09",
-      "course": "已經完成導師輔導選課程序，12/11-12/18進行課程初選",
-      "title": "已經完成導師輔導選課程序，12/11-12/18進行課程初選",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "已經完成導師輔導選課程序，12/11-12/18進行課程初選",
+      "course": "已經完成導師輔導選課程序，12/11-12/18進行課程初選"
     },
     {
       "id": "ann-dash-5",
       "date": "11-06",
-      "course": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00 ee-Class遠距測驗。",
-      "title": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00 ee-Class遠距測驗。",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00 ee-Class遠距測驗。",
+      "course": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00 ee-Class遠距測驗。"
     },
     {
       "id": "ann-dash-5",
       "date": "10-30",
-      "course": "期中考時程公告",
-      "title": "期中考時程公告",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "期中考時程公告",
+      "course": "期中考時程公告"
     },
     {
       "id": "ann-dash-4",
       "date": "11-07",
-      "course": "經濟學期中考注意事項",
-      "title": "經濟學期中考注意事項",
+      "link": "https://ncueeclass.ncu.edu.tw####",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw####"
+      "title": "經濟學期中考注意事項",
+      "course": "經濟學期中考注意事項"
     },
     {
       "id": "ann-ee-1109-1",
-      "course": "中央課程",
-      "title": "第四章講義已上線",
-      "content": "授課教師已將第四章課程講義與研討材料上傳至 eeclass，請同學提早預習。",
       "date": "2026-11-09",
+      "link": "https://ncueeclass.ncu.edu.tw",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw"
+      "title": "第四章講義已上線",
+      "course": "中央課程",
+      "content": "授課教師已將第四章課程講義與研討材料上傳至 eeclass，請同學提早預習。"
     },
     {
       "id": "ann-ee-1109-2",
-      "course": "教務選課",
-      "title": "已經完成導師輔導選課程序，12/11-12/18進行課程初選",
-      "content": "導師輔導選課程序已結案，全校初選時程為 12/11 至 12/18，請至選課系統選填志願。",
       "date": "2026-11-09",
+      "link": "https://ncueeclass.ncu.edu.tw",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw"
+      "title": "已經完成導師輔導選課程序，12/11-12/18進行課程初選",
+      "course": "教務選課",
+      "content": "導師輔導選課程序已結案，全校初選時程為 12/11 至 12/18，請至選課系統選填志願。"
     },
     {
       "id": "ann-ee-1107",
-      "course": "經濟學",
-      "title": "經濟學期中考注意事項",
-      "content": "期中評量注意事項：請攜帶學生證應試，範圍涵蓋 CH1 至 CH8/CH9 原理與計算。",
       "date": "2026-11-07",
+      "link": "https://ncueeclass.ncu.edu.tw",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw"
+      "title": "經濟學期中考注意事項",
+      "course": "經濟學",
+      "content": "期中評量注意事項：請攜帶學生證應試，範圍涵蓋 CH1 至 CH8/CH9 原理與計算。"
     },
     {
       "id": "ann-ee-1106",
-      "course": "通識地球物理",
-      "title": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00",
-      "content": "國立中央大學通識地球物理期中筆試訂於 11/16 (星期一) 13:00 - 14:00 舉行，請準時應試。",
       "date": "2026-11-06",
+      "link": "https://ncueeclass.ncu.edu.tw",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw"
+      "title": "通識地球物理期中考試訂於11/16(星期一)13:00-14:00",
+      "course": "通識地球物理",
+      "content": "國立中央大學通識地球物理期中筆試訂於 11/16 (星期一) 13:00 - 14:00 舉行，請準時應試。"
     },
     {
       "id": "ann-ee-1030",
-      "course": "教務處",
-      "title": "期中考時程公告",
-      "content": "115 學年度第一學期期中評量週時程公告，各科評量日程由各授課教師排定辦理。",
       "date": "2026-10-30",
+      "link": "https://ncueeclass.ncu.edu.tw",
       "isHot": true,
-      "link": "https://ncueeclass.ncu.edu.tw"
+      "title": "期中考時程公告",
+      "course": "教務處",
+      "content": "115 學年度第一學期期中評量週時程公告，各科評量日程由各授課教師排定辦理。"
     },
     {
       "id": "ann-1",
-      "course": "經濟學",
-      "title": "115-1 期末考與 CH8 無謂損失複習提醒",
-      "content": "請同學熟讀課稅無謂損失圖形計算與消費者/生產者剩餘變動，期末考將納入核心大題。",
       "date": "2026-11-05",
-      "link": "https://eeclass.ncu.edu.tw"
+      "link": "https://eeclass.ncu.edu.tw",
+      "title": "115-1 期末考與 CH8 無謂損失複習提醒",
+      "course": "經濟學",
+      "content": "請同學熟讀課稅無謂損失圖形計算與消費者/生產者剩餘變動，期末考將納入核心大題。"
     },
     {
       "id": "ann-2",
-      "course": "通識地球物理",
-      "title": "校園地電實習 TEM 交流法報告繳交提醒",
-      "content": "請各組於 11/15 前繳交 TEM 實習心得報告，包含感應電動勢衰減圖與分層電阻率推論。",
       "date": "2026-11-06",
-      "link": "https://eeclass.ncu.edu.tw"
+      "link": "https://eeclass.ncu.edu.tw",
+      "title": "校園地電實習 TEM 交流法報告繳交提醒",
+      "course": "通識地球物理",
+      "content": "請各組於 11/15 前繳交 TEM 實習心得報告，包含感應電動勢衰減圖與分層電阻率推論。"
     },
     {
       "id": "ann-3",
-      "course": "資料結構",
-      "title": "樹狀結構 (BST) 二元搜尋樹作業即將截止",
-      "content": "請於 11/22 前完成 BST 插入、刪除與樹遍歷函式實作，並提交至 eeclass。",
       "date": "2026-11-07",
-      "link": "https://eeclass.ncu.edu.tw"
+      "link": "https://eeclass.ncu.edu.tw",
+      "title": "樹狀結構 (BST) 二元搜尋樹作業即將截止",
+      "course": "資料結構",
+      "content": "請於 11/22 前完成 BST 插入、刪除與樹遍歷函式實作，並提交至 eeclass。"
     }
   ],
   "calendar_events": [
     {
       "id": "ncu-115-1-start",
+      "scope": "全校",
       "title": "115-1 註冊與開始上課日",
+      "endDate": "2026-09-07",
+      "isMajor": true,
       "category": "Milestone",
       "startDate": "2026-09-07",
-      "endDate": "2026-09-07",
-      "scope": "全校",
-      "description": "國立中央大學 115 學年度第一學期全校學生註冊與開始上課",
-      "isMajor": true
+      "description": "國立中央大學 115 學年度第一學期全校學生註冊與開始上課"
     },
     {
       "id": "ncu-115-1-midterm",
+      "scope": "全校課程",
       "title": "115-1 統一期中成績評量週",
+      "endDate": "2026-11-02",
+      "isMajor": true,
       "category": "Official_Exam",
       "startDate": "2026-10-27",
-      "endDate": "2026-11-02",
-      "scope": "全校課程",
-      "description": "國立中央大學 115 學年度第一學期統一期中評量週（已結束）",
-      "isMajor": true
+      "description": "國立中央大學 115 學年度第一學期統一期中評量週（已結束）"
     },
     {
       "id": "ncu-115-sports-day",
+      "scope": "全校",
       "title": "全校運動大會（全校停課）",
+      "endDate": "2026-11-11",
+      "isMajor": true,
       "category": "Holiday",
       "startDate": "2026-11-11",
-      "endDate": "2026-11-11",
-      "scope": "全校",
-      "description": "國立中央大學全校運動大會，日間部全校停課",
-      "isMajor": true
+      "description": "國立中央大學全校運動大會，日間部全校停課"
     },
     {
       "id": "ncu-115-2-course-selection",
+      "scope": "全校學生",
       "title": "115-2 次學期課程初選",
+      "endDate": "2026-12-18",
+      "isMajor": true,
       "category": "Milestone",
       "startDate": "2026-12-11",
-      "endDate": "2026-12-18",
-      "scope": "全校學生",
-      "description": "115 學年度第二學期網路選課初選階段",
-      "isMajor": true
+      "description": "115 學年度第二學期網路選課初選階段"
     },
     {
       "id": "ncu-115-1-final",
+      "scope": "全校課程",
       "title": "115-1 統一期末考試週",
+      "endDate": "2026-12-24",
+      "isMajor": true,
       "category": "Official_Exam",
       "startDate": "2026-12-21",
-      "endDate": "2026-12-24",
-      "scope": "全校課程",
-      "description": "國立中央大學 115 學年度第一學期全校統一期末考試週（各科期末筆試與綜合評量由授課教師排定）",
-      "isMajor": true
+      "description": "國立中央大學 115 學年度第一學期全校統一期末考試週（各科期末筆試與綜合評量由授課教師排定）"
     },
     {
       "id": "ncu-115-winter-break",
+      "scope": "全校",
       "title": "寒假開始（行憲紀念日）",
+      "endDate": "2027-02-22",
+      "isMajor": true,
       "category": "Holiday",
       "startDate": "2026-12-25",
-      "endDate": "2027-02-22",
-      "scope": "全校",
-      "description": "115 學年度寒假開始，同日逢行憲紀念日放假",
-      "isMajor": true
+      "description": "115 學年度寒假開始，同日逢行憲紀念日放假"
     },
     {
       "id": "ncu-115-2-start",
+      "scope": "全校",
       "title": "115-2 註冊與開始上課日",
+      "endDate": "2027-02-23",
+      "isMajor": true,
       "category": "Milestone",
       "startDate": "2027-02-23",
-      "endDate": "2027-02-23",
-      "scope": "全校",
-      "description": "115 學年度第二學期全校學生註冊、開始上課",
-      "isMajor": true
+      "description": "115 學年度第二學期全校學生註冊、開始上課"
     },
     {
       "id": "ncu-115-2-midterm",
+      "scope": "全校課程",
       "title": "115-2 期中成績評量週",
+      "endDate": "2027-04-14",
+      "isMajor": true,
       "category": "Official_Exam",
       "startDate": "2027-04-08",
-      "endDate": "2027-04-14",
-      "scope": "全校課程",
-      "description": "115 學年度第二學期期中評量（各授課教師自行排定日程）",
-      "isMajor": true
+      "description": "115 學年度第二學期期中評量（各授課教師自行排定日程）"
     },
     {
       "id": "ncu-115-2-final",
+      "scope": "全校課程",
       "title": "115-2 期末成績評量週",
+      "endDate": "2027-06-04",
+      "isMajor": true,
       "category": "Official_Exam",
       "startDate": "2027-05-31",
-      "endDate": "2027-06-04",
-      "scope": "全校課程",
-      "description": "115 學年度第二學期期末考試週",
-      "isMajor": true
+      "description": "115 學年度第二學期期末考試週"
     },
     {
       "id": "ncu-115-summer-break",
+      "scope": "全校",
       "title": "暑假開始",
+      "endDate": "2027-08-31",
+      "isMajor": true,
       "category": "Holiday",
       "startDate": "2027-06-21",
-      "endDate": "2027-08-31",
-      "scope": "全校",
-      "description": "115 學年度暑假開始",
-      "isMajor": true
+      "description": "115 學年度暑假開始"
     }
   ],
   "eeclass_dashboard": {
@@ -3426,83 +3426,85 @@
       {
         "id": "evt-1",
         "date": "11-29",
-        "course": "資料與檔案結構",
-        "type": "homework",
         "icon": "Briefcase",
+        "link": "https://ncueeclass.ncu.edu.tw/course/homework/75642",
+        "type": "homework",
         "title": "程式作業－Parsing 與 Infix to Postfix",
-        "link": "https://ncueeclass.ncu.edu.tw/course/homework/75642"
+        "course": "資料與檔案結構"
       },
       {
         "id": "evt-2",
         "date": "12-02",
-        "course": "經濟學",
-        "type": "quiz",
         "icon": "CheckSquare",
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13423",
+        "type": "quiz",
         "title": "作業(CH22)",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13423"
+        "course": "經濟學"
       },
       {
         "id": "evt-3",
         "date": "12-02",
-        "course": "經濟學",
-        "type": "quiz",
         "icon": "CheckSquare",
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13424",
+        "type": "quiz",
         "title": "作業(CH12)",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13424"
+        "course": "經濟學"
       },
       {
         "id": "evt-4",
         "date": "12-02",
-        "course": "經濟學",
-        "type": "quiz",
         "icon": "CheckSquare",
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13425",
+        "type": "quiz",
         "title": "作業(CH28)",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13425"
+        "course": "經濟學"
       }
     ],
     "latest_announcements": [
       {
         "id": "ann-dash-1",
         "date": "11-23",
-        "course": "經濟學",
-        "title": "作業CH12、作業CH22、作業CH28",
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048",
         "isHot": false,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
+        "title": "作業CH12、作業CH22、作業CH28",
+        "course": "經濟學"
       },
       {
         "id": "ann-dash-2",
         "date": "11-20",
-        "course": "資料與檔案結構",
-        "title": "有關程式作業的補充說明",
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737",
         "isHot": true,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
+        "title": "有關程式作業的補充說明",
+        "course": "資料與檔案結構"
       },
       {
         "id": "ann-dash-3",
         "date": "11-19",
-        "course": "資料與檔案結構",
-        "title": "第五章講義已上線",
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596",
         "isHot": true,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
+        "title": "第五章講義已上線",
+        "course": "資料與檔案結構"
       },
       {
         "id": "ann-dash-4",
         "date": "11-18",
-        "course": "服務學習課程",
-        "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400",
         "isHot": false,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400"
+        "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
+        "course": "服務學習課程"
       },
       {
         "id": "ann-dash-5",
         "date": "11-16",
-        "course": "經濟學",
-        "title": "期中考成績公告",
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264",
         "isHot": false,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
+        "title": "期中考成績公告",
+        "course": "經濟學"
       }
     ]
   },
   "ignored_assignment_ids": [],
-  "ignored_assignment_keys": []
+  "ignored_assignment_keys": [],
+  "_deleted_exam_ids": [],
+  "_deleted_deliverable_ids": []
 }

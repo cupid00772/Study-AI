@@ -17,6 +17,7 @@ import {
   Plus,
   FileText,
   CornerDownLeft,
+  X,
 } from 'lucide-react';
 
 export default function CommandPalette({
@@ -132,8 +133,8 @@ export default function CommandPalette({
   }, [items, activeIndex, onClose]);
 
   return (
-    <div className="modal-overlay" style={{ alignItems: 'flex-start', paddingTop: '11vh' }} onClick={onClose}>
-      <div className="cmd-palette-box" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" style={{ alignItems: 'flex-start', paddingTop: '11vh' }}>
+      <div className="cmd-palette-box">
         <div className="cmd-palette-input-row">
           <Search size={17} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <input
@@ -148,6 +149,15 @@ export default function CommandPalette({
             className="cmd-palette-input"
           />
           <kbd className="kbd-chip">ESC</kbd>
+          <button
+            type="button"
+            className="btn btn-secondary btn-icon-sm"
+            onClick={onClose}
+            aria-label="關閉搜尋面板"
+            title="關閉"
+          >
+            <X size={15} />
+          </button>
         </div>
 
         <div className="cmd-palette-list">

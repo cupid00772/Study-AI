@@ -15,6 +15,7 @@ import {
   ChevronUp,
   RotateCcw,
   Clock,
+  X,
 } from 'lucide-react';
 import { getLocalDateKey } from '../utils/academicUtils';
 
@@ -102,8 +103,8 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
       </div>
 
       {isOpen && (
-        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 500 }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 500 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
                 <span className="badge-chip badge-purple" style={{ marginBottom: '6px' }}>
@@ -111,7 +112,7 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
                 </span>
                 <h2 className="modal-title" style={{ margin: 0 }}>{task.title}</h2>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <button type="button" className="icon-ghost-btn" onClick={() => { setIsOpen(false); onEdit?.(task); }} title="編輯">
                   <Edit3 size={15} />
                 </button>
@@ -127,6 +128,15 @@ function TaskCard({ task, onComplete, onUncomplete, onEdit, onDelete }) {
                   title="刪除"
                 >
                   <Trash2 size={15} />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-icon-sm"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="關閉"
+                  title="關閉"
+                >
+                  <X size={16} />
                 </button>
               </div>
             </div>

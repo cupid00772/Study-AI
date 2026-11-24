@@ -123,10 +123,9 @@ export default function GraduationCreditsModal({ onClose, onRequireUnlock }) {
   const otherCats = [...new Set(otherItems.map((i) => i.cat))];
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div
         className="modal-content"
-        onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '1080px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
       >
         {/* Header */}

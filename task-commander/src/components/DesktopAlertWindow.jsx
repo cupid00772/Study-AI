@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle,
   Flame,
@@ -13,8 +13,58 @@ import {
 } from 'lucide-react';
 import TaskCommanderLogo from './TaskCommanderLogo';
 
+async function playShortAlertSound(isCritical) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
+    const now = ctx.currentTime + 0.02;
+    // 緊急警告（考前／逾期／1天內）：短促清脆三短音；一般提醒：簡短雙音提醒
+    const tones = isCritical
+      ? [
+          { freq: 987.77, start: 0, duration: 0.11, gain: 0.18, type: 'triangle' },
+          { freq: 987.77, start: 0.14, duration: 0.11, gain: 0.18, type: 'triangle' },
+          { freq: 1318.51, start: 0.28, duration: 0.18, gain: 0.2, type: 'triangle' },
+        ]
+      : [
+          { freq: 880.0, start: 0, duration: 0.11, gain: 0.15, type: 'sine' },
+          { freq: 1108.73, start: 0.14, duration: 0.17, gain: 0.16, type: 'triangle' },
+        ];
+
+    for (const tone of tones) {
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      osc.type = tone.type;
+      osc.frequency.setValueAtTime(tone.freq, now + tone.start);
+
+      const startAt = now + tone.start;
+      const endAt = startAt + tone.duration;
+      gainNode.gain.setValueAtTime(0.0001, startAt);
+      gainNode.gain.linearRampToValueAtTime(tone.gain, startAt + 0.015);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      osc.start(startAt);
+      osc.stop(endAt + 0.02);
+    }
+
+    window.setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, 750);
+  } catch {
+    // 忽略無音訊裝置或播放受限情況
+  }
+}
+
 export default function DesktopAlertWindow() {
   const [payload, setPayload] = useState(null);
+  const lastPlayedAlertKeyRef = useRef(null);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem('wt_theme') === 'dark'; } catch { return false; }
   });
@@ -77,6 +127,14 @@ export default function DesktopAlertWindow() {
   const allAssignments = [...overdue, ...urgent];
 
   const isCritical = exams.length > 0 || overdue.length > 0 || urgent.some((u) => u.daysLeft <= 1);
+
+  useEffect(() => {
+    if (!payload || payload.playSound === false) return;
+    const alertKey = payload.generatedAt || 'initial';
+    if (lastPlayedAlertKeyRef.current === alertKey) return;
+    lastPlayedAlertKeyRef.current = alertKey;
+    playShortAlertSound(isCritical);
+  }, [payload, isCritical]);
 
   return (
     <div className="alert-popup-root">

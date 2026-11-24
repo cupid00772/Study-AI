@@ -95,6 +95,7 @@ const DEFAULT_APP_CONFIG = {
     dailyTriggerTimes: ['09:00', '20:00'],
     triggerOnStartup: true,
     showPopupWindow: true,
+    playAlertSound: true,
     showWindowsToast: true,
     snoozeMinutes: 30,
     dailyStudyGoalMinutes: 60,
@@ -616,6 +617,11 @@ function App() {
     if (window.electronAPI?.onAutoDeliverablesAdded) {
       unsubs.push(window.electronAPI.onAutoDeliverablesAdded(({ count }) => {
         if (count > 0) showToast(`AI 成果庫已自動收錄 ${count} 份新檔案並同步上雲`);
+      }));
+    }
+    if (window.electronAPI?.onCloudAssetAutoSynced) {
+      unsubs.push(window.electronAPI.onCloudAssetAutoSynced(({ count }) => {
+        if (count > 0) showToast(`已自動增量同步 ${count} 份教材變更至雲端`);
       }));
     }
     return () => {
@@ -1324,6 +1330,7 @@ function App() {
         <ArtifactViewerModal
           key={selectedFileForViewer.path || selectedFileForViewer.title}
           file={selectedFileForViewer}
+          assetManifestVersion={assetManifestVersion}
           onClose={() => setSelectedFileForViewer(null)}
         />
       )}

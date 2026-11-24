@@ -67,6 +67,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onStartFocusTimer: (cb) => subscribe('start-focus-timer', cb),
   onSyncStatusChanged: (cb) => subscribe('sync-status-changed', cb),
   onCloudAssetSyncStatus: (cb) => subscribe('cloud-asset-sync-status', cb),
+  onCloudAssetAutoSynced: (cb) => subscribe('cloud-asset-auto-synced', cb),
   onWindowMaximizedChanged: (cb) => subscribe('window-maximized-changed', cb),
   onAutoDeliverablesAdded: (cb) => subscribe('auto-deliverables-added', cb),
 });

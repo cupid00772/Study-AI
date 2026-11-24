@@ -398,8 +398,8 @@ export default function AssignmentsBoard({
 
       {/* 新增作業彈窗 */}
       {isAddModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsAddModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
               <h2 className="modal-title" style={{ margin: 0 }}>新增作業任務</h2>
               <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)}>

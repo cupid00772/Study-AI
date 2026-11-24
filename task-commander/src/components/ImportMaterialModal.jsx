@@ -158,15 +158,9 @@ export default function ImportMaterialModal({
   };
 
   return (
-    <div
-      className="viewer-modal-overlay"
-      onClick={(e) => { if (e.target === e.currentTarget && !isUploading) onClose(); }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget && !isUploading) onClose(); }}
-    >
+    <div className="viewer-modal-overlay">
       <div
         className="viewer-modal-container"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
         style={{ maxWidth: '680px', height: 'auto', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem' }}
       >
         {/* Header */}

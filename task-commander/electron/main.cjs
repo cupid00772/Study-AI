@@ -6,6 +6,9 @@ const { exec } = require('child_process');
 // Windows 通知與工作列識別碼（確保 Toast 顯示正確名稱與圖示）
 app.setAppUserModelId('com.cupid.task-commander');
 
+// 允許背景自動彈出的警告視窗直接播放簡短警告音效（不受瀏覽器自動播放手勢限制）
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 // 徹底關閉原生選單列，防止 Windows 在無邊框模式下產生空白白色橫條
 Menu.setApplicationMenu(null);
 
@@ -37,6 +40,8 @@ let alertSchedulerInterval = null;
 let autoSyncInterval = null;
 let isSyncRunning = false;
 let isCloudAssetSyncing = false;
+let cloudSyncQueuePromise = Promise.resolve();
+const pendingModifiedAssetPaths = new Set();
 let lastSelfTrackerWriteAt = 0;
 let latestAlertPayload = null;
 let lastStudyState = {
@@ -159,6 +164,7 @@ const DEFAULT_APP_CONFIG = {
     dailyTriggerTimes: ['09:00', '20:00'],
     triggerOnStartup: true,
     showPopupWindow: true,
+    playAlertSound: true,
     showWindowsToast: true,
     snoozeMinutes: 30,
     dailyStudyGoalMinutes: 60,
@@ -651,6 +657,7 @@ function computeAlertPayload(reason = 'scheduled') {
       needsStudyNudge,
       isFocusActive: !!lastStudyState.isFocusActive,
     },
+    playSound: cfg.playAlertSound !== false,
     snoozeMinutes: Number(cfg.snoozeMinutes || 30),
   };
 }
@@ -728,8 +735,9 @@ function createAlertWindow(payload) {
   return alertWindow;
 }
 
-function sendAlertToast(payload) {
-  if (!Notification.isSupported() || !appConfig.alerts?.showWindowsToast) return;
+function sendAlertToast(payload, suppressToastSound = false) {
+  const cfg = appConfig.alerts || DEFAULT_APP_CONFIG.alerts;
+  if (!Notification.isSupported() || !cfg.showWindowsToast) return;
   const headlines = [];
   if (payload.upcomingExams.length > 0) {
     const first = payload.upcomingExams[0];
@@ -751,6 +759,7 @@ function sendAlertToast(payload) {
     body: headlines.join('\n'),
     icon: getAppIconPath(true),
     urgency: 'critical',
+    silent: cfg.playAlertSound === false || suppressToastSound,
   });
   notif.on('click', () => {
     if (alertWindow && !alertWindow.isDestroyed()) {
@@ -779,11 +788,12 @@ function runAlertCheck({ manual = false, reason = 'scheduled' } = {}) {
     return { triggered: false, reason: 'no_alerts' };
   }
 
-  if (manual || cfg.showPopupWindow) {
+  const popupShown = Boolean(manual || cfg.showPopupWindow);
+  if (popupShown) {
     createAlertWindow(payload);
   }
   if (cfg.showWindowsToast && payload.hasAlerts) {
-    sendAlertToast(payload);
+    sendAlertToast(payload, popupShown);
   }
   return { triggered: true, payload };
 }
@@ -914,11 +924,85 @@ function scanDeliverablesFiles() {
   return candidates;
 }
 
+const CLOUD_WATCH_DIRS = ['Study_Materials', 'Test_Bank', 'Review_Dashboard'];
+const CLOUD_SYNC_EXTENSIONS = new Set([
+  'md', 'html', 'htm', 'pdf', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'txt', 'json',
+]);
+const CLOUD_WATCH_IGNORED_SEGMENTS = new Set([
+  'node_modules', '.git', '.venv', '.venv_312', '__pycache__', 'tessdata', 'dist', 'release',
+]);
+
+function isCloudEligibleRelativePath(relPath) {
+  const norm = String(relPath || '').replace(/\\/g, '/').replace(/^\/+/, '');
+  if (!norm) return false;
+  const segments = norm.split('/');
+  for (const seg of segments) {
+    if (!seg || seg.startsWith('.') || seg.startsWith('~$') || CLOUD_WATCH_IGNORED_SEGMENTS.has(seg)) {
+      return false;
+    }
+  }
+  const ext = path.extname(norm).replace('.', '').toLowerCase();
+  if (!CLOUD_SYNC_EXTENSIONS.has(ext)) return false;
+  const fullPath = path.join(workspaceRoot, norm);
+  try {
+    return fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function parseUploadedCountFromOutput(output) {
+  const match = String(output || '').match(/新上傳\s+(\d+)\s+檔/);
+  return match ? Number(match[1]) || 0 : 0;
+}
+
+async function flushPendingModifiedAssets(extraPaths = []) {
+  for (const p of extraPaths) {
+    if (p) pendingModifiedAssetPaths.add(String(p).replace(/\\/g, '/'));
+  }
+  if (pendingModifiedAssetPaths.size === 0) return;
+
+  const batch = Array.from(pendingModifiedAssetPaths);
+  pendingModifiedAssetPaths.clear();
+
+  const eligiblePaths = batch.filter((p) => isCloudEligibleRelativePath(p));
+  if (eligiblePaths.length === 0) return;
+
+  let totalUploaded = 0;
+  const uploadedFiles = [];
+
+  if (eligiblePaths.length > 3) {
+    const res = await runCloudAssetSync({ withTracker: false });
+    if (res?.success) {
+      totalUploaded += parseUploadedCountFromOutput(res.output);
+    }
+  } else {
+    for (const relPath of eligiblePaths) {
+      const res = await runCloudAssetSync({ singleFile: relPath });
+      if (res?.success) {
+        const cnt = parseUploadedCountFromOutput(res.output);
+        if (cnt > 0) {
+          totalUploaded += cnt;
+          uploadedFiles.push(relPath);
+        }
+      }
+    }
+  }
+
+  if (totalUploaded > 0 && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('cloud-asset-auto-synced', {
+      count: totalUploaded,
+      files: uploadedFiles,
+      finishedAt: new Date().toISOString(),
+    });
+  }
+}
+
 function autoIngestNewDeliverables() {
-  if (!appConfig.autoWatchDeliverables || !fs.existsSync(trackerPath)) return 0;
+  if (!appConfig.autoWatchDeliverables || !fs.existsSync(trackerPath)) return [];
   try {
     const tracker = readTrackerFromDisk();
-    if (!tracker) return 0;
+    if (!tracker) return [];
     const existingList = Array.isArray(tracker.deliverables) ? tracker.deliverables : [];
     const existingPaths = new Set(existingList.map((d) => String(d.path || '').replace(/\\/g, '/')));
 
@@ -927,7 +1011,7 @@ function autoIngestNewDeliverables() {
       (f) => (f.category === 'Study_Materials' || f.category === 'Test_Bank') && !existingPaths.has(f.path)
     );
 
-    if (scanned.length === 0) return 0;
+    if (scanned.length === 0) return [];
 
     const todayStr = getLocalDateKey();
     const added = scanned.map((f) => ({
@@ -952,16 +1036,10 @@ function autoIngestNewDeliverables() {
       mainWindow.webContents.send('tracker-updated', tracker);
       mainWindow.webContents.send('auto-deliverables-added', { count: added.length, items: added });
     }
-    // 背景自動將剛產出的 Study_Materials / Test_Bank 新檔增量上傳至雲端
-    for (const item of added) {
-      if (item?.path) {
-        runCloudAssetSync({ singleFile: item.path }).catch(() => {});
-      }
-    }
-    return added.length;
+    return added.map((item) => item.path).filter(Boolean);
   } catch (err) {
     console.error('Auto ingest deliverables error:', err);
-    return 0;
+    return [];
   }
 }
 
@@ -972,16 +1050,26 @@ function setupDeliverablesWatcher() {
   deliverablesWatchers = [];
   if (!appConfig.autoWatchDeliverables) return;
 
-  for (const dirName of ['Study_Materials', 'Test_Bank']) {
+  for (const dirName of CLOUD_WATCH_DIRS) {
     const targetDir = path.join(workspaceRoot, dirName);
     if (!fs.existsSync(targetDir)) continue;
     try {
       const watcher = fs.watch(targetDir, { recursive: true }, (_eventType, filename) => {
-        if (!filename || filename.startsWith('.') || filename.startsWith('~$')) return;
+        if (!filename) return;
+        const normalizedSub = String(filename).replace(/\\/g, '/').replace(/^\/+/, '');
+        const segments = normalizedSub.split('/');
+        if (segments.some((seg) => !seg || seg.startsWith('.') || seg.startsWith('~$'))) return;
+
+        const relPath = `${dirName}/${normalizedSub}`;
+        pendingModifiedAssetPaths.add(relPath);
+
         clearTimeout(deliverablesDebounceTimer);
         deliverablesDebounceTimer = setTimeout(() => {
-          autoIngestNewDeliverables();
-        }, 1200);
+          const newlyIngestedPaths = autoIngestNewDeliverables();
+          flushPendingModifiedAssets(newlyIngestedPaths).catch((err) => {
+            console.error('Auto cloud asset sync error:', err);
+          });
+        }, 1500);
       });
       deliverablesWatchers.push(watcher);
     } catch (err) {
@@ -1375,7 +1463,7 @@ function readCloudRuntimeConfig() {
   };
 }
 
-async function runCloudAssetSync({ singleFile = null, withTracker = false } = {}) {
+async function executeCloudAssetSync({ singleFile = null, withTracker = false } = {}) {
   const tcDir = path.join(workspaceRoot, 'task-commander');
   const scriptPath = path.join(tcDir, 'scripts', 'sync-cloud-assets.cjs');
   const envLocalPath = path.join(tcDir, '.env.local');
@@ -1385,9 +1473,6 @@ async function runCloudAssetSync({ singleFile = null, withTracker = false } = {}
   }
   if (!fs.existsSync(envLocalPath) && !fs.existsSync(rootEnvLocalPath)) {
     return { success: false, skipped: true, error: '尚未建立 task-commander/.env.local' };
-  }
-  if (isCloudAssetSyncing && !singleFile) {
-    return { success: false, error: '雲端檔案同步正在進行中' };
   }
 
   if (!singleFile) isCloudAssetSyncing = true;
@@ -1417,6 +1502,18 @@ async function runCloudAssetSync({ singleFile = null, withTracker = false } = {}
       mainWindow.webContents.send('cloud-asset-sync-status', { syncing: false, singleFile, finishedAt: new Date().toISOString() });
     }
   }
+}
+
+function runCloudAssetSync(options = {}) {
+  const isFullSync = !options?.singleFile;
+  if (isCloudAssetSyncing && isFullSync) {
+    return Promise.resolve({ success: false, error: '雲端檔案同步正在進行中' });
+  }
+  const task = cloudSyncQueuePromise
+    .catch(() => {})
+    .then(() => executeCloudAssetSync(options));
+  cloudSyncQueuePromise = task.catch(() => {});
+  return task;
 }
 
 ipcMain.handle('get-cloud-config', async () => readCloudRuntimeConfig());
@@ -1715,8 +1812,24 @@ app.whenReady().then(() => {
     console.error('Error auto-restoring desktop widgets:', err);
   }
 
-  // 啟動後 3 秒自動掃描 Study_Materials/ 與 Test_Bank/ 新檔案
-  setTimeout(() => autoIngestNewDeliverables(), 3000);
+  // 啟動後 3 秒自動掃描 Study_Materials/ 與 Test_Bank/ 新檔案，並執行一次完整增量上雲（補傳離線期間的修改）
+  setTimeout(() => {
+    autoIngestNewDeliverables();
+    if (appConfig.autoWatchDeliverables) {
+      runCloudAssetSync({ withTracker: false })
+        .then((res) => {
+          const uploadedCount = res?.success ? parseUploadedCountFromOutput(res.output) : 0;
+          if (uploadedCount > 0 && mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('cloud-asset-auto-synced', {
+              count: uploadedCount,
+              files: [],
+              finishedAt: new Date().toISOString(),
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, 3000);
 
   // 啟動後 5 秒執行一次今日開機警告檢查（每日首次開機檢查）
   setTimeout(() => {

@@ -133,7 +133,7 @@ function renderMarkdownWithKatex(content) {
   return html;
 }
 
-export default function ArtifactViewerModal({ file, onClose }) {
+export default function ArtifactViewerModal({ file, onClose, assetManifestVersion = 0 }) {
   const [isFullscreen, setIsFullscreen] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768));
   const [rawContent, setRawContent] = useState('');
   const [cloudUrl, setCloudUrl] = useState(null);
@@ -149,6 +149,11 @@ export default function ArtifactViewerModal({ file, onClose }) {
   const isImage = /\.(png|jpe?g|webp|svg|gif)$/.test(lowerPath);
   const isElectron = Boolean(window.electronAPI?.isElectron);
 
+  const resolvedCloudUrl = useMemo(() => {
+    void assetManifestVersion;
+    return getCloudAssetUrl(file.path);
+  }, [file.path, assetManifestVersion]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -162,7 +167,6 @@ export default function ArtifactViewerModal({ file, onClose }) {
 
     async function loadContent() {
       try {
-        const resolvedCloudUrl = getCloudAssetUrl(file.path);
         if (isMounted) setCloudUrl(resolvedCloudUrl);
 
         // PDF 與圖片不需讀取 UTF-8 文字
@@ -263,7 +267,7 @@ export default function ArtifactViewerModal({ file, onClose }) {
 
     loadContent();
     return () => { isMounted = false; };
-  }, [file.path, file.title, isPdf, isImage, isHtml, isElectron]);
+  }, [file.path, file.title, isPdf, isImage, isHtml, isElectron, resolvedCloudUrl]);
 
   const renderedMarkdown = useMemo(() => {
     if (!isMd || !rawContent) return '';
@@ -347,16 +351,8 @@ export default function ArtifactViewerModal({ file, onClose }) {
   };
 
   return (
-    <div
-      className="viewer-modal-overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className={`viewer-modal-container ${isFullscreen ? 'fullscreen' : ''}`}
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+    <div className="viewer-modal-overlay">
+      <div className={`viewer-modal-container ${isFullscreen ? 'fullscreen' : ''}`}>
         {/* Modal Toolbar */}
         <div className="viewer-toolbar">
           <div className="viewer-file-info">
