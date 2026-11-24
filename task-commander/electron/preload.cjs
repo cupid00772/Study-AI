@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showItemInFolder: (relativePath) => ipcRenderer.invoke('show-in-folder', relativePath),
   selectFile: () => ipcRenderer.invoke('select-file'),
   scanWorkspaceDeliverables: () => ipcRenderer.invoke('scan-workspace-deliverables'),
+  listExamPapers: () => ipcRenderer.invoke('list-exam-papers'),
   getWorkspaceInfo: () => ipcRenderer.invoke('get-workspace-info'),
   selectWorkspaceDir: () => ipcRenderer.invoke('select-workspace-dir'),
 

@@ -1862,6 +1862,55 @@ ipcMain.handle('scan-workspace-deliverables', async () => {
   }
 });
 
+ipcMain.handle('list-exam-papers', async () => {
+  try {
+    const baseResolved = resolveSafeWorkspacePath('Test_Bank/Exam_paper');
+    if (!baseResolved || !fs.existsSync(baseResolved.fullPath)) {
+      return { success: true, exams: [] };
+    }
+    const exams = [];
+    const walk = (dirPath) => {
+      let entries = [];
+      try {
+        entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const entry of entries) {
+        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'archive') continue;
+        const full = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.exam.json')) {
+          try {
+            const raw = fs.readFileSync(full, 'utf-8');
+            const parsed = JSON.parse(raw);
+            const stat = fs.statSync(full);
+            const rel = path.relative(workspaceDir, full).replace(/\\/g, '/');
+            exams.push({
+              relativePath: rel,
+              mtimeMs: stat.mtimeMs,
+              data: parsed,
+            });
+          } catch (parseErr) {
+            console.error('[ExamArena] Failed to parse exam json:', full, parseErr.message);
+          }
+        }
+      }
+    };
+    walk(baseResolved.fullPath);
+    exams.sort((a, b) => {
+      const da = String(a.data?.createdAt || '');
+      const db = String(b.data?.createdAt || '');
+      if (db !== da) return db.localeCompare(da);
+      return (b.mtimeMs || 0) - (a.mtimeMs || 0);
+    });
+    return { success: true, exams };
+  } catch (err) {
+    return { success: false, error: err.message, exams: [] };
+  }
+});
+
 // App Config & Auto Launch IPC
 ipcMain.handle('get-app-config', () => appConfig);
 ipcMain.handle('save-app-config', (_event, nextCfg) => saveAppConfig(nextCfg));

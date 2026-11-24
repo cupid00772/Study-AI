@@ -6,6 +6,7 @@ import CourseSchedule from './components/CourseSchedule';
 import SettingsModal from './components/SettingsModal';
 import AssignmentsBoard from './components/AssignmentsBoard';
 import ExamsDashboard from './components/ExamsDashboard';
+import ExamArena from './components/ExamArena';
 import ArtifactVault from './components/ArtifactVault';
 import ArtifactViewerModal from './components/ArtifactViewerModal';
 import StickyNotesBoard from './components/StickyNotesBoard';
@@ -68,6 +69,7 @@ import {
   CloudOff,
   Lock,
   Unlock,
+  Crosshair,
 } from 'lucide-react';
 
 const INITIAL_TASKS = [
@@ -149,6 +151,7 @@ const TAB_TITLES = {
   dashboard: '總覽首頁',
   assignments: '作業管理',
   exams: '考試日程',
+  arena: '刷題戰情室',
   missions: '每日任務',
   notes: '桌面便條',
   vault: 'AI 成果庫',
@@ -1074,6 +1077,13 @@ function App() {
       badgeUrgent: alertSummary.urgentExamCount > 0,
     },
     {
+      id: 'arena',
+      label: '刷題戰情室',
+      icon: Crosshair,
+      badge: '116',
+      badgeUrgent: false,
+    },
+    {
       id: 'missions',
       label: '每日任務',
       icon: ListTodo,
@@ -1397,6 +1407,13 @@ function App() {
                 onDeleteExam={handleDeleteExam}
                 onAddExam={handleAddExam}
                 onNavigateVault={() => setActiveTab('vault')}
+              />
+            )}
+
+            {activeTab === 'arena' && (
+              <ExamArena
+                onPreviewFile={setSelectedFileForViewer}
+                showToast={showToast}
               />
             )}
 
