@@ -20,8 +20,8 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import SlidingContainer from './SlidingContainer';
-import mermaid from 'mermaid';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
+import { renderMermaidSafe, renderMermaidErrorInto } from '../utils/mermaidRenderer';
 import {
   loadAiConfig,
   saveAiConfig,
@@ -316,16 +316,16 @@ export default function AiGenerateModal({
         const rawDiv = card.querySelector('.mermaid-raw');
         const area = card.querySelector('.mermaid-render-area');
         if (!rawDiv || !area) continue;
+        const code = decodeURIComponent(rawDiv.textContent);
         try {
-          const code = decodeURIComponent(rawDiv.textContent);
-          const { svg, bindFunctions } = await mermaid.render(`ai-mermaid-${Date.now()}-${i}`, code);
+          const { svg, bindFunctions } = await renderMermaidSafe(`ai-mermaid-${Date.now()}-${i}`, code);
           if (!cancelled && area) {
             area.innerHTML = svg;
             if (bindFunctions) bindFunctions(area);
           }
         } catch (err) {
           if (!cancelled && area) {
-            area.innerHTML = `<div class="mermaid-error">⚠️ 圖表解析異常：${err.message || '語法錯誤'}</div>`;
+            renderMermaidErrorInto(area, err, code);
           }
         }
       }

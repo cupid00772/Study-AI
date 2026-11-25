@@ -19,9 +19,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import 'katex/dist/katex.min.css';
-import mermaid from 'mermaid';
 import SlidingContainer from './SlidingContainer';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
+import { renderMermaidSafe, renderMermaidErrorInto } from '../utils/mermaidRenderer';
 import {
   fetchCloudAssetText,
   getCloudAssetUrl,
@@ -30,33 +30,6 @@ import {
 } from '../services/cloudAssetService';
 import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
 import { getResolvedCloudConfig } from '../services/supabaseClient';
-
-// 初始化 Mermaid 渲染引擎
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'dark',
-  securityLevel: 'loose',
-  fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  flowchart: {
-    htmlLabels: true,
-    curve: 'basis',
-    useMaxWidth: true,
-  },
-  themeVariables: {
-    darkMode: true,
-    background: '#18191c',
-    primaryColor: '#2563eb',
-    primaryTextColor: '#f8fafc',
-    primaryBorderColor: '#3b82f6',
-    lineColor: '#94a3b8',
-    secondaryColor: '#7c3aed',
-    tertiaryColor: '#059669',
-    mainBkg: '#1e2025',
-    nodeBorder: '#3b82f6',
-    clusterBkg: '#131417',
-    clusterBorder: '#334155',
-  },
-});
 
 const MD_SNIPPETS = [
   { label: 'H2', insert: '\n## 章節標題\n', title: '插入二級標題' },
@@ -335,7 +308,7 @@ export default function ArtifactViewerModal({
         const uniqueId = `mermaid-svg-${Date.now()}-${i}`;
 
         try {
-          const { svg, bindFunctions } = await mermaid.render(uniqueId, rawCode);
+          const { svg, bindFunctions } = await renderMermaidSafe(uniqueId, rawCode);
           if (!isCancelled && renderArea) {
             renderArea.innerHTML = svg;
             if (bindFunctions) bindFunctions(renderArea);
@@ -343,12 +316,7 @@ export default function ArtifactViewerModal({
         } catch (err) {
           console.error('Mermaid render error:', err);
           if (!isCancelled && renderArea) {
-            renderArea.innerHTML = `
-              <div style="padding:1rem;width:100%;">
-                <div class="mermaid-error">⚠️ 架構圖解析異常：${err.message || '語法未支援'}</div>
-                <pre style="margin-top:0.75rem;font-size:0.8rem;max-height:220px;overflow:auto;">${rawCode}</pre>
-              </div>
-            `;
+            renderMermaidErrorInto(renderArea, err, rawCode);
           }
         }
       }
