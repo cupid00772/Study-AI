@@ -1,6 +1,6 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-25T04:58:52.227356+08:00",
+  "last_updated": "2026-11-25T08:30:03.696440+08:00",
   "academic_year": "115",
   "courses": [
     {
@@ -2968,8 +2968,8 @@
       "path": "Study_Materials/統計學/_INDEX.md",
       "format": "md",
       "certified": true,
-      "updatedAt": "2026-11-17",
-      "summary": "統計學 Ch1~Ch5 敘述統計、機率論、離散與連續分配全章體系導覽與複習指引。",
+      "updatedAt": "2026-11-25",
+      "summary": "統計學 Ch1~Ch7 敘述統計、機率論、離散與連續分配及抽樣分配全章體系導覽與考前 25 大必背精華。",
       "tags": [
         "章節教材",
         "統計學",
@@ -3307,48 +3307,88 @@
         "詳解",
         "台聯大116"
       ]
+    },
+    {
+      "id": "del-stats-ch6-notes",
+      "title": "統計學 Chapter 6：連續機率分配 (Continuous Probability Distributions)",
+      "course": "統計學",
+      "category": "Study_Materials",
+      "type": "notes",
+      "path": "Study_Materials/統計學/Chapter_6_教材.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "均勻分配、常態分配與標準化查表／逆向反求、指數分配 PDF/CDF 及卜瓦松—指數對偶關係（含 13 題詳解與知識樹）。",
+      "tags": [
+        "AI認證",
+        "章節教材",
+        "統計學",
+        "連續分配",
+        "常態分配",
+        "指數分配"
+      ]
+    },
+    {
+      "id": "del-stats-ch7-notes",
+      "title": "統計學 Chapter 7：抽樣與抽樣分配 (Sampling and Sampling Distributions)",
+      "course": "統計學",
+      "category": "Study_Materials",
+      "type": "notes",
+      "path": "Study_Materials/統計學/Chapter_7_教材.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "有限／無限母體抽樣、點估計、中央極限定理 (CLT)、x̄ 與 p̄ 抽樣分配與有限母體校正因子 FPC（含 13 題詳解與知識樹）。",
+      "tags": [
+        "AI認證",
+        "章節教材",
+        "統計學",
+        "抽樣分配",
+        "中央極限定理",
+        "標準誤"
+      ]
     }
   ],
   "announcements": [
     {
       "id": "ann-dash-1",
       "date": "11-23",
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048",
-      "isHot": false,
+      "course": "經濟學",
       "title": "作業CH12、作業CH22、作業CH28",
-      "course": "經濟學"
+      "isHot": false,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
     },
     {
       "id": "ann-dash-2",
       "date": "11-20",
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737",
-      "isHot": true,
+      "course": "資料與檔案結構",
       "title": "有關程式作業的補充說明",
-      "course": "資料與檔案結構"
+      "isHot": true,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
     },
     {
       "id": "ann-dash-3",
       "date": "11-19",
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596",
-      "isHot": true,
+      "course": "資料與檔案結構",
       "title": "第五章講義已上線",
-      "course": "資料與檔案結構"
+      "isHot": true,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
     },
     {
       "id": "ann-dash-4",
       "date": "11-18",
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400",
-      "isHot": false,
+      "course": "服務學習課程",
       "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
-      "course": "服務學習課程"
+      "isHot": false,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400"
     },
     {
       "id": "ann-dash-5",
       "date": "11-16",
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264",
-      "isHot": false,
+      "course": "經濟學",
       "title": "期中考成績公告",
-      "course": "經濟學"
+      "isHot": false,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
     },
     {
       "id": "ann-dash-1",
@@ -3639,80 +3679,80 @@
       {
         "id": "evt-1",
         "date": "11-29",
-        "icon": "Briefcase",
-        "link": "https://ncueeclass.ncu.edu.tw/course/homework/75642",
+        "course": "資料與檔案結構",
         "type": "homework",
+        "icon": "Briefcase",
         "title": "程式作業－Parsing 與 Infix to Postfix",
-        "course": "資料與檔案結構"
+        "link": "https://ncueeclass.ncu.edu.tw/course/homework/75642"
       },
       {
         "id": "evt-2",
         "date": "12-02",
-        "icon": "CheckSquare",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13423",
+        "course": "經濟學",
         "type": "quiz",
+        "icon": "CheckSquare",
         "title": "作業(CH22)",
-        "course": "經濟學"
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13423"
       },
       {
         "id": "evt-3",
         "date": "12-02",
-        "icon": "CheckSquare",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13424",
+        "course": "經濟學",
         "type": "quiz",
+        "icon": "CheckSquare",
         "title": "作業(CH12)",
-        "course": "經濟學"
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13424"
       },
       {
         "id": "evt-4",
         "date": "12-02",
-        "icon": "CheckSquare",
-        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13425",
+        "course": "經濟學",
         "type": "quiz",
+        "icon": "CheckSquare",
         "title": "作業(CH28)",
-        "course": "經濟學"
+        "link": "https://ncueeclass.ncu.edu.tw/course/exam/13425"
       }
     ],
     "latest_announcements": [
       {
         "id": "ann-dash-1",
         "date": "11-23",
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048",
-        "isHot": false,
+        "course": "經濟學",
         "title": "作業CH12、作業CH22、作業CH28",
-        "course": "經濟學"
+        "isHot": false,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
       },
       {
         "id": "ann-dash-2",
         "date": "11-20",
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737",
-        "isHot": true,
+        "course": "資料與檔案結構",
         "title": "有關程式作業的補充說明",
-        "course": "資料與檔案結構"
+        "isHot": true,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
       },
       {
         "id": "ann-dash-3",
         "date": "11-19",
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596",
-        "isHot": true,
+        "course": "資料與檔案結構",
         "title": "第五章講義已上線",
-        "course": "資料與檔案結構"
+        "isHot": true,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
       },
       {
         "id": "ann-dash-4",
         "date": "11-18",
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400",
-        "isHot": false,
+        "course": "服務學習課程",
         "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
-        "course": "服務學習課程"
+        "isHot": false,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400"
       },
       {
         "id": "ann-dash-5",
         "date": "11-16",
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264",
-        "isHot": false,
+        "course": "經濟學",
         "title": "期中考成績公告",
-        "course": "經濟學"
+        "isHot": false,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-25T04:58:52.227356+08:00",
+  "last_updated": "2026-11-25T08:30:03.696440+08:00",
   "academic_year": "115",
   "courses": [
     {
@@ -424,6 +424,74 @@
     }
   ],
   "deliverables": [
+    {
+      "id": "del-auto-1795560142575-qon5q",
+      "title": "Calculus Learning Status 2026 06",
+      "course": "Transfer",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/Calculus_Learning_Status_2026_06.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "自動偵測並收錄自 Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/Calculus_Learning_Status_2026_06.md 之學習資料。",
+      "tags": [
+        "AI認證",
+        "Transfer",
+        "自動收錄"
+      ]
+    },
+    {
+      "id": "del-auto-1795560142575-iliny",
+      "title": "Consolidated Learning Status 2026 06",
+      "course": "Transfer",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/Consolidated_Learning_Status_2026_06.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "自動偵測並收錄自 Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/Consolidated_Learning_Status_2026_06.md 之學習資料。",
+      "tags": [
+        "AI認證",
+        "Transfer",
+        "自動收錄"
+      ]
+    },
+    {
+      "id": "del-auto-1795560142575-ywtgh",
+      "title": "CS Learning Status 2026 06",
+      "course": "Transfer",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/CS_Learning_Status_2026_06.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "自動偵測並收錄自 Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/CS_Learning_Status_2026_06.md 之學習資料。",
+      "tags": [
+        "AI認證",
+        "Transfer",
+        "自動收錄"
+      ]
+    },
+    {
+      "id": "del-auto-1795560142575-v3exe",
+      "title": "English Learning Status 2026 06",
+      "course": "Transfer",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/English_Learning_Status_2026_06.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "自動偵測並收錄自 Test_Bank/Exam_paper/Transfer/archive/2026_06_115_final/English_Learning_Status_2026_06.md 之學習資料。",
+      "tags": [
+        "AI認證",
+        "Transfer",
+        "自動收錄"
+      ]
+    },
     {
       "id": "del-auto-1795522194438-qlti7",
       "title": "Trees 教材",
@@ -2900,8 +2968,8 @@
       "path": "Study_Materials/統計學/_INDEX.md",
       "format": "md",
       "certified": true,
-      "updatedAt": "2026-11-17",
-      "summary": "統計學 Ch1~Ch5 敘述統計、機率論、離散與連續分配全章體系導覽與複習指引。",
+      "updatedAt": "2026-11-25",
+      "summary": "統計學 Ch1~Ch7 敘述統計、機率論、離散與連續分配及抽樣分配全章體系導覽與考前 25 大必背精華。",
       "tags": [
         "章節教材",
         "統計學",
@@ -3094,6 +3162,190 @@
         "期末考",
         "個經前沿",
         "章節教材"
+      ]
+    },
+    {
+      "id": "del-ust116-report-6yr",
+      "title": "116 台聯大 A4（清大資工）近六年考情評估與個人診斷報告",
+      "course": "台聯大/台大轉學考",
+      "category": "Misc_Custom",
+      "type": "report",
+      "path": "Reference/Transfer/台聯大考古題/116_台聯大A4_清大資工_近六年考情評估與個人診斷報告.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "完整統計 109、111–115 近 6 屆微積分/計概/英文命題趨勢、清大資工 2:2:1 加權門檻與 115 實考逐題錯誤診斷。",
+      "tags": [
+        "AI認證",
+        "台聯大116",
+        "清大資工",
+        "考情分析"
+      ]
+    },
+    {
+      "id": "del-ust116-flashcards",
+      "title": "116 台聯大 A4 主動回憶閃卡庫 (Active Recall Flashcards)",
+      "course": "台聯大/台大轉學考",
+      "category": "Study_Materials",
+      "type": "recitation",
+      "path": "Review_Dashboard/Active_Recall_Flashcards.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "針對記憶易流失設計的三科高危名詞、微積分易忘公式與 GRE 學術字彙一句話口訣快篩庫。",
+      "tags": [
+        "AI認證",
+        "台聯大116",
+        "閃卡",
+        "抗遺忘"
+      ]
+    },
+    {
+      "id": "del-ust116-calc-diag-01",
+      "title": "116 台聯大 A4 微積分喚醒診斷卷 #01 (清大資工 90+ Tier)",
+      "course": "微積分",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/微積分/Mock_Exam_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "10 填充 + 2 計算對齊 114–115 新常態，含 115 失分點回馬槍與 116 高機率反彈章節（已同步上架刷題戰情室）。",
+      "tags": [
+        "AI認證",
+        "微積分",
+        "台聯大116",
+        "喚醒診斷"
+      ]
+    },
+    {
+      "id": "del-ust116-calc-diag-01-ans",
+      "title": "116 台聯大 A4 微積分喚醒診斷卷 #01 — 詳解與考點分析",
+      "course": "微積分",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/微積分/Answers_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "116 微積分喚醒診斷卷 #01 逐步推導、零容錯邊界檢查點與考前速記口訣。",
+      "tags": [
+        "AI認證",
+        "微積分",
+        "詳解",
+        "台聯大116"
+      ]
+    },
+    {
+      "id": "del-ust116-cs-diag-01",
+      "title": "116 台聯大 A4 計算機概論喚醒診斷卷 #01 (八大核心＋防遺忘回馬槍)",
+      "course": "計算機概論",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/計算機概論/Mock_Exam_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "20 題單選涵蓋八大核心與 113–114 深水實務，強制回馬槍重測 P vs NP、NAT、BST 刪除與指標語法（已上架刷題戰情室）。",
+      "tags": [
+        "AI認證",
+        "計算機概論",
+        "台聯大116",
+        "喚醒診斷"
+      ]
+    },
+    {
+      "id": "del-ust116-cs-diag-01-ans",
+      "title": "116 台聯大 A4 計算機概論喚醒診斷卷 #01 — 詳解與考點分析",
+      "course": "計算機概論",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/計算機概論/Answers_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "116 計概喚醒診斷卷 #01 記憶體追蹤、複雜度解析、易混名詞對照與口訣。",
+      "tags": [
+        "AI認證",
+        "計算機概論",
+        "詳解",
+        "台聯大116"
+      ]
+    },
+    {
+      "id": "del-ust116-eng-diag-01",
+      "title": "116 台聯大 A4 英文盲區喚醒診斷卷 #01 (高頻學術單字＋核心文法＋學術閱讀)",
+      "course": "英文",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/UST_Transfer_English/Mock_Exam_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "25 題直擊 115 失分主戰場：12 題 GRE/TOEFL 學術單字與反義組 + 8 題核心文法 + 1 篇學術閱讀（已上架刷題戰情室）。",
+      "tags": [
+        "AI認證",
+        "英文",
+        "台聯大116",
+        "喚醒診斷"
+      ]
+    },
+    {
+      "id": "del-ust116-eng-diag-01-ans",
+      "title": "116 台聯大 A4 英文盲區喚醒診斷卷 #01 — 詳解與考點分析",
+      "course": "英文",
+      "category": "Test_Bank",
+      "type": "exam",
+      "path": "Test_Bank/Exam_paper/Transfer/UST_Transfer_English/Answers_116_Diag_01.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "116 英文喚醒診斷卷 #01 學術字彙詞根反義配對、假設語氣與閱讀定位完整剖析。",
+      "tags": [
+        "AI認證",
+        "英文",
+        "詳解",
+        "台聯大116"
+      ]
+    },
+    {
+      "id": "del-stats-ch6-notes",
+      "title": "統計學 Chapter 6：連續機率分配 (Continuous Probability Distributions)",
+      "course": "統計學",
+      "category": "Study_Materials",
+      "type": "notes",
+      "path": "Study_Materials/統計學/Chapter_6_教材.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "均勻分配、常態分配與標準化查表／逆向反求、指數分配 PDF/CDF 及卜瓦松—指數對偶關係（含 13 題詳解與知識樹）。",
+      "tags": [
+        "AI認證",
+        "章節教材",
+        "統計學",
+        "連續分配",
+        "常態分配",
+        "指數分配"
+      ]
+    },
+    {
+      "id": "del-stats-ch7-notes",
+      "title": "統計學 Chapter 7：抽樣與抽樣分配 (Sampling and Sampling Distributions)",
+      "course": "統計學",
+      "category": "Study_Materials",
+      "type": "notes",
+      "path": "Study_Materials/統計學/Chapter_7_教材.md",
+      "format": "md",
+      "certified": true,
+      "updatedAt": "2026-11-25",
+      "summary": "有限／無限母體抽樣、點估計、中央極限定理 (CLT)、x̄ 與 p̄ 抽樣分配與有限母體校正因子 FPC（含 13 題詳解與知識樹）。",
+      "tags": [
+        "AI認證",
+        "章節教材",
+        "統計學",
+        "抽樣分配",
+        "中央極限定理",
+        "標準誤"
       ]
     }
   ],
@@ -3507,5 +3759,8 @@
   "ignored_assignment_ids": [],
   "ignored_assignment_keys": [],
   "_deleted_exam_ids": [],
-  "_deleted_deliverable_ids": []
+  "_deleted_deliverable_ids": [],
+  "_ignored_deliverable_paths": [],
+  "vault_subjects": [],
+  "_deleted_vault_subject_ids": []
 }
