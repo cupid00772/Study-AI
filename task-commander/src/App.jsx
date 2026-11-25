@@ -22,6 +22,11 @@ import {
   getLocalDateKey,
 } from './utils/academicUtils';
 import {
+  isTaskScheduledForDate,
+  resetDailyTaskProgress,
+  resetStaleDailyTasks,
+} from './utils/taskScheduleUtils';
+import {
   loadRuntimeCloudConfig,
   getCloudAuthState,
   subscribeCloudAuth,
@@ -126,15 +131,14 @@ function readStorage(key, fallback) {
 
 function getInitialTasks() {
   const storedTasks = readStorage('wt_tasks', INITIAL_TASKS);
+  const safeTasks = Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS;
   const today = new Date().toDateString();
 
   if (localStorage.getItem(TODAY_KEY) === today) {
-    return Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS;
+    return resetStaleDailyTasks(safeTasks);
   }
   try { localStorage.setItem(TODAY_KEY, today); } catch {}
-  return (Array.isArray(storedTasks) ? storedTasks : INITIAL_TASKS).map((task) =>
-    task.category === 'Daily' ? { ...task, completed: false } : task
-  );
+  return safeTasks.map(resetDailyTaskProgress);
 }
 
 function getInitialTracker(isElectron) {
@@ -311,7 +315,7 @@ function App() {
         payload.items || [],
         payload.deletedIds || []
       );
-      setTasks(merged.items);
+      setTasks(resetStaleDailyTasks(merged.items));
       setDeletedTaskIds(merged.deletedIds);
       return;
     }
@@ -548,7 +552,9 @@ function App() {
   // Sync live study & pending daily task status to Electron main alert engine
   useEffect(() => {
     if (!window.electronAPI?.updateStudyState) return;
-    const pendingDaily = tasks.filter((t) => t.category === 'Daily' && !t.completed).map((t) => t.title);
+    const pendingDaily = tasks
+      .filter((t) => t.category === 'Daily' && isTaskScheduledForDate(t) && !t.completed)
+      .map((t) => t.title);
     window.electronAPI.updateStudyState({
       studyMinutesToday,
       dailyStudyGoalMinutes: appConfig?.alerts?.dailyStudyGoalMinutes || 60,
@@ -648,7 +654,7 @@ function App() {
     const timer = window.setInterval(() => {
       const today = new Date().toDateString();
       if (localStorage.getItem(TODAY_KEY) === today) return;
-      setTasks((prev) => prev.map((t) => (t.category === 'Daily' ? { ...t, completed: false } : t)));
+      setTasks((prev) => prev.map(resetDailyTaskProgress));
       try { localStorage.setItem(TODAY_KEY, today); } catch {}
     }, 60 * 1000);
     return () => window.clearInterval(timer);
@@ -933,11 +939,61 @@ function App() {
 
   const handleCompleteTask = (taskId) => {
     const nowIso = new Date().toISOString();
-    commitTasks(tasksRef.current.map((t) => (t.id === taskId ? { ...t, completed: true, updatedAt: nowIso } : t)));
+    commitTasks(tasksRef.current.map((t) => {
+      if (t.id !== taskId) return t;
+      const nextChecklist = Array.isArray(t.checklist) && t.checklist.length > 0
+        ? t.checklist.map((item) => ({ ...item, done: true }))
+        : t.checklist;
+      return {
+        ...t,
+        completed: true,
+        ...(nextChecklist ? { checklist: nextChecklist } : {}),
+        updatedAt: nowIso,
+      };
+    }));
   };
   const handleUncompleteTask = (taskId) => {
     const nowIso = new Date().toISOString();
-    commitTasks(tasksRef.current.map((t) => (t.id === taskId ? { ...t, completed: false, updatedAt: nowIso } : t)));
+    commitTasks(tasksRef.current.map((t) => {
+      if (t.id !== taskId) return t;
+      const nextChecklist = Array.isArray(t.checklist) && t.checklist.length > 0 && t.checklist.every((item) => item.done)
+        ? t.checklist.map((item) => ({ ...item, done: false }))
+        : t.checklist;
+      return {
+        ...t,
+        completed: false,
+        ...(nextChecklist ? { checklist: nextChecklist } : {}),
+        updatedAt: nowIso,
+      };
+    }));
+  };
+  const handleToggleChecklistItem = (taskId, itemId) => {
+    const nowIso = new Date().toISOString();
+    commitTasks(tasksRef.current.map((t) => {
+      if (t.id !== taskId || !Array.isArray(t.checklist)) return t;
+      const nextChecklist = t.checklist.map((item) =>
+        item.id === itemId ? { ...item, done: !item.done } : item
+      );
+      const allDone = nextChecklist.length > 0 && nextChecklist.every((item) => item.done);
+      return {
+        ...t,
+        checklist: nextChecklist,
+        completed: allDone,
+        updatedAt: nowIso,
+      };
+    }));
+  };
+  const handleResetChecklist = (taskId) => {
+    const nowIso = new Date().toISOString();
+    commitTasks(tasksRef.current.map((t) => {
+      if (t.id !== taskId || !Array.isArray(t.checklist)) return t;
+      return {
+        ...t,
+        completed: false,
+        checklist: t.checklist.map((item) => ({ ...item, done: false })),
+        updatedAt: nowIso,
+      };
+    }));
   };
   const handleAddTask = (taskData) => {
     const nowIso = new Date().toISOString();
@@ -1052,7 +1108,7 @@ function App() {
     [trackerData, appConfig?.alerts]
   );
   const pendingDailyCount = useMemo(
-    () => tasks.filter((t) => t.category === 'Daily' && !t.completed).length,
+    () => tasks.filter((t) => t.category === 'Daily' && isTaskScheduledForDate(t) && !t.completed).length,
     [tasks]
   );
   const courseOptions = useMemo(
@@ -1428,6 +1484,8 @@ function App() {
                 onDelete={handleDeleteTask}
                 onCategoryChange={handleCategoryChange}
                 onAddNew={() => { setEditingTask(null); setIsTaskModalOpen(true); }}
+                onToggleChecklistItem={handleToggleChecklistItem}
+                onResetChecklist={handleResetChecklist}
               />
             )}
 

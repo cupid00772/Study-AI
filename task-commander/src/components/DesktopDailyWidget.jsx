@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { CheckCircle2, Circle, X, CalendarDays, Bell, ListTodo, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, Circle, X, CalendarDays, Bell, ListTodo, Plus, ChevronDown, ChevronUp, CheckSquare, Square } from 'lucide-react';
 import TaskCommanderLogo from './TaskCommanderLogo';
 import PencilStrikeText from './PencilStrikeText';
 import defaultTracker from '../data/defaultTracker.json';
 import { getCoursesForOffsetDays, DAY_LABELS } from '../utils/academicUtils';
+import { isTaskScheduledForDate, getChecklistStats, resetStaleDailyTasks } from '../utils/taskScheduleUtils';
 
 function getTodayKey() {
   return new Date().toDateString();
@@ -19,12 +20,13 @@ function loadJson(key, fallback) {
 }
 
 export default function DesktopDailyWidget() {
-  const [tasks, setTasks] = useState(() => loadJson('wt_tasks', []));
+  const [tasks, setTasks] = useState(() => resetStaleDailyTasks(loadJson('wt_tasks', [])));
   const [reminders, setReminders] = useState(() => loadJson('wt_reminders', []));
   const [completions, setCompletions] = useState(() => loadJson('wt_reminder_completions', {}));
   const [courses, setCourses] = useState(defaultTracker?.courses || []);
   const [quickTitle, setQuickTitle] = useState('');
   const [completingIds, setCompletingIds] = useState([]);
+  const [expandedTaskIds, setExpandedTaskIds] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem('wt_theme') === 'dark'; } catch { return false; }
@@ -57,7 +59,7 @@ export default function DesktopDailyWidget() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === 'wt_tasks') setTasks(loadJson('wt_tasks', []));
+      if (e.key === 'wt_tasks') setTasks(resetStaleDailyTasks(loadJson('wt_tasks', [])));
       if (e.key === 'wt_reminders') setReminders(loadJson('wt_reminders', []));
       if (e.key === 'wt_reminder_completions') setCompletions(loadJson('wt_reminder_completions', {}));
       if (e.key === 'wt_theme') setIsDark(e.newValue === 'dark');
@@ -69,7 +71,7 @@ export default function DesktopDailyWidget() {
   const tomorrowInfo = useMemo(() => getCoursesForOffsetDays(courses, 1), [courses]);
 
   const dailyTasks = useMemo(
-    () => tasks.filter((t) => t.category === 'Daily' || !t.category),
+    () => tasks.filter((t) => (t.category === 'Daily' || !t.category) && isTaskScheduledForDate(t)),
     [tasks]
   );
   const activeDailyTasks = useMemo(() => dailyTasks.filter((t) => !t.completed), [dailyTasks]);
@@ -78,11 +80,46 @@ export default function DesktopDailyWidget() {
   const completionRate = dailyTasks.length > 0 ? Math.round((completedDailyCount / dailyTasks.length) * 100) : 0;
 
   const commitToggleTask = useCallback((taskId) => {
+    const nowIso = new Date().toISOString();
     setTasks((prev) => {
-      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      const updated = prev.map((t) => {
+        if (t.id !== taskId) return t;
+        const nextCompleted = !t.completed;
+        const nextChecklist = Array.isArray(t.checklist) && t.checklist.length > 0
+          ? t.checklist.map((item) => ({ ...item, done: nextCompleted }))
+          : t.checklist;
+        return {
+          ...t,
+          completed: nextCompleted,
+          ...(nextChecklist ? { checklist: nextChecklist } : {}),
+          updatedAt: nowIso,
+        };
+      });
       try { localStorage.setItem('wt_tasks', JSON.stringify(updated)); } catch {}
       return updated;
     });
+  }, []);
+
+  const handleToggleChecklistItem = useCallback((taskId, itemId) => {
+    const nowIso = new Date().toISOString();
+    setTasks((prev) => {
+      const updated = prev.map((t) => {
+        if (t.id !== taskId || !Array.isArray(t.checklist)) return t;
+        const nextChecklist = t.checklist.map((item) =>
+          item.id === itemId ? { ...item, done: !item.done } : item
+        );
+        const allDone = nextChecklist.length > 0 && nextChecklist.every((item) => item.done);
+        return { ...t, checklist: nextChecklist, completed: allDone, updatedAt: nowIso };
+      });
+      try { localStorage.setItem('wt_tasks', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  }, []);
+
+  const toggleExpandTask = useCallback((taskId) => {
+    setExpandedTaskIds((prev) =>
+      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+    );
   }, []);
 
   const handleClickTask = useCallback((task) => {
@@ -295,26 +332,75 @@ export default function DesktopDailyWidget() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                 {activeDailyTasks.map((t) => {
                   const isCompleting = completingIds.includes(t.id);
+                  const stats = getChecklistStats(t);
+                  const isExpanded = expandedTaskIds.includes(t.id);
                   return (
-                    <div
-                      key={t.id}
-                      onClick={() => handleClickTask(t)}
-                      className={`desktop-widget-item ${isCompleting ? 'is-completing-drop' : ''}`}
-                      style={{
-                        background: isCompleting ? palette.emeraldBg : palette.surfaceSub,
-                        border: `1px solid ${isCompleting ? palette.emeraldBorder : palette.border}`,
-                      }}
-                    >
-                      {isCompleting ? (
-                        <CheckCircle2 size={16} className="is-completing-check" style={{ color: palette.emerald, flexShrink: 0 }} />
-                      ) : (
-                        <Circle size={16} style={{ color: palette.accent, flexShrink: 0 }} />
+                    <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div
+                        onClick={() => {
+                          if (stats.hasChecklist) toggleExpandTask(t.id);
+                          else handleClickTask(t);
+                        }}
+                        className={`desktop-widget-item ${isCompleting ? 'is-completing-drop' : ''}`}
+                        style={{
+                          background: isCompleting ? palette.emeraldBg : palette.surfaceSub,
+                          border: `1px solid ${isCompleting ? palette.emeraldBorder : palette.border}`,
+                        }}
+                      >
+                        <span
+                          onClick={(e) => {
+                            if (!stats.hasChecklist) return;
+                            e.stopPropagation();
+                            handleClickTask(t);
+                          }}
+                          style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}
+                          title="標記完成"
+                        >
+                          {isCompleting ? (
+                            <CheckCircle2 size={16} className="is-completing-check" style={{ color: palette.emerald, flexShrink: 0 }} />
+                          ) : (
+                            <Circle size={16} style={{ color: palette.accent, flexShrink: 0 }} />
+                          )}
+                        </span>
+                        <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.5, letterSpacing: '0.02em', wordBreak: 'break-word' }}>
+                          <PencilStrikeText active={isCompleting} strokeColor={palette.muted}>
+                            {t.title}
+                          </PencilStrikeText>
+                        </span>
+                        {stats.hasChecklist && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', fontWeight: 600, color: palette.accent, background: palette.surface, border: `1px solid ${palette.border}`, borderRadius: '999px', padding: '1px 7px', flexShrink: 0 }}>
+                            <span>{stats.done}/{stats.total}</span>
+                            {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          </span>
+                        )}
+                      </div>
+
+                      {stats.hasChecklist && isExpanded && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '14px' }}>
+                          {stats.list.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => handleToggleChecklistItem(t.id, item.id)}
+                              className="desktop-widget-item"
+                              style={{
+                                padding: '6px 10px',
+                                background: item.done ? palette.emeraldBg : palette.surface,
+                                border: `1px solid ${item.done ? palette.emeraldBorder : palette.borderSubtle}`,
+                                opacity: item.done ? 0.72 : 1,
+                              }}
+                            >
+                              {item.done ? (
+                                <CheckSquare size={14} style={{ color: palette.emerald, flexShrink: 0 }} />
+                              ) : (
+                                <Square size={14} style={{ color: palette.muted, flexShrink: 0 }} />
+                              )}
+                              <span style={{ fontSize: '0.8rem', lineHeight: 1.4, textDecoration: item.done ? 'line-through' : 'none', color: item.done ? palette.muted : palette.text }}>
+                                {item.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.5, letterSpacing: '0.02em', wordBreak: 'break-word' }}>
-                        <PencilStrikeText active={isCompleting} strokeColor={palette.muted}>
-                          {t.title}
-                        </PencilStrikeText>
-                      </span>
                     </div>
                   );
                 })}

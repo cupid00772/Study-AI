@@ -29,6 +29,10 @@ import {
   openExternalUrl,
   diffDaysFromToday,
 } from '../utils/academicUtils';
+import {
+  isTaskScheduledForDate,
+  getChecklistStats,
+} from '../utils/taskScheduleUtils';
 
 function formatTimer(seconds) {
   const mins = Math.floor(seconds / 60);
@@ -109,7 +113,7 @@ export default function DashboardHome({
   );
 
   const dailyTasks = useMemo(
-    () => tasks.filter((t) => t.category === 'Daily'),
+    () => tasks.filter((t) => t.category === 'Daily' && isTaskScheduledForDate(t)),
     [tasks]
   );
   const completedDailyCount = dailyTasks.filter((t) => t.completed).length;
@@ -430,15 +434,22 @@ export default function DashboardHome({
                   </button>
                 );
               })}
-              {dailyTasks.filter((t) => !t.completed).slice(0, 3).map((t) => {
+              {dailyTasks.filter((t) => !t.completed).slice(0, 4).map((t) => {
                 const isCompleting = completingTaskIds.includes(t.id);
+                const stats = getChecklistStats(t);
                 return (
                   <button
                     key={t.id}
                     type="button"
                     className={`reminder-chip is-task ${isCompleting ? 'is-completing-drop' : ''}`}
-                    onClick={() => handleAnimatedCompleteTask(t.id)}
-                    title="點擊完成此每日目標"
+                    onClick={() => {
+                      if (stats.hasChecklist) {
+                        onNavigateTab?.('missions');
+                      } else {
+                        handleAnimatedCompleteTask(t.id);
+                      }
+                    }}
+                    title={stats.hasChecklist ? '前往每日任務逐組勾選清單' : '點擊完成此每日目標'}
                   >
                     {isCompleting ? (
                       <CheckCircle2 size={13} className="is-completing-check" style={{ color: 'var(--accent-emerald)' }} />
@@ -446,7 +457,7 @@ export default function DashboardHome({
                       <Circle size={13} />
                     )}
                     <PencilStrikeText active={isCompleting} strokeColor="var(--text-muted)">
-                      {t.title}
+                      {stats.hasChecklist ? `${t.title} (${stats.done}/${stats.total})` : t.title}
                     </PencilStrikeText>
                   </button>
                 );
