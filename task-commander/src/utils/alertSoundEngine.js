@@ -37,6 +37,7 @@ export const DEFAULT_ALERT_SOUND_CONFIG = {
   separateCriticalSound: false,
   normalSound: { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' },
   criticalSound: { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' },
+  focusSound: { type: 'preset', id: 'digital-alarm', label: '經典電子鬧鐘' },
 };
 
 export function normalizeSoundConfig(raw) {
@@ -52,11 +53,17 @@ export function normalizeSoundConfig(raw) {
     criticalSound: src.criticalSound?.type
       ? { ...src.criticalSound }
       : { ...DEFAULT_ALERT_SOUND_CONFIG.criticalSound },
+    focusSound: src.focusSound?.type
+      ? { ...src.focusSound }
+      : { ...DEFAULT_ALERT_SOUND_CONFIG.focusSound },
   };
 }
 
-export function resolveActiveSoundSpec(soundConfig, isCritical) {
+export function resolveActiveSoundSpec(soundConfig, isCritical, kind = 'alert') {
   const cfg = normalizeSoundConfig(soundConfig);
+  if (kind === 'focus_complete' || kind === 'break_complete') {
+    return cfg.focusSound || cfg.normalSound;
+  }
   if (cfg.separateCriticalSound && isCritical) {
     return cfg.criticalSound;
   }

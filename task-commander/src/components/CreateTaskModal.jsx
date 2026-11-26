@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import ConfirmDialog from './ConfirmDialog';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Target,
   X,
@@ -35,12 +37,51 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
       : []
   );
   const [newItemText, setNewItemText] = useState('');
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
 
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const initialSnapshot = useMemo(() => JSON.stringify({
+    title: initialTask ? initialTask.title : '',
+    desc: initialTask ? initialTask.desc || '' : '',
+    category: initialTask ? initialTask.category : 'Daily',
+    difficulty: initialTask ? initialTask.difficulty || 'Medium' : 'Medium',
+    relatedCourse: initialTask?.relatedCourse || '',
+    dueDate: initialTask?.dueDate || '',
+    repeatDays: normalizeRepeatDays(initialTask?.repeatDays),
+    reminderTime: initialTask?.reminderTime || '',
+    checklist: Array.isArray(initialTask?.checklist)
+      ? initialTask.checklist.map((i) => ({ text: String(i.text || ''), done: Boolean(i.done) }))
+      : [],
+  }), [initialTask]);
+
+  const isDirty = useMemo(() => {
+    if (newItemText.trim()) return true;
+    const currentSnapshot = JSON.stringify({
+      title,
+      desc,
+      category,
+      difficulty,
+      relatedCourse,
+      dueDate,
+      repeatDays,
+      reminderTime,
+      checklist: checklist.map((i) => ({ text: String(i.text || ''), done: Boolean(i.done) })),
+    });
+    return currentSnapshot !== initialSnapshot;
+  }, [title, desc, category, difficulty, relatedCourse, dueDate, repeatDays, reminderTime, checklist, newItemText, initialSnapshot]);
+
+  const handleRequestClose = useCallback(() => {
+    if (isDirty) {
+      setConfirmDiscardOpen(true);
+      return;
+    }
+    onClose();
+  }, [isDirty, onClose]);
+
+  const { dialogRef } = useModalA11y({
+    isOpen: true,
+    onClose: handleRequestClose,
+    disabled: confirmDiscardOpen,
+  });
 
   const availableCourseOptions = [...new Set([
     ...courseOptions,
@@ -117,17 +158,22 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
   return (
     <div className="modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-task-modal-title"
+        tabIndex={-1}
         className="modal-content"
         style={{ maxWidth: 560, maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Target size={19} style={{ color: 'var(--accent-primary)' }} />
-            <h2 className="modal-title" style={{ margin: 0 }}>
+            <h2 id="create-task-modal-title" className="modal-title" style={{ margin: 0 }}>
               {initialTask ? '編輯任務' : '新增任務'}
             </h2>
           </div>
-          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={onClose}>
+          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={handleRequestClose} aria-label="關閉任務表單">
             <X size={16} />
           </button>
         </div>
@@ -135,8 +181,9 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px', minHeight: 0 }}>
             <div className="form-group">
-              <label>任務名稱 *</label>
+              <label htmlFor="task-title-input">任務名稱 *</label>
               <input
+                id="task-title-input"
                 type="text"
                 className="form-control"
                 value={title}
@@ -148,8 +195,9 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
             </div>
 
             <div className="form-group">
-              <label>補充說明</label>
+              <label htmlFor="task-desc-input">補充說明</label>
               <textarea
+                id="task-desc-input"
                 className="form-control"
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
@@ -158,10 +206,10 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-grid-2">
               <div className="form-group">
-                <label>任務分類</label>
-                <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
+                <label htmlFor="task-cat-select">任務分類</label>
+                <select id="task-cat-select" className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
                   <option value="Daily">每日核心目標</option>
                   <option value="Main">學期主線任務</option>
                   <option value="Challenge">轉學考／衝刺挑戰</option>
@@ -169,8 +217,8 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
               </div>
 
               <div className="form-group">
-                <label>優先級</label>
-                <select className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                <label htmlFor="task-diff-select">優先級</label>
+                <select id="task-diff-select" className="form-control" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                   <option value="Easy">一般</option>
                   <option value="Medium">中優先</option>
                   <option value="Hard">高優先</option>
@@ -181,9 +229,9 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
             {category === 'Daily' && (
               <div className="form-group" style={{ background: 'var(--bg-input)', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                  <label style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                     <Repeat size={13} /> 重複星期（未指定則每天顯示）
-                  </label>
+                  </span>
                   <button
                     type="button"
                     className={`weekday-pill-btn ${repeatDays.length === 0 ? 'active' : ''}`}
@@ -203,6 +251,7 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
                         className={`weekday-pill-btn ${active ? 'active' : ''}`}
                         onClick={() => handleToggleDay(opt.value)}
                         title={opt.label}
+                        aria-pressed={active}
                       >
                         {opt.short}
                       </button>
@@ -210,11 +259,12 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
                   })}
                 </div>
 
-                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <label htmlFor="task-reminder-time" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                     <Clock size={13} /> 提醒時間（選填）
                   </label>
                   <input
+                    id="task-reminder-time"
                     type="time"
                     className="form-control"
                     value={reminderTime}
@@ -234,23 +284,23 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-grid-2">
               <div className="form-group">
-                <label>所屬科目（選填）</label>
-                <select className="form-control" value={relatedCourse} onChange={(e) => setRelatedCourse(e.target.value)}>
+                <label htmlFor="task-course-select">所屬科目（選填）</label>
+                <select id="task-course-select" className="form-control" value={relatedCourse} onChange={(e) => setRelatedCourse(e.target.value)}>
                   <option value="">不限科目</option>
                   {availableCourseOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
               <div className="form-group">
-                <label>預計期限（選填）</label>
-                <input type="date" className="form-control" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <label htmlFor="task-due-input">預計期限（選填）</label>
+                <input id="task-due-input" type="date" className="form-control" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '0.25rem' }}>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <label htmlFor="task-checklist-new" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                 <ListChecks size={13} /> 子任務清單（可逐組勾選，共 {checklist.length} 項）
               </label>
 
@@ -263,6 +313,7 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
                         className="icon-ghost-btn"
                         onClick={() => handleToggleChecklistDone(item.id)}
                         title={item.done ? '標記為未完成' : '標記為完成'}
+                        aria-label={item.done ? `取消勾選「${item.text}」` : `勾選「${item.text}」`}
                         style={{ color: item.done ? 'var(--accent-emerald)' : 'var(--text-muted)' }}
                       >
                         {item.done ? <CheckSquare size={16} /> : <Square size={16} />}
@@ -271,6 +322,7 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
                         type="text"
                         className="form-control"
                         value={item.text}
+                        aria-label="子任務內容"
                         onChange={(e) => handleChangeChecklistText(item.id, e.target.value)}
                         style={{ padding: '0.38rem 0.65rem', fontSize: '0.82rem' }}
                       />
@@ -279,6 +331,7 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
                         className="icon-ghost-btn danger"
                         onClick={() => handleRemoveChecklistItem(item.id)}
                         title="移除此項"
+                        aria-label={`移除子項目「${item.text}」`}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -289,6 +342,7 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
 
               <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                 <input
+                  id="task-checklist-new"
                   type="text"
                   className="form-control"
                   value={newItemText}
@@ -315,11 +369,25 @@ export default function CreateTaskModal({ onClose, onAdd, initialTask = null, co
           </div>
 
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', flexShrink: 0 }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>取消</button>
+            <button type="button" className="btn btn-secondary" onClick={handleRequestClose}>取消</button>
             <button type="submit" className="btn btn-primary">{initialTask ? '儲存變更' : '建立任務'}</button>
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDiscardOpen}
+        title="放棄未儲存的任務變更？"
+        message="你已編輯此表單內容，離開將會遺失尚未儲存的修改。"
+        confirmLabel="放棄並關閉"
+        cancelLabel="繼續編輯"
+        danger
+        onCancel={() => setConfirmDiscardOpen(false)}
+        onConfirm={() => {
+          setConfirmDiscardOpen(false);
+          onClose();
+        }}
+      />
     </div>
   );
 }

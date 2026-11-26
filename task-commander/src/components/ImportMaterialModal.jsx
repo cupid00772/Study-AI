@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 import { X, FolderPlus, CheckCircle2, Sparkles, FolderOpen, UploadCloud, AlertCircle } from 'lucide-react';
 import { uploadBrowserFileToCloud } from '../services/cloudAssetService';
 import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
@@ -34,14 +35,7 @@ export default function ImportMaterialModal({
   const isElectron = Boolean(window.electronAPI?.isElectron);
   const cloudConfigured = getResolvedCloudConfig().configured;
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !isUploading) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isUploading, onClose]);
+  const { dialogRef } = useModalA11y({ isOpen, onClose, disabled: isUploading });
 
   if (!isOpen) return null;
 
@@ -161,6 +155,11 @@ export default function ImportMaterialModal({
   return (
     <div className="viewer-modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-material-title"
+        tabIndex={-1}
         className="viewer-modal-container"
         style={{ maxWidth: '680px', height: 'auto', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem' }}
       >
@@ -171,7 +170,7 @@ export default function ImportMaterialModal({
               <FolderPlus size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.18rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
+              <h2 id="import-material-title" style={{ fontSize: '1.18rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 {isElectron ? '自行導入學習成果 / 資料' : '上傳教材或導入雲端學習資料'}
               </h2>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -181,7 +180,7 @@ export default function ImportMaterialModal({
               </div>
             </div>
           </div>
-          <button className="btn btn-secondary btn-icon-circle" onClick={onClose} disabled={isUploading} style={{ width: 34, height: 34 }}>
+          <button type="button" className="btn btn-secondary btn-icon-circle" onClick={onClose} disabled={isUploading} aria-label="關閉導入視窗" style={{ width: 34, height: 34 }}>
             <X size={18} />
           </button>
         </div>
@@ -190,12 +189,12 @@ export default function ImportMaterialModal({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.05rem' }}>
           {/* 1. Category selector */}
           <div>
-            <label className="setting-label">1. 導入目的地分類 (Category)</label>
+            <span className="setting-label">1. 導入目的地分類 (Category)</span>
             <SlidingContainer
-              className="nav-pills category-grid-pills"
+              className="nav-pills category-grid-pills form-grid-3"
               activeKey={category}
               indicatorClassName="sliding-pill-indicator pill-slider"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', padding: '4px' }}
+              style={{ padding: '4px' }}
             >
               {[
                 { key: 'Study_Materials', label: '📘 Study_Materials' },
@@ -271,7 +270,16 @@ export default function ImportMaterialModal({
                 onChange={(e) => handleSelectBrowserFile(e.target.files?.[0])}
               />
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="點擊挑選檔案或拖曳至此上傳雲端"
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();

@@ -17,6 +17,7 @@ export const SYNC_KEYS = {
   STUDY_LOG: 'user_study_log',
   STICKY_NOTES: 'user_sticky_notes',
   GRADUATION_CREDITS: 'user_graduation_credits',
+  FLASHCARDS: 'user_flashcards',
   ASSET_MANIFEST: 'asset_manifest',
 };
 

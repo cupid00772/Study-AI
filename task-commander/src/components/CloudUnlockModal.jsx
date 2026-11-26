@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Lock, Unlock, ShieldCheck, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Lock, Unlock, ShieldCheck, X, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   getResolvedCloudConfig,
   unlockCloudWrite,
@@ -19,16 +20,12 @@ export default function CloudUnlockModal({
   const cfg = getResolvedCloudConfig();
   const [email, setEmail] = useState(currentEmail || cfg.ownerEmail || '');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  const { dialogRef } = useModalA11y({ isOpen, onClose, disabled: submitting });
 
   if (!isOpen) return null;
 
@@ -72,6 +69,11 @@ export default function CloudUnlockModal({
   return (
     <div className="modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cloud-unlock-modal-title"
+        tabIndex={-1}
         className="modal-content"
         style={{ maxWidth: '440px' }}
       >
@@ -82,7 +84,7 @@ export default function CloudUnlockModal({
             ) : (
               <Lock size={20} style={{ color: 'var(--accent-primary)' }} />
             )}
-            <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem' }}>
+            <h2 id="cloud-unlock-modal-title" className="modal-title" style={{ margin: 0, fontSize: '1.1rem' }}>
               {canWrite ? '雲端寫入權限已解鎖' : '解鎖雲端編輯與上傳權限'}
             </h2>
           </div>
@@ -128,8 +130,9 @@ export default function CloudUnlockModal({
             )}
 
             <div className="form-group" style={{ margin: 0 }}>
-              <label>本人帳號 Email</label>
+              <label htmlFor="cloud-unlock-email">本人帳號 Email</label>
               <input
+                id="cloud-unlock-email"
                 type="email"
                 className="form-control"
                 value={email}
@@ -141,28 +144,40 @@ export default function CloudUnlockModal({
             </div>
 
             <div className="form-group" style={{ margin: 0 }}>
-              <label>編輯解鎖密碼</label>
-              <input
-                type="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="輸入你在 Supabase 建立的密碼"
-                required
-                autoFocus
-                autoComplete="current-password"
-              />
+              <label htmlFor="cloud-unlock-password">編輯解鎖密碼</label>
+              <div className="password-input-wrap">
+                <input
+                  id="cloud-unlock-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-control"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="輸入你在 Supabase 建立的密碼"
+                  required
+                  autoFocus
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword((p) => !p)}
+                  aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                  title={showPassword ? '隱藏密碼' : '顯示密碼'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             {error && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-danger)', fontSize: '0.8rem' }}>
+              <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-danger)', fontSize: '0.8rem' }}>
                 <AlertCircle size={15} />
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-emerald)', fontSize: '0.8rem', fontWeight: 600 }}>
+              <div role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-emerald)', fontSize: '0.8rem', fontWeight: 600 }}>
                 <CheckCircle2 size={15} />
                 <span>{successMsg}</span>
               </div>

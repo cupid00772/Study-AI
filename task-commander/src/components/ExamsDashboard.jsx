@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Calendar,
   BookOpen,
@@ -27,6 +28,10 @@ export default function ExamsDashboard({
 }) {
   const [filterChip, setFilterChip] = useState('upcoming'); // 'upcoming' | 'all' | 'completed' | courseName
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { dialogRef: addExamDialogRef } = useModalA11y({
+    isOpen: isAddModalOpen,
+    onClose: () => setIsAddModalOpen(false),
+  });
 
   const [newTitle, setNewTitle] = useState('');
   const [selectedCourse, setSelectedCourse] = useState(courses[0]?.name || '作業系統');
@@ -262,10 +267,9 @@ export default function ExamsDashboard({
                   <button
                     type="button"
                     className="icon-ghost-btn danger"
-                    onClick={() => {
-                      if (window.confirm(`確定要移除「${ex.title}」這筆考試記錄嗎？`)) onDeleteExam?.(ex.id);
-                    }}
-                    title="移除記錄"
+                    onClick={() => onDeleteExam?.(ex.id)}
+                    title="移除記錄（可於 5 秒內復原）"
+                    aria-label={`移除考試「${ex.title}」`}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -279,49 +283,57 @@ export default function ExamsDashboard({
       {/* Add Exam Modal */}
       {isAddModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: 520 }}>
+          <div
+            ref={addExamDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-exam-modal-title"
+            tabIndex={-1}
+            className="modal-content"
+            style={{ maxWidth: 520 }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
-              <h2 className="modal-title" style={{ margin: 0 }}>新增考試日程</h2>
-              <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)}>
+              <h2 id="add-exam-modal-title" className="modal-title" style={{ margin: 0 }}>新增考試日程</h2>
+              <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)} aria-label="關閉新增考試視窗">
                 <X size={16} />
               </button>
             </div>
             <form onSubmit={handleAddSubmit}>
               <div className="form-group">
-                <label>考試名稱 *</label>
-                <input type="text" className="form-control" required value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="例如：作業系統期末考、資料結構小考" />
+                <label htmlFor="exam-new-title">考試名稱 *</label>
+                <input id="exam-new-title" type="text" className="form-control" required value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="例如：作業系統期末考、資料結構小考" />
               </div>
               <div className="form-group">
-                <label>所屬科目</label>
-                <select className="form-control" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
+                <label htmlFor="exam-new-course">所屬科目</label>
+                <select id="exam-new-course" className="form-control" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
                   {courses.map((c) => <option key={c.id || c.name} value={c.name}>{c.name}</option>)}
                   <option value="__custom__">+ 自訂科目名稱</option>
                 </select>
               </div>
               {selectedCourse === '__custom__' && (
                 <div className="form-group">
-                  <label>自訂科目</label>
-                  <input type="text" className="form-control" required value={customCourse} onChange={(e) => setCustomCourse(e.target.value)} placeholder="輸入科目名稱" />
+                  <label htmlFor="exam-custom-course">自訂科目</label>
+                  <input id="exam-custom-course" type="text" className="form-control" required value={customCourse} onChange={(e) => setCustomCourse(e.target.value)} placeholder="輸入科目名稱" />
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
-                  <label>考試日期 *</label>
-                  <input type="date" className="form-control" required value={newDate} onChange={(e) => setNewDate(e.target.value)} />
+                  <label htmlFor="exam-new-date">考試日期 *</label>
+                  <input id="exam-new-date" type="date" className="form-control" required value={newDate} onChange={(e) => setNewDate(e.target.value)} />
                 </div>
                 <div className="form-group">
-                  <label>考試時間</label>
-                  <input type="text" className="form-control" value={newTime} onChange={(e) => setNewTime(e.target.value)} placeholder="例如：09:00 - 11:00" />
+                  <label htmlFor="exam-new-time">考試時間</label>
+                  <input id="exam-new-time" type="text" className="form-control" value={newTime} onChange={(e) => setNewTime(e.target.value)} placeholder="例如：09:00 - 11:00" />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
-                  <label>教室 / 試場</label>
-                  <input type="text" className="form-control" value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="例如：志希館 I-204" />
+                  <label htmlFor="exam-new-loc">教室 / 試場</label>
+                  <input id="exam-new-loc" type="text" className="form-control" value={newLocation} onChange={(e) => setNewLocation(e.target.value)} placeholder="例如：志希館 I-204" />
                 </div>
                 <div className="form-group">
-                  <label>考試範圍</label>
-                  <input type="text" className="form-control" value={newScope} onChange={(e) => setNewScope(e.target.value)} placeholder="例如：Ch6 ~ Ch9" />
+                  <label htmlFor="exam-new-scope">考試範圍</label>
+                  <input id="exam-new-scope" type="text" className="form-control" value={newScope} onChange={(e) => setNewScope(e.target.value)} placeholder="例如：Ch6 ~ Ch9" />
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.25rem' }}>

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, FilePlus2, CheckCircle2, AlertCircle } from 'lucide-react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 import { uploadTextAssetToCloud } from '../services/cloudAssetService';
 import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
 import { getResolvedCloudConfig } from '../services/supabaseClient';
@@ -44,14 +45,7 @@ export default function CreateNoteModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape' && !saving) onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, saving, onClose]);
+  const { dialogRef } = useModalA11y({ isOpen, onClose, disabled: saving });
 
   if (!isOpen) return null;
 
@@ -121,32 +115,40 @@ export default function CreateNoteModal({
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '520px' }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-note-modal-title"
+        tabIndex={-1}
+        className="modal-content"
+        style={{ maxWidth: '520px' }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="vault-icon-badge" style={{ width: 36, height: 36 }}>
               <FilePlus2 size={18} />
             </div>
             <div>
-              <h2 className="modal-title" style={{ margin: 0, fontSize: '1.08rem' }}>新建 Markdown 學習筆記</h2>
+              <h2 id="create-note-modal-title" className="modal-title" style={{ margin: 0, fontSize: '1.08rem' }}>新建 Markdown 學習筆記</h2>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 建立後立即開啟內建即時預覽編輯器（支援 KaTeX 公式與 Mermaid 圖表）
               </div>
             </div>
           </div>
-          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={onClose} disabled={saving}>
+          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={onClose} disabled={saving} aria-label="關閉新建筆記視窗">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label className="setting-label">存放分類</label>
+            <span className="setting-label">存放分類</span>
             <SlidingContainer
-              className="nav-pills"
+              className="nav-pills form-grid-3"
               activeKey={category}
               indicatorClassName="sliding-pill-indicator pill-slider"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', padding: '4px' }}
+              style={{ padding: '4px' }}
             >
               {[
                 { key: 'Study_Materials', label: '📘 學習教材庫' },

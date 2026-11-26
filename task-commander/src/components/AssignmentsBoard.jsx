@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import SlidingContainer from './SlidingContainer';
+import ConfirmDialog from './ConfirmDialog';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   CheckCircle2,
   Clock,
@@ -30,6 +32,12 @@ export default function AssignmentsBoard({
   const [viewMode, setViewMode] = useState(() => (isMobile || (typeof window !== 'undefined' && window.innerWidth < 768) ? 'list' : 'kanban')); // 'kanban' | 'list'
   const [dragOverCol, setDragOverCol] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [pendingDeleteHw, setPendingDeleteHw] = useState(null);
+
+  const { dialogRef: addModalRef } = useModalA11y({
+    isOpen: isAddModalOpen,
+    onClose: () => setIsAddModalOpen(false),
+  });
 
   // Add assignment form
   const [newTitle, setNewTitle] = useState('');
@@ -109,9 +117,7 @@ export default function AssignmentsBoard({
 
   const handleDeleteItem = (e, hw) => {
     e.stopPropagation();
-    if (window.confirm(`確定要移除「${hw.title}」嗎？\n移除後將自動加入忽略清單，下次同步 eeclass 不會再復活。`)) {
-      onDeleteAssignment?.(hw.id);
-    }
+    setPendingDeleteHw(hw);
   };
 
   const handleAddSubmit = (e) => {
@@ -172,6 +178,7 @@ export default function AssignmentsBoard({
               className="icon-ghost-btn danger"
               onClick={(e) => handleDeleteItem(e, hw)}
               title="移除並忽略此作業"
+              aria-label={`移除作業「${hw.title}」`}
             >
               <Trash2 size={13} />
             </button>
@@ -367,6 +374,7 @@ export default function AssignmentsBoard({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {filteredAssignments.map((hw) => {
                 const isCompleted = hw.status === 'completed';
+                const isInProgress = hw.status === 'in_progress';
                 return (
                   <div key={hw.id} className="assignment-list-row">
                     <span className="badge-chip badge-blue" style={{ flexShrink: 0 }}>{hw.course}</span>
@@ -380,11 +388,45 @@ export default function AssignmentsBoard({
                         </div>
                       )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <div className="assignment-list-actions">
                       {getDeadlineBadge(hw.dueDate, isCompleted, hw.grade)}
+                      {hw.promptFile && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-xs"
+                          onClick={() => onPreviewFile?.({ title: `${hw.title} - 題目說明`, path: hw.promptFile, course: hw.course })}
+                        >
+                          <FileText size={12} /> 題目
+                        </button>
+                      )}
+                      {hw.deliverableFile && (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-xs"
+                          onClick={() => onPreviewFile?.({ title: `${hw.title} - 解答/成果`, path: hw.deliverableFile, course: hw.course })}
+                        >
+                          <Sparkles size={12} /> 成果
+                        </button>
+                      )}
                       {hw.link && (
-                        <button type="button" className="icon-ghost-btn" onClick={() => openExternalUrl(hw.link)} title="開啟 eeclass">
+                        <button
+                          type="button"
+                          className="icon-ghost-btn"
+                          onClick={() => openExternalUrl(hw.link)}
+                          title="開啟 eeclass"
+                          aria-label={`開啟 ${hw.title} 的 eeclass 繳交頁`}
+                        >
                           <ExternalLink size={14} />
+                        </button>
+                      )}
+                      {!isCompleted && !isInProgress && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-xs"
+                          onClick={() => onChangeStatus?.(hw.id, 'in_progress')}
+                          title="移至進行中"
+                        >
+                          <Play size={11} /> 進行中
                         </button>
                       )}
                       {!isCompleted ? (
@@ -396,7 +438,13 @@ export default function AssignmentsBoard({
                           <RotateCcw size={12} /> 重開
                         </button>
                       )}
-                      <button type="button" className="icon-ghost-btn danger" onClick={(e) => handleDeleteItem(e, hw)} title="移除">
+                      <button
+                        type="button"
+                        className="icon-ghost-btn danger"
+                        onClick={(e) => handleDeleteItem(e, hw)}
+                        title="移除"
+                        aria-label={`移除作業「${hw.title}」`}
+                      >
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -411,39 +459,47 @@ export default function AssignmentsBoard({
       {/* 新增作業彈窗 */}
       {isAddModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
+          <div
+            ref={addModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-assignment-title"
+            tabIndex={-1}
+            className="modal-content"
+            style={{ maxWidth: '500px' }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.15rem' }}>
-              <h2 className="modal-title" style={{ margin: 0 }}>新增作業任務</h2>
-              <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)}>
+              <h2 id="add-assignment-title" className="modal-title" style={{ margin: 0 }}>新增作業任務</h2>
+              <button type="button" className="btn btn-secondary btn-icon-sm" onClick={() => setIsAddModalOpen(false)} aria-label="關閉新增作業視窗">
                 <X size={16} />
               </button>
             </div>
             <form onSubmit={handleAddSubmit}>
               <div className="form-group">
-                <label>作業名稱 *</label>
-                <input type="text" className="form-control" required value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="例如：作業系統 Ch6 排程實作" />
+                <label htmlFor="hw-new-title">作業名稱 *</label>
+                <input id="hw-new-title" type="text" className="form-control" required value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="例如：作業系統 Ch6 排程實作" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-grid-2">
                 <div className="form-group">
-                  <label>所屬科目</label>
-                  <select className="form-control" value={newCourse} onChange={(e) => setNewCourse(e.target.value)}>
+                  <label htmlFor="hw-new-course">所屬科目</label>
+                  <select id="hw-new-course" className="form-control" value={newCourse} onChange={(e) => setNewCourse(e.target.value)}>
                     {(courses || []).map((c) => (
                       <option key={c.id || c.name} value={c.name}>{c.name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>截止日期</label>
-                  <input type="date" className="form-control" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} />
+                  <label htmlFor="hw-new-due">截止日期</label>
+                  <input id="hw-new-due" type="date" className="form-control" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} />
                 </div>
               </div>
               <div className="form-group">
-                <label>備註說明</label>
-                <input type="text" className="form-control" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="繳交格式、補交規定或重點備註..." />
+                <label htmlFor="hw-new-desc">備註說明</label>
+                <input id="hw-new-desc" type="text" className="form-control" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="繳交格式、補交規定或重點備註..." />
               </div>
               <div className="form-group">
-                <label>繳交連結（選填）</label>
-                <input type="url" className="form-control" value={newLink} onChange={(e) => setNewLink(e.target.value)} placeholder="https://ncueeclass.ncu.edu.tw/..." />
+                <label htmlFor="hw-new-link">繳交連結（選填）</label>
+                <input id="hw-new-link" type="url" className="form-control" value={newLink} onChange={(e) => setNewLink(e.target.value)} placeholder="https://ncueeclass.ncu.edu.tw/..." />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.25rem' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setIsAddModalOpen(false)}>取消</button>
@@ -453,6 +509,20 @@ export default function AssignmentsBoard({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(pendingDeleteHw)}
+        title="移除並忽略此作業？"
+        message={pendingDeleteHw ? `確定要移除「${pendingDeleteHw.title}」嗎？\n移除後將自動加入忽略清單，下次同步 eeclass 不會再復活。` : ''}
+        confirmLabel="確認移除"
+        danger
+        onCancel={() => setPendingDeleteHw(null)}
+        onConfirm={() => {
+          const id = pendingDeleteHw?.id;
+          setPendingDeleteHw(null);
+          if (id) onDeleteAssignment?.(id);
+        }}
+      />
     </div>
   );
 }

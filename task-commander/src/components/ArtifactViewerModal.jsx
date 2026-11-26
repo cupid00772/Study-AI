@@ -7,7 +7,6 @@ import {
   FolderOpen,
   FileText,
   Code,
-  Sparkles,
   BookOpen,
   Image as ImageIcon,
   CloudOff,
@@ -20,6 +19,9 @@ import {
 } from 'lucide-react';
 import 'katex/dist/katex.min.css';
 import SlidingContainer from './SlidingContainer';
+import ConfirmDialog from './ConfirmDialog';
+import ViewSkeleton from './ViewSkeleton';
+import { useModalA11y } from '../hooks/useModalA11y';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
 import { renderMermaidSafe, renderMermaidErrorInto } from '../utils/mermaidRenderer';
 import {
@@ -75,6 +77,7 @@ export default function ArtifactViewerModal({
   const [isSaving, setIsSaving] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [dirtyConfirmAction, setDirtyConfirmAction] = useState(null); // null | 'close' | 'exit-edit'
 
   const isDirty = isEditing && editDraft !== rawContent;
 
@@ -83,12 +86,19 @@ export default function ArtifactViewerModal({
     return getCloudAssetUrl(file.path);
   }, [file.path, assetManifestVersion]);
 
-  const handleRequestClose = useCallback(() => {
+  const handleRequestClose = () => {
     if (isDirty) {
-      if (!window.confirm('尚有未儲存的編輯內容，確定要放棄修改並關閉嗎？')) return;
+      setDirtyConfirmAction('close');
+      return;
     }
     onClose();
-  }, [isDirty, onClose]);
+  };
+
+  const { dialogRef: viewerDialogRef } = useModalA11y({
+    isOpen: true,
+    onClose: handleRequestClose,
+    disabled: Boolean(dirtyConfirmAction),
+  });
 
   const handleSaveEdit = useCallback(async () => {
     if (!isEditableText || isSaving) return;
@@ -145,16 +155,14 @@ export default function ArtifactViewerModal({
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        handleRequestClose();
-      } else if (isEditing && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      if (isEditing && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         handleSaveEdit();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleRequestClose, isEditing, handleSaveEdit]);
+  }, [isEditing, handleSaveEdit]);
 
   // Debounce live preview while editing so KaTeX & Mermaid stay responsive
   useEffect(() => {
@@ -390,7 +398,8 @@ export default function ArtifactViewerModal({
   };
 
   const handleExitEdit = () => {
-    if (isDirty && !window.confirm('尚有未儲存的修改，確定要放棄變更並退出編輯模式嗎？')) {
+    if (isDirty) {
+      setDirtyConfirmAction('exit-edit');
       return;
     }
     setEditDraft(rawContent);
@@ -402,7 +411,14 @@ export default function ArtifactViewerModal({
 
   return (
     <div className="viewer-modal-overlay">
-      <div className={`viewer-modal-container ${isFullscreen || isEditing ? 'fullscreen' : ''}`}>
+      <div
+        ref={viewerDialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={file.title || '檔案檢視器'}
+        tabIndex={-1}
+        className={`viewer-modal-container ${isFullscreen || isEditing ? 'fullscreen' : ''}`}
+      >
         {/* Modal Toolbar */}
         <div className="viewer-toolbar">
           <div className="viewer-file-info">
@@ -527,18 +543,22 @@ export default function ArtifactViewerModal({
             )}
 
             <button
+              type="button"
               className="btn btn-secondary btn-icon-circle hide-on-mobile"
               onClick={() => setIsFullscreen(!isFullscreen)}
               title={isFullscreen ? '還原視窗' : '全螢幕檢視'}
+              aria-label={isFullscreen ? '還原視窗' : '全螢幕檢視'}
               style={{ width: 34, height: 34 }}
             >
               {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
 
             <button
+              type="button"
               className="btn btn-secondary btn-icon-circle"
               onClick={handleRequestClose}
               title="關閉"
+              aria-label="關閉檔案檢視器"
               style={{ width: 34, height: 34 }}
             >
               <X size={18} />
@@ -583,12 +603,7 @@ export default function ArtifactViewerModal({
             display: isEditing ? 'flex' : 'block',
           }}
         >
-          {loading && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', gap: '10px', color: 'var(--text-muted)' }}>
-              <Sparkles size={20} className="spin" style={{ color: 'var(--accent-primary)' }} />
-              載入成果內容中...
-            </div>
-          )}
+          {loading && <ViewSkeleton variant="viewer" />}
 
           {!loading && desktopOnlyNotice && (
             <div style={{ padding: '3rem 1.5rem', textAlign: 'center', maxWidth: '460px', margin: '0 auto' }}>
@@ -749,6 +764,27 @@ export default function ArtifactViewerModal({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={Boolean(dirtyConfirmAction)}
+        title={dirtyConfirmAction === 'close' ? '放棄未儲存的編輯並關閉？' : '放棄未儲存的修改並退出編輯？'}
+        message="目前文件尚有未儲存的變更，繼續操作將會遺失這些修改。"
+        confirmLabel="放棄變更"
+        cancelLabel="繼續編輯"
+        danger
+        onCancel={() => setDirtyConfirmAction(null)}
+        onConfirm={() => {
+          const action = dirtyConfirmAction;
+          setDirtyConfirmAction(null);
+          if (action === 'close') {
+            onClose();
+          } else {
+            setEditDraft(rawContent);
+            setSaveError('');
+            setIsEditing(false);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -231,8 +231,8 @@ async function streamGeminiApi({ config, systemPrompt, userPrompt, onDelta, onSt
       systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       generationConfig: {
-        temperature: 0.6,
-        maxOutputTokens: 16384,
+        temperature: 0.55,
+        maxOutputTokens: 32768,
       },
     }),
   });
@@ -405,7 +405,7 @@ async function streamAgyCli({ config, systemPrompt, userPrompt, onDelta, onStatu
       } else if (ev.type === 'done') {
         settled = true;
         cleanup();
-        const finalOutput = fullText || ev.response || '';
+        const finalOutput = (ev.response && String(ev.response).trim()) ? ev.response : fullText;
         resolve({ text: finalOutput, usage: ev.usage || null, model });
       } else if (ev.type === 'error') {
         settled = true;

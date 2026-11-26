@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { CheckCircle2, Circle, GraduationCap, X } from 'lucide-react';
 import { pushCloudDoc, SYNC_KEYS } from '../services/cloudSyncService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 const INITIAL_ITEMS = [
   // 共同必修
@@ -102,11 +103,7 @@ export default function GraduationCreditsModal({ onClose, onRequireUnlock }) {
     return () => window.removeEventListener('tc-cloud-credits-updated', onCloudUpdated);
   }, []);
 
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const { dialogRef } = useModalA11y({ isOpen: true, onClose });
 
   const toggleCourse = (id) => {
     setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c)));
@@ -125,6 +122,11 @@ export default function GraduationCreditsModal({ onClose, onRequireUnlock }) {
   return (
     <div className="modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="畢業學分檢核表"
+        tabIndex={-1}
         className="modal-content"
         style={{ maxWidth: '1080px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
       >

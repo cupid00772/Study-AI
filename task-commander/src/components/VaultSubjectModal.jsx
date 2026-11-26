@@ -1,5 +1,7 @@
-import { useState, useEffect, createElement } from 'react';
+import { useState, createElement } from 'react';
 import { X, FolderPlus, Check, Trash2 } from 'lucide-react';
+import ConfirmDialog from './ConfirmDialog';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   VAULT_SUBJECT_ICONS,
   VAULT_SUBJECT_COLORS,
@@ -29,15 +31,9 @@ export default function VaultSubjectModal({
   const [color, setColor] = useState(initialSubject?.color || VAULT_SUBJECT_COLORS[0]);
   const [icon, setIcon] = useState(initialSubject?.icon || 'book');
   const [error, setError] = useState('');
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  const { dialogRef } = useModalA11y({ isOpen, onClose, disabled: confirmDeleteOpen });
 
   if (!isOpen) return null;
 
@@ -86,14 +82,22 @@ export default function VaultSubjectModal({
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '500px' }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vault-subject-modal-title"
+        tabIndex={-1}
+        className="modal-content"
+        style={{ maxWidth: '500px' }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div className="vault-icon-badge" style={{ background: `${color}1f`, color, width: 38, height: 38 }}>
               {createElement(resolveVaultSubjectIcon(icon), { size: 20 })}
             </div>
             <div>
-              <h2 className="modal-title" style={{ margin: 0, fontSize: '1.08rem' }}>
+              <h2 id="vault-subject-modal-title" className="modal-title" style={{ margin: 0, fontSize: '1.08rem' }}>
                 {isEditing ? '編輯成果庫科目資料夾' : '新增 AI 成果庫科目'}
               </h2>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -108,8 +112,9 @@ export default function VaultSubjectModal({
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label className="setting-label">科目名稱 *</label>
+            <label htmlFor="vault-subj-name" className="setting-label">科目名稱 *</label>
             <input
+              id="vault-subj-name"
               type="text"
               className="form-control"
               placeholder="例如：線性代數、演算法、英文多益、系統分析"
@@ -121,8 +126,8 @@ export default function VaultSubjectModal({
           </div>
 
           <div>
-            <label className="setting-label">顯示於哪些成果分類資料夾</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            <span className="setting-label">顯示於哪些成果分類資料夾</span>
+            <div className="form-grid-3">
               {[
                 { key: 'Study_Materials', label: '📘 學習教材庫' },
                 { key: 'Test_Bank', label: '📝 題庫與評量' },
@@ -175,8 +180,8 @@ export default function VaultSubjectModal({
           </div>
 
           <div>
-            <label className="setting-label">資料夾圖示</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
+            <span className="setting-label">資料夾圖示</span>
+            <div className="vault-icon-picker-grid">
               {VAULT_SUBJECT_ICONS.map((item) => {
                 const IconComp = item.icon;
                 const active = icon === item.id;
@@ -222,12 +227,7 @@ export default function VaultSubjectModal({
                 type="button"
                 className="btn btn-secondary btn-sm"
                 style={{ color: 'var(--accent-danger)', borderColor: 'rgba(225, 29, 72, 0.35)' }}
-                onClick={() => {
-                  if (window.confirm(`確定要從成果庫移除自訂科目資料夾「${initialSubject.name}」嗎？（已收錄的檔案不會被刪除）`)) {
-                    onDelete(initialSubject);
-                    onClose();
-                  }
-                }}
+                onClick={() => setConfirmDeleteOpen(true)}
               >
                 <Trash2 size={14} /> 移除自訂資料夾
               </button>
@@ -244,6 +244,20 @@ export default function VaultSubjectModal({
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDeleteOpen}
+        title="移除自訂科目資料夾？"
+        message={initialSubject ? `確定要從成果庫移除自訂科目資料夾「${initialSubject.name}」嗎？（已收錄的檔案不會被刪除）` : ''}
+        confirmLabel="確認移除"
+        danger
+        onCancel={() => setConfirmDeleteOpen(false)}
+        onConfirm={() => {
+          setConfirmDeleteOpen(false);
+          onDelete?.(initialSubject);
+          onClose();
+        }}
+      />
     </div>
   );
 }

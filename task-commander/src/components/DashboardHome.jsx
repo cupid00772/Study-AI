@@ -15,6 +15,7 @@ import {
   Pause,
   RotateCcw,
   BellRing,
+  BellOff,
   Pin,
   Radio,
   ArrowRight,
@@ -22,6 +23,7 @@ import {
   CheckSquare,
   Briefcase,
   MapPin,
+  Zap,
 } from 'lucide-react';
 import {
   getCoursesForOffsetDays,
@@ -57,11 +59,18 @@ export default function DashboardHome({
   // Study Focus Timer props
   focusState,
   onStartFocus,
+  onStartBreak,
   onPauseFocus,
   onResetFocus,
   onChangePreset,
+  focusAlarmEnabled = true,
+  onToggleFocusAlarm,
+  onTestFocusAlarm,
   studyMinutesToday,
   dailyStudyGoalMinutes,
+  flashcardStats = null,
+  onOpenFlashcards,
+  reducedMotion = false,
 }) {
   const [scheduleDayOffset, setScheduleDayOffset] = useState(0); // 0=今日, 1=明日
   const [completingTaskIds, setCompletingTaskIds] = useState([]);
@@ -77,6 +86,10 @@ export default function DashboardHome({
 
   const handleAnimatedCompleteTask = (taskId) => {
     if (completingTaskIds.includes(taskId)) return;
+    if (reducedMotion) {
+      onCompleteTask?.(taskId);
+      return;
+    }
     setCompletingTaskIds((prev) => [...prev, taskId]);
     const timer = window.setTimeout(() => {
       onCompleteTask?.(taskId);
@@ -87,6 +100,10 @@ export default function DashboardHome({
 
   const handleAnimatedCompleteAssignment = (hwId) => {
     if (completingHwIds.includes(hwId)) return;
+    if (reducedMotion) {
+      onCompleteAssignment?.(hwId);
+      return;
+    }
     setCompletingHwIds((prev) => [...prev, hwId]);
     const timer = window.setTimeout(() => {
       onCompleteAssignment?.(hwId);
@@ -198,35 +215,62 @@ export default function DashboardHome({
       {/* ===== 2. 主 Bento 三欄核心卡片 ===== */}
       <div className="bento-grid-3">
         {/* Card A: 讀書專注計時器 (Pomodoro) */}
-        <div className="bento-card focus-card">
+        <div className={`bento-card focus-card ${focusState.mode === 'break' ? 'is-break-mode' : ''}`}>
           <div className="bento-card-header">
             <div className="bento-card-title">
-              <Flame size={16} style={{ color: 'var(--accent-primary)' }} />
-              <span>讀書專注計時</span>
+              {focusState.mode === 'break' ? (
+                <Clock size={16} style={{ color: 'var(--accent-emerald)' }} />
+              ) : (
+                <Flame size={16} style={{ color: 'var(--accent-primary)' }} />
+              )}
+              <span>{focusState.mode === 'break' ? '短休倒數計時' : '讀書專注計時'}</span>
             </div>
-            <span className={`badge-chip ${focusState.isRunning ? 'badge-green' : 'badge-blue'}`}>
-              {focusState.isRunning ? '專注中（暫停打擾）' : `今日 ${studyMinutesToday}/${studyGoal} 分`}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                className={`focus-alarm-toggle-chip ${focusAlarmEnabled ? 'is-on' : 'is-off'}`}
+                onClick={onToggleFocusAlarm}
+                title={focusAlarmEnabled ? '結束時響起鬧鐘（點擊切換靜音）' : '結束鬧鐘已靜音（點擊開啟）'}
+              >
+                {focusAlarmEnabled ? <BellRing size={12} /> : <BellOff size={12} />}
+                <span>{focusAlarmEnabled ? '結束響鈴' : '靜音'}</span>
+              </button>
+              <span className={`badge-chip ${focusState.isRunning ? 'badge-green' : 'badge-blue'}`}>
+                {focusState.isRunning
+                  ? focusState.mode === 'break'
+                    ? '休息倒數中'
+                    : '專注中（暫停打擾）'
+                  : `今日 ${studyMinutesToday}/${studyGoal} 分`}
+              </span>
+            </div>
           </div>
 
           <div className="focus-timer-display">
             <div className="focus-digits">{formatTimer(focusState.secondsLeft)}</div>
             <SlidingContainer
               className="focus-presets"
-              activeKey={focusState.presetMinutes}
+              activeKey={`${focusState.mode || 'focus'}-${focusState.presetMinutes}`}
               indicatorClassName="sliding-pill-indicator preset-slider"
             >
-              {[25, 45, 60].map((mins) => (
-                <button
-                  key={mins}
-                  type="button"
-                  className={`preset-pill ${focusState.presetMinutes === mins ? 'active' : ''}`}
-                  disabled={focusState.isRunning}
-                  onClick={() => onChangePreset(mins)}
-                >
-                  {mins}分
-                </button>
-              ))}
+              {[
+                { mins: 25, mode: 'focus', label: '25分' },
+                { mins: 45, mode: 'focus', label: '45分' },
+                { mins: 60, mode: 'focus', label: '60分' },
+                { mins: 5, mode: 'break', label: '5分休' },
+              ].map((p) => {
+                const isActive = (focusState.mode || 'focus') === p.mode && focusState.presetMinutes === p.mins;
+                return (
+                  <button
+                    key={`${p.mode}-${p.mins}`}
+                    type="button"
+                    className={`preset-pill ${isActive ? 'active' : ''}`}
+                    disabled={focusState.isRunning}
+                    onClick={() => onChangePreset(p.mins, p.mode)}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
             </SlidingContainer>
           </div>
 
@@ -235,13 +279,25 @@ export default function DashboardHome({
               <button className="btn btn-secondary" onClick={onPauseFocus} style={{ flex: 1 }}>
                 <Pause size={15} /> 暫停計時
               </button>
+            ) : focusState.mode === 'break' ? (
+              <button className="btn btn-primary" onClick={() => onStartBreak?.(focusState.presetMinutes || 5)} style={{ flex: 1 }}>
+                <Play size={15} /> 開始休息倒數
+              </button>
             ) : (
               <button className="btn btn-primary" onClick={() => onStartFocus()} style={{ flex: 1 }}>
                 <Play size={15} /> 開始讀書專注
               </button>
             )}
-            <button className="btn btn-secondary btn-icon-sm" onClick={onResetFocus} title="重設計時器">
+            <button className="btn btn-secondary btn-icon-sm" onClick={onResetFocus} title="重設計時器" aria-label="重設專注計時器">
               <RotateCcw size={15} />
+            </button>
+            <button
+              className="btn btn-secondary btn-icon-sm"
+              onClick={onTestFocusAlarm}
+              title="試聽並預覽計時結束鬧鐘"
+              aria-label="試聽並預覽計時結束鬧鐘"
+            >
+              <BellRing size={15} />
             </button>
           </div>
 
@@ -285,6 +341,7 @@ export default function DashboardHome({
                       className={`row-check-btn ${isCompletingHw ? 'is-completing-check' : ''}`}
                       onClick={() => handleAnimatedCompleteAssignment(hw.id)}
                       title="標記完成"
+                      aria-label={`標記作業「${hw.title}」完成`}
                     >
                       {isCompletingHw ? (
                         <CheckCircle2 size={16} style={{ color: 'var(--accent-emerald)' }} />
@@ -313,6 +370,7 @@ export default function DashboardHome({
                         className="icon-ghost-btn"
                         onClick={() => openExternalUrl(hw.link)}
                         title="開啟 eeclass 繳交頁"
+                        aria-label={`開啟「${hw.title}」的 eeclass 繳交頁`}
                       >
                         <ExternalLink size={13} />
                       </button>
@@ -466,6 +524,53 @@ export default function DashboardHome({
           </div>
         </div>
       </div>
+
+      {/* ===== 2.5 主動回憶閃卡待複習快開條 ===== */}
+      {flashcardStats && flashcardStats.totalActive > 0 && (
+        <section className={`bento-card dashboard-fc-strip ${flashcardStats.dueCount > 0 ? 'has-due' : 'is-clear'}`}>
+          <div className="dashboard-fc-left">
+            <div className={`dashboard-fc-icon ${flashcardStats.dueCount > 0 ? 'has-due' : 'is-clear'}`}>
+              <Zap size={19} />
+            </div>
+            <div>
+              <div className="dashboard-fc-title">
+                <span>主動回憶閃卡</span>
+                {flashcardStats.dueCount > 0 ? (
+                  <span className="dashboard-fc-badge is-due">今日到期 {flashcardStats.dueCount} 張</span>
+                ) : (
+                  <span className="dashboard-fc-badge is-done">今日已清空 🎉</span>
+                )}
+                {flashcardStats.leechCount > 0 && (
+                  <span className="dashboard-fc-badge is-leech">🔥 頑固卡 {flashcardStats.leechCount}</span>
+                )}
+              </div>
+              <div className="dashboard-fc-sub">
+                今日進度 <strong>{flashcardStats.reviewedToday}/{flashcardStats.dailyGoal}</strong> 張
+                {' · '}連續複習 <strong>{flashcardStats.streakDays}</strong> 天
+                {' · '}已穩固 {flashcardStats.masteredCount}/{flashcardStats.totalActive} 張
+              </div>
+            </div>
+          </div>
+
+          <div className="dashboard-fc-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => onOpenFlashcards?.('start_due')}
+            >
+              <Play size={13} />
+              {flashcardStats.dueCount > 0 ? `立即翻卡 (${flashcardStats.dueCount})` : '考前自由刷'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => onOpenFlashcards?.(null)}
+            >
+              閃卡中樞 <ArrowRight size={13} />
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* ===== 3. 考前 7 天專區（僅在有 7 天內考試或考週時動態展開）===== */}
       {alerts.upcomingExams.length > 0 && (

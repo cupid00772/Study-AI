@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Edit3, CheckCircle2, Trash2, Sparkles, AlertTriangle } from 'lucide-react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 export default function EditMaterialModal({
   item,
@@ -33,13 +34,7 @@ export default function EditMaterialModal({
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [trashLocalFile, setTrashLocalFile] = useState(false);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const { dialogRef } = useModalA11y({ isOpen: Boolean(item), onClose });
 
   if (!item) return null;
 
@@ -69,6 +64,11 @@ export default function EditMaterialModal({
   return (
     <div className="modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="編輯學習成果資訊"
+        tabIndex={-1}
         className="modal-content"
         style={{ maxWidth: '580px', maxHeight: '90vh', overflowY: 'auto', padding: '1.45rem' }}
       >
@@ -93,10 +93,10 @@ export default function EditMaterialModal({
           <div>
             <label className="setting-label">所屬大分類</label>
             <SlidingContainer
-              className="nav-pills"
+              className="nav-pills form-grid-3"
               activeKey={category}
               indicatorClassName="sliding-pill-indicator pill-slider"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', padding: '4px' }}
+              style={{ padding: '4px' }}
             >
               {[
                 { key: 'Study_Materials', label: '📘 Study_Materials' },

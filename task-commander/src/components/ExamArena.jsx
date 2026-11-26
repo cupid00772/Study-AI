@@ -25,7 +25,24 @@ import {
   HelpCircle,
   Zap,
   History,
+  Flag,
+  Maximize2,
+  Minimize2,
+  Keyboard,
+  PenTool,
+  EyeOff,
+  ChevronDown,
+  ChevronUp,
+  Target,
+  Lightbulb,
+  Pin,
+  X,
+  ArrowRight,
+  Wand2,
 } from 'lucide-react';
+import ExamGeneratorModal from './ExamGeneratorModal';
+import { useModalA11y } from '../hooks/useModalA11y';
+import FlashcardHub from './FlashcardHub';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
 import {
   getAssetManifest,
@@ -47,11 +64,34 @@ import {
   parseConsolidatedLearningStatus,
   computeChapterUpdatesFromGrade,
   updateLearningStatusMarkdown,
-  buildFlashcardAppendBlock,
 } from '../utils/examArenaUtils';
+import {
+  computeFlashcardStats,
+  createCardFromExamQuestion,
+  createCardFromMistake,
+  addCardsWithDedup,
+  isCardLeech,
+} from '../utils/flashcardUtils';
 
 const LOCAL_HISTORY_KEY = 'tc_exam_arena_history_v1';
 const LOCAL_MISTAKES_KEY = 'tc_exam_arena_mistakes_v1';
+const LOCAL_DRAFTS_KEY = 'tc_exam_arena_drafts_v1';
+const LOCAL_REVIEW_DRAFT_KEY = 'tc_exam_arena_review_draft_v1';
+
+const MATH_SNIPPETS = [
+  { label: '分數', insert: '\\frac{}{}', cursorBack: 3, title: '插入分數 \\frac{a}{b}' },
+  { label: '根號', insert: '\\sqrt{}', cursorBack: 1, title: '插入根號 \\sqrt{x}' },
+  { label: 'π', insert: '\\pi', cursorBack: 0, title: '插入 \\pi' },
+  { label: '∞', insert: '\\infty', cursorBack: 0, title: '插入 \\infty' },
+  { label: 'eˣ', insert: 'e^{}', cursorBack: 1, title: '插入指數 e^{x}' },
+  { label: 'ln', insert: '\\ln()', cursorBack: 1, title: '插入自然對數 \\ln()' },
+  { label: '±', insert: '\\pm ', cursorBack: 0, title: '插入正負號 \\pm' },
+  { label: '≤', insert: '\\le ', cursorBack: 0, title: '插入小於等於 \\le' },
+  { label: '≥', insert: '\\ge ', cursorBack: 0, title: '插入大於等於 \\ge' },
+  { label: '∫', insert: '\\int_{}^{}', cursorBack: 4, title: '插入定積分 \\int_{a}^{b}' },
+  { label: 'Σ', insert: '\\sum_{n=1}^{\\infty}', cursorBack: 0, title: '插入無窮級數' },
+  { label: '[a,b)', insert: '[, )', cursorBack: 3, title: '插入半開閉區間' },
+];
 
 function readLocalJson(key, fallback) {
   try {
@@ -70,6 +110,14 @@ function writeLocalJson(key, value) {
   }
 }
 
+function formatAnswerForMathPreview(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  if (s.includes('$')) return s;
+  if (/[\\^_]/.test(s)) return `$${s}$`;
+  return s;
+}
+
 function MarkdownBlock({ content, className = '' }) {
   const html = useMemo(() => renderMarkdownWithKatex(content || ''), [content]);
   return (
@@ -80,25 +128,90 @@ function MarkdownBlock({ content, className = '' }) {
   );
 }
 
-export default function ExamArena({ onPreviewFile, showToast, assetManifestVersion = 0 }) {
+export default function ExamArena({
+  onPreviewFile,
+  showToast,
+  assetManifestVersion = 0,
+  courses = [],
+  onOpenAiSettings,
+  onRequireUnlock,
+  flashcardsStore = null,
+  onUpdateFlashcards,
+  onResyncFlashcardsFromMd,
+  launchTarget = null,
+  onConsumeLaunchTarget,
+  onSessionActiveChange,
+}) {
   const isElectron = Boolean(window.electronAPI?.isElectron);
 
-  const [subTab, setSubTab] = useState('library'); // 'library' | 'mistakes' | 'decay' | 'history'
+  const [subTab, setSubTab] = useState('library'); // 'library' | 'flashcards' | 'mistakes' | 'decay' | 'history'
+  const [pendingFlashcardAction, setPendingFlashcardAction] = useState(null);
+  const [isFlashcardStudying, setIsFlashcardStudying] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState('ALL');
   const [exams, setExams] = useState([]);
   const [isLoadingExams, setIsLoadingExams] = useState(false);
+  const [examLoadError, setExamLoadError] = useState('');
 
   const [history, setHistory] = useState(() => readLocalJson(LOCAL_HISTORY_KEY, []));
   const [mistakeBank, setMistakeBank] = useState(() => readLocalJson(LOCAL_MISTAKES_KEY, []));
+  const [draftsMap, setDraftsMap] = useState(() => readLocalJson(LOCAL_DRAFTS_KEY, {}));
+  const [savedReviewDraft, setSavedReviewDraft] = useState(() => readLocalJson(LOCAL_REVIEW_DRAFT_KEY, null));
   const [decayRows, setDecayRows] = useState([]);
   const [decayLoadError, setDecayLoadError] = useState('');
 
+  // AI Exam Generator Modal
+  const [isGenModalOpen, setIsGenModalOpen] = useState(false);
+
   // Active exam session state
   const [activeSession, setActiveSession] = useState(null);
-  // activeSession = { exam, relativePath, phase: 'taking'|'reviewing', currentIndex, responses, secondsLeft, timerPaused, elapsedSeconds, reviewFilter, synced }
   const [isSyncingResults, setIsSyncingResults] = useState(false);
 
+  // Answering UI enhancements
+  const [focusMode, setFocusMode] = useState(false);
+  const [fontScale, setFontScale] = useState('md'); // 'sm' | 'md' | 'lg'
+  const [navFilter, setNavFilter] = useState('all'); // 'all' | 'unanswered' | 'flagged' | 'untagged'
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [scratchpadOpen, setScratchpadOpen] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null); // null | 'exit' | 'submit'
+
+  const { dialogRef: confirmModalRef } = useModalA11y({
+    isOpen: Boolean(confirmModal),
+    onClose: () => setConfirmModal(null),
+  });
+
+  // Notify App shell when an exam/review/flashcard session is active so tab switches preserve live state
+  useEffect(() => {
+    onSessionActiveChange?.(Boolean(activeSession || isFlashcardStudying));
+    return () => {
+      onSessionActiveChange?.(false);
+    };
+  }, [activeSession, isFlashcardStudying, onSessionActiveChange]);
+
+  // Auto-persist unsynced review phase (including self-grades) so reloads never lose self-grading work
+  useEffect(() => {
+    if (!activeSession || activeSession.phase !== 'reviewing') return;
+    if (activeSession.synced) {
+      setSavedReviewDraft(null);
+      try { localStorage.removeItem(LOCAL_REVIEW_DRAFT_KEY); } catch {}
+      return;
+    }
+    const payload = {
+      exam: activeSession.exam,
+      relativePath: activeSession.relativePath || '',
+      responses: activeSession.responses || {},
+      flaggedIds: activeSession.flaggedIds || [],
+      eliminated: activeSession.eliminated || {},
+      elapsedSeconds: activeSession.elapsedSeconds || 0,
+      reviewFilter: activeSession.reviewFilter || 'all',
+      savedAt: new Date().toISOString(),
+    };
+    setSavedReviewDraft(payload);
+    writeLocalJson(LOCAL_REVIEW_DRAFT_KEY, payload);
+  }, [activeSession]);
+
   const fileInputRef = useRef(null);
+  const answerTextareaRef = useRef(null);
 
   const notify = useCallback(
     (msg) => {
@@ -108,11 +221,16 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
   );
 
   const fetchWorkspaceArenaPayload = useCallback(async () => {
-    const out = { exams: null, history: null, mistakes: null, decayRows: null, decayError: '' };
+    const out = { exams: null, examError: '', history: null, mistakes: null, decayRows: null, decayError: '' };
     if (isElectron && window.electronAPI?.listExamPapers) {
       const res = await window.electronAPI.listExamPapers();
       if (res?.success && Array.isArray(res.exams)) {
         out.exams = res.exams;
+        if (Array.isArray(res.parseErrors) && res.parseErrors.length > 0) {
+          out.examError = `有 ${res.parseErrors.length} 份試卷 JSON 解析失敗：${res.parseErrors[0].file}`;
+        }
+      } else if (res?.error) {
+        out.examError = `本機掃描試卷失敗：${res.error}`;
       }
 
       if (window.electronAPI?.readFileContent) {
@@ -142,7 +260,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     const manifestFiles = manifest?.files || {};
     const examPaths = Object.keys(manifestFiles).filter(
       (p) =>
-        p.startsWith('Test_Bank/Exam_paper/') &&
+        p.startsWith('Test_Bank/') &&
         !p.includes('/archive/') &&
         p.toLowerCase().endsWith('.exam.json')
     );
@@ -170,6 +288,8 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
         return (b.mtimeMs || 0) - (a.mtimeMs || 0);
       });
       out.exams = validExams;
+    } else {
+      out.exams = [];
     }
 
     if (manifestFiles[ARENA_PATHS.HISTORY_JSON]) {
@@ -206,6 +326,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
   const applyWorkspaceArenaPayload = useCallback((payload) => {
     if (!payload) return;
     if (payload.exams) setExams(payload.exams);
+    setExamLoadError(payload.examError || '');
     if (payload.history) {
       setHistory(payload.history);
       writeLocalJson(LOCAL_HISTORY_KEY, payload.history);
@@ -242,7 +363,69 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     };
   }, [fetchWorkspaceArenaPayload, applyWorkspaceArenaPayload, assetManifestVersion]);
 
-  // Persist history & mistakes to workspace JSON (Electron) or Cloud Storage (Web unlocked) + localStorage
+  // Live auto-refresh when Electron detects a new/modified .exam.json in Test_Bank
+  useEffect(() => {
+    if (!isElectron || !window.electronAPI?.onExamPapersUpdated) return undefined;
+    const unsub = window.electronAPI.onExamPapersUpdated(() => {
+      loadWorkspaceArenaData();
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, [isElectron, loadWorkspaceArenaData]);
+
+  // Persist drafts automatically during taking phase
+  const saveDraftForSession = useCallback((session) => {
+    if (!session || session.phase !== 'taking' || !session.exam?.id) return;
+    const examId = session.exam.id;
+    setDraftsMap((prev) => {
+      const next = {
+        ...prev,
+        [examId]: {
+          examId,
+          currentIndex: session.currentIndex,
+          responses: session.responses,
+          flaggedIds: session.flaggedIds || [],
+          eliminated: session.eliminated || {},
+          secondsLeft: session.secondsLeft,
+          elapsedSeconds: session.elapsedSeconds,
+          savedAt: new Date().toISOString(),
+        },
+      };
+      writeLocalJson(LOCAL_DRAFTS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const clearDraftForExam = useCallback((examId) => {
+    if (!examId) return;
+    setDraftsMap((prev) => {
+      if (!prev[examId]) return prev;
+      const next = { ...prev };
+      delete next[examId];
+      writeLocalJson(LOCAL_DRAFTS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  // Debounced autosave of responses/flags/scratchpad while taking
+  useEffect(() => {
+    if (!activeSession || activeSession.phase !== 'taking') return undefined;
+    const timer = window.setTimeout(() => {
+      saveDraftForSession(activeSession);
+    }, 600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeSession?.phase,
+    activeSession?.currentIndex,
+    activeSession?.responses,
+    activeSession?.flaggedIds,
+    activeSession?.eliminated,
+    saveDraftForSession,
+  ]);
+
+  // Persist history & mistakes
   const persistArenaStore = useCallback(
     async (nextHistory, nextMistakes) => {
       setHistory(nextHistory);
@@ -278,7 +461,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
   );
 
   // Countdown timer when taking an exam
-  const isTaking = activeSession?.phase === 'taking' && !activeSession?.timerPaused;
+  const isTaking = activeSession?.phase === 'taking' && !activeSession?.timerPaused && !confirmModal;
   useEffect(() => {
     if (!isTaking) return undefined;
     const timer = setInterval(() => {
@@ -295,24 +478,37 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     return () => clearInterval(timer);
   }, [isTaking]);
 
-  // Start an exam
-  const startExamSession = useCallback((examData, relativePath = '') => {
-    const timeMins = Number(examData.timeLimitMinutes || 60);
-    setActiveSession({
-      exam: examData,
-      relativePath,
-      phase: 'taking',
-      currentIndex: 0,
-      responses: {},
-      secondsLeft: timeMins * 60,
-      timerPaused: false,
-      elapsedSeconds: 0,
-      reviewFilter: 'all',
-      synced: false,
-    });
-  }, []);
+  // Start or resume an exam
+  const startExamSession = useCallback(
+    (examData, relativePath = '', { resumeDraft = false } = {}) => {
+      const timeMins = Number(examData.timeLimitMinutes || 60);
+      const draft = resumeDraft && examData?.id ? draftsMap[examData.id] : null;
+      if (!resumeDraft && examData?.id) {
+        clearDraftForExam(examData.id);
+      }
+      setConfirmModal(null);
+      setNavFilter('all');
+      setMobileNavOpen(false);
+      setScratchpadOpen(false);
+      setActiveSession({
+        exam: examData,
+        relativePath,
+        phase: 'taking',
+        currentIndex: draft ? Math.min(draft.currentIndex || 0, Math.max(0, (examData.questions?.length || 1) - 1)) : 0,
+        responses: draft?.responses || {},
+        flaggedIds: Array.isArray(draft?.flaggedIds) ? draft.flaggedIds : [],
+        eliminated: draft?.eliminated || {},
+        secondsLeft: typeof draft?.secondsLeft === 'number' ? draft.secondsLeft : timeMins * 60,
+        timerPaused: false,
+        elapsedSeconds: draft?.elapsedSeconds || 0,
+        reviewFilter: 'all',
+        synced: false,
+      });
+    },
+    [draftsMap, clearDraftForExam]
+  );
 
-  // Import local .exam.json (works in browser & Electron)
+  // Import local .exam.json
   const handleImportExamJson = useCallback(
     (e) => {
       const file = e.target.files?.[0];
@@ -342,7 +538,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     [notify]
   );
 
-  // Update answer or confidence in active session
+  // Update answer, confidence, or scratchpad
   const updateQuestionResponse = useCallback((questionId, patch) => {
     setActiveSession((prev) => {
       if (!prev) return prev;
@@ -357,10 +553,90 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     });
   }, []);
 
-  // Submit active exam -> transition to reviewing phase with smart pre-suggestions for fill questions
-  const handleSubmitExam = useCallback(() => {
+  const toggleFlagQuestion = useCallback((questionId) => {
     setActiveSession((prev) => {
       if (!prev) return prev;
+      const list = Array.isArray(prev.flaggedIds) ? prev.flaggedIds : [];
+      const exists = list.includes(questionId);
+      return {
+        ...prev,
+        flaggedIds: exists ? list.filter((id) => id !== questionId) : [...list, questionId],
+      };
+    });
+  }, []);
+
+  const toggleEliminateOption = useCallback((questionId, optKey) => {
+    setActiveSession((prev) => {
+      if (!prev) return prev;
+      const elimMap = prev.eliminated || {};
+      const currentList = Array.isArray(elimMap[questionId]) ? elimMap[questionId] : [];
+      const exists = currentList.includes(optKey);
+      const nextList = exists ? currentList.filter((k) => k !== optKey) : [...currentList, optKey];
+
+      // If eliminating the currently selected option, clear selection
+      const currentResp = prev.responses[questionId] || {};
+      const nextResponses =
+        !exists && currentResp.answer === optKey
+          ? { ...prev.responses, [questionId]: { ...currentResp, answer: '' } }
+          : prev.responses;
+
+      return {
+        ...prev,
+        responses: nextResponses,
+        eliminated: { ...elimMap, [questionId]: nextList },
+      };
+    });
+  }, []);
+
+  const handleSelectMcqOption = useCallback((questionId, optKey) => {
+    setActiveSession((prev) => {
+      if (!prev) return prev;
+      const elimMap = prev.eliminated || {};
+      const currentElim = Array.isArray(elimMap[questionId]) ? elimMap[questionId] : [];
+      const cleanedElim = currentElim.includes(optKey)
+        ? { ...elimMap, [questionId]: currentElim.filter((k) => k !== optKey) }
+        : elimMap;
+      const existing = prev.responses[questionId] || {};
+      return {
+        ...prev,
+        eliminated: cleanedElim,
+        responses: {
+          ...prev.responses,
+          [questionId]: { ...existing, answer: optKey },
+        },
+      };
+    });
+  }, []);
+
+  const insertMathSnippet = useCallback(
+    (questionId, snippet) => {
+      const el = answerTextareaRef.current;
+      const currentVal = String(activeSession?.responses?.[questionId]?.answer || '');
+      if (!el) {
+        updateQuestionResponse(questionId, { answer: `${currentVal}${snippet.insert}` });
+        return;
+      }
+      const start = el.selectionStart ?? currentVal.length;
+      const end = el.selectionEnd ?? currentVal.length;
+      const nextVal = currentVal.slice(0, start) + snippet.insert + currentVal.slice(end);
+      updateQuestionResponse(questionId, { answer: nextVal });
+      const nextCursor = start + snippet.insert.length - (snippet.cursorBack || 0);
+      window.requestAnimationFrame(() => {
+        if (answerTextareaRef.current) {
+          answerTextareaRef.current.focus();
+          answerTextareaRef.current.setSelectionRange(nextCursor, nextCursor);
+        }
+      });
+    },
+    [activeSession, updateQuestionResponse]
+  );
+
+  // Submit active exam -> transition to reviewing phase
+  const handleSubmitExam = useCallback(() => {
+    setConfirmModal(null);
+    setActiveSession((prev) => {
+      if (!prev) return prev;
+      if (prev.exam?.id) clearDraftForExam(prev.exam.id);
       const questions = prev.exam?.questions || [];
       const nextResponses = { ...prev.responses };
 
@@ -384,7 +660,59 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
         reviewFilter: 'all',
       };
     });
-  }, []);
+  }, [clearDraftForExam]);
+
+  // Keyboard shortcuts during taking phase
+  useEffect(() => {
+    if (!activeSession || activeSession.phase !== 'taking' || confirmModal) return undefined;
+
+    const onKeyDown = (e) => {
+      const tag = String(e.target?.tagName || '').toLowerCase();
+      const isTyping = tag === 'textarea' || tag === 'input' || tag === 'select' || e.target?.isContentEditable;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const questions = activeSession.exam?.questions || [];
+      const currentQ = questions[activeSession.currentIndex];
+      if (!currentQ) return;
+
+      if (isTyping) return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setActiveSession((p) => (p ? { ...p, currentIndex: Math.max(0, p.currentIndex - 1) } : p));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setActiveSession((p) =>
+          p ? { ...p, currentIndex: Math.min(questions.length - 1, p.currentIndex + 1) } : p
+        );
+      } else if (e.key === '1') {
+        e.preventDefault();
+        updateQuestionResponse(currentQ.id, { confidence: 'confident' });
+      } else if (e.key === '2') {
+        e.preventDefault();
+        updateQuestionResponse(currentQ.id, { confidence: 'guessed' });
+      } else if (e.key === '3') {
+        e.preventDefault();
+        updateQuestionResponse(currentQ.id, { confidence: 'forgot' });
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFlagQuestion(currentQ.id);
+      } else if (e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        setScratchpadOpen((p) => !p);
+      } else if (currentQ.type === 'mcq' && /^[a-e]$/i.test(e.key)) {
+        const upper = e.key.toUpperCase();
+        const valid = (currentQ.options || []).some((o) => o.key === upper);
+        if (valid) {
+          e.preventDefault();
+          handleSelectMcqOption(currentQ.id, upper);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeSession, confirmModal, updateQuestionResponse, toggleFlagQuestion, handleSelectMcqOption]);
 
   const currentGrade = useMemo(() => {
     if (!activeSession || activeSession.phase !== 'reviewing') return null;
@@ -421,7 +749,6 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
       const nextHistory = [attemptRecord, ...history].slice(0, 120);
 
-      // Update mistake bank: add/update blind spots; resolve mastered items if retrying
       const mistakeMap = new Map(mistakeBank.map((m) => [m.key, m]));
       for (const q of exam.questions || []) {
         const g = currentGrade.perQuestion[q.id];
@@ -470,7 +797,6 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
       await persistArenaStore(nextHistory, nextMistakes);
 
-      // Write back Learning_Status.md, Consolidated_Learning_Status.md, and Active_Recall_Flashcards.md
       let syncedFilesCount = 0;
       if (isElectron && window.electronAPI?.readFileContent && window.electronAPI?.writeFileContent) {
         const chapterUpdates = computeChapterUpdatesFromGrade(exam, responses, currentGrade);
@@ -494,26 +820,75 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
           }
         }
 
-        if (currentGrade.blindSpotQuestions.length > 0) {
-          const fcRes = await window.electronAPI.readFileContent(ARENA_PATHS.FLASHCARDS);
-          const appendBlock = buildFlashcardAppendBlock(exam, currentGrade.blindSpotQuestions);
-          if (appendBlock) {
-            const existingFc = fcRes?.success ? fcRes.content : '# ⚡ 主動回憶閃卡庫\n';
-            await window.electronAPI.writeFileContent({
-              relativePath: ARENA_PATHS.FLASHCARDS,
-              content: `${existingFc.trimEnd()}\n${appendBlock}`,
-            });
-            syncedFilesCount += 1;
+        if (currentGrade.blindSpotQuestions.length > 0 && onUpdateFlashcards) {
+          const extractedCards = currentGrade.blindSpotQuestions
+            .map((item) => {
+              const reasons = [];
+              if (item.graded?.status === 'wrong') reasons.push('答錯');
+              if (item.graded?.status === 'partial') reasons.push('部分對');
+              if (item.response?.confidence === 'guessed') reasons.push('靠猜');
+              if (item.response?.confidence === 'forgot') reasons.push('忘記公式/定義');
+              return createCardFromExamQuestion({
+                exam,
+                question: item.question,
+                reasons,
+                source: 'exam_blindspot',
+                todayISO: today,
+              });
+            })
+            .filter(Boolean);
+
+          if (extractedCards.length > 0) {
+            let addedCount = 0;
+            await onUpdateFlashcards(
+              (prev) => {
+                const res = addCardsWithDedup(prev, extractedCards, today);
+                addedCount = res.addedCount;
+                return res.nextStore;
+              },
+              { syncMarkdown: true, immediateCloud: true }
+            );
+            if (addedCount > 0) syncedFilesCount += 1;
           }
         }
 
-        // Refresh decay dashboard rows
         const refreshedStatus = await window.electronAPI.readFileContent(ARENA_PATHS.CONSOLIDATED_STATUS);
         if (refreshedStatus?.success && refreshedStatus.content) {
           setDecayRows(parseConsolidatedLearningStatus(refreshedStatus.content));
         }
       } else {
         const auth = await getCloudAuthState();
+        if (currentGrade.blindSpotQuestions.length > 0 && onUpdateFlashcards) {
+          const extractedCards = currentGrade.blindSpotQuestions
+            .map((item) => {
+              const reasons = [];
+              if (item.graded?.status === 'wrong') reasons.push('答錯');
+              if (item.graded?.status === 'partial') reasons.push('部分對');
+              if (item.response?.confidence === 'guessed') reasons.push('靠猜');
+              if (item.response?.confidence === 'forgot') reasons.push('忘記公式/定義');
+              return createCardFromExamQuestion({
+                exam,
+                question: item.question,
+                reasons,
+                source: 'exam_blindspot',
+                todayISO: today,
+              });
+            })
+            .filter(Boolean);
+          if (extractedCards.length > 0) {
+            let addedCount = 0;
+            await onUpdateFlashcards(
+              (prev) => {
+                const res = addCardsWithDedup(prev, extractedCards, today);
+                addedCount = res.addedCount;
+                return res.nextStore;
+              },
+              { syncMarkdown: Boolean(auth?.canWrite), immediateCloud: true }
+            );
+            if (addedCount > 0) syncedFilesCount += 1;
+          }
+        }
+
         if (auth?.canWrite) {
           const pushManifestFn = (nextManifest) => pushCloudDoc(SYNC_KEYS.ASSET_MANIFEST, nextManifest);
           const chapterUpdates = computeChapterUpdatesFromGrade(exam, responses, currentGrade);
@@ -529,19 +904,6 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                 const upRes = await uploadTextAssetToCloud(updatedMd, relPath, pushManifestFn);
                 if (upRes?.success) syncedFilesCount += 1;
               }
-            }
-          }
-          if (currentGrade.blindSpotQuestions.length > 0) {
-            const fcRes = await fetchCloudAssetText(ARENA_PATHS.FLASHCARDS);
-            const appendBlock = buildFlashcardAppendBlock(exam, currentGrade.blindSpotQuestions);
-            if (appendBlock) {
-              const existingFc = fcRes?.success ? fcRes.content : '# ⚡ 主動回憶閃卡庫\n';
-              const upFc = await uploadTextAssetToCloud(
-                `${existingFc.trimEnd()}\n${appendBlock}`,
-                ARENA_PATHS.FLASHCARDS,
-                pushManifestFn
-              );
-              if (upFc?.success) syncedFilesCount += 1;
             }
           }
           const refreshedStatus = await fetchCloudAssetText(ARENA_PATHS.CONSOLIDATED_STATUS);
@@ -562,7 +924,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     } finally {
       setIsSyncingResults(false);
     }
-  }, [activeSession, currentGrade, history, mistakeBank, persistArenaStore, isElectron, notify]);
+  }, [activeSession, currentGrade, history, mistakeBank, persistArenaStore, isElectron, notify, onUpdateFlashcards]);
 
   // Launch Mistake Retry Session
   const startMistakeRetrySession = useCallback(
@@ -621,10 +983,88 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     [mistakeBank, history, persistArenaStore]
   );
 
+  // Consume external deep-link launches (DashboardHome / CommandPalette)
+  useEffect(() => {
+    if (!launchTarget) return;
+    if (launchTarget.subTab) {
+      setSubTab(launchTarget.subTab);
+    }
+    if (launchTarget.action) {
+      setPendingFlashcardAction(launchTarget.action);
+    }
+    onConsumeLaunchTarget?.();
+  }, [launchTarget, onConsumeLaunchTarget]);
+
   // Derived metrics
   const projection = useMemo(() => computeWeightedProjection(history), [history]);
   const unresolvedMistakes = useMemo(() => mistakeBank.filter((m) => !m.resolved), [mistakeBank]);
   const overdueDecayRows = useMemo(() => decayRows.filter((r) => r.isOverdue), [decayRows]);
+  const flashcardStats = useMemo(() => computeFlashcardStats(flashcardsStore), [flashcardsStore]);
+  const leechFlashcards = useMemo(
+    () => (flashcardsStore?.cards || []).filter((c) => isCardLeech(c)),
+    [flashcardsStore]
+  );
+  const flashcardSourceRefSet = useMemo(
+    () => new Set((flashcardsStore?.cards || []).map((c) => c.sourceRef).filter(Boolean)),
+    [flashcardsStore]
+  );
+
+  const handlePromoteMistakeToFlashcard = useCallback(
+    async (mistake) => {
+      if (!onUpdateFlashcards || !mistake) return;
+      const card = createCardFromMistake(mistake, getTodayISO());
+      if (!card) return;
+      let added = 0;
+      await onUpdateFlashcards(
+        (prev) => {
+          const res = addCardsWithDedup(prev, [card], getTodayISO());
+          added = res.addedCount;
+          return res.nextStore;
+        },
+        { syncMarkdown: true, immediateCloud: true }
+      );
+      notify(added > 0 ? '已將此錯題轉為結構化閃卡並同步 MD' : '此錯題已存在於閃卡庫中');
+    },
+    [onUpdateFlashcards, notify]
+  );
+
+  const handlePromoteAllMistakesToFlashcards = useCallback(
+    async (list) => {
+      if (!onUpdateFlashcards || !list || list.length === 0) return;
+      const today = getTodayISO();
+      const cards = list.map((m) => createCardFromMistake(m, today)).filter(Boolean);
+      let added = 0;
+      let skipped = 0;
+      await onUpdateFlashcards(
+        (prev) => {
+          const res = addCardsWithDedup(prev, cards, today);
+          added = res.addedCount;
+          skipped = res.skippedCount;
+          return res.nextStore;
+        },
+        { syncMarkdown: true, immediateCloud: true }
+      );
+      notify(
+        added > 0
+          ? `已批量收錄 ${added} 張錯題閃卡（略過 ${skipped} 張重複）並同步 MD`
+          : '目前篩選的錯題皆已收錄在閃卡庫中'
+      );
+    },
+    [onUpdateFlashcards, notify]
+  );
+
+  const subjectFilterOptions = useMemo(() => {
+    const base = ['ALL', '微積分', '計算機概論', '英文'];
+    const extras = new Set();
+    for (const e of exams) {
+      const s = e.data?.subject;
+      if (s && !base.includes(s)) extras.add(s);
+    }
+    for (const c of flashcardsStore?.cards || []) {
+      if (c.subject && !base.includes(c.subject)) extras.add(c.subject);
+    }
+    return [...base, ...Array.from(extras)];
+  }, [exams, flashcardsStore]);
 
   const filteredExams = useMemo(() => {
     if (subjectFilter === 'ALL') return exams;
@@ -650,12 +1090,35 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     return map;
   }, [history]);
 
+  const handleExamGeneratedAndSaved = useCallback(
+    async (newEntry) => {
+      if (newEntry?.data) {
+        setExams((prev) => [
+          newEntry,
+          ...prev.filter((x) => x.relativePath !== newEntry.relativePath && x.data?.id !== newEntry.data.id),
+        ]);
+      }
+      await loadWorkspaceArenaData();
+    },
+    [loadWorkspaceArenaData]
+  );
+
   // =========================================================================
   // RENDER: ACTIVE EXAM TAKING / REVIEWING SESSION
   // =========================================================================
   if (activeSession) {
-    const { exam, phase, currentIndex, responses, secondsLeft, timerPaused, reviewFilter, synced } =
-      activeSession;
+    const {
+      exam,
+      phase,
+      currentIndex,
+      responses,
+      flaggedIds = [],
+      eliminated = {},
+      secondsLeft,
+      timerPaused,
+      reviewFilter,
+      synced,
+    } = activeSession;
     const questions = exam.questions || [];
     const currentQ = questions[currentIndex] || questions[0];
     const currentResp = currentQ ? responses[currentQ.id] || {} : {};
@@ -663,127 +1126,293 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
       ? (exam.passages || []).find((p) => p.id === currentQ.passageId) || null
       : null;
 
-    const answeredCount = questions.filter((q) => String(responses[q.id]?.answer || '').trim() !== '').length;
-    const taggedCount = questions.filter((q) => Boolean(responses[q.id]?.confidence)).length;
+    const answeredQuestions = questions.filter((q) => String(responses[q.id]?.answer || '').trim() !== '');
+    const unansweredQuestions = questions.filter((q) => String(responses[q.id]?.answer || '').trim() === '');
+    const untaggedQuestions = questions.filter((q) => !responses[q.id]?.confidence);
+    const flaggedSet = new Set(flaggedIds);
+    const answeredCount = answeredQuestions.length;
+    const taggedCount = questions.length - untaggedQuestions.length;
+    const progressPct = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
 
     if (phase === 'taking' && currentQ) {
-      const isLowTime = secondsLeft <= 300;
+      const isUrgentTime = secondsLeft <= 300;
+      const isWarnTime = !isUrgentTime && secondsLeft <= 600;
       const sectionInfo = (exam.sections || []).find((s) => s.id === currentQ.sectionId);
+      const isFlagged = flaggedSet.has(currentQ.id);
+      const currentEliminated = Array.isArray(eliminated[currentQ.id]) ? eliminated[currentQ.id] : [];
+      const hasAnswer = String(currentResp.answer || '').trim() !== '';
+      const needsConfidenceNudge = hasAnswer && !currentResp.confidence;
+      const mathPreviewSource = formatAnswerForMathPreview(currentResp.answer);
+      const shouldShowMathPreview = Boolean(
+        currentResp.answer && (currentResp.answer.includes('$') || /[\\^_]/.test(currentResp.answer))
+      );
+
+      const navQuestions = questions
+        .map((q, idx) => ({ q, idx }))
+        .filter(({ q }) => {
+          const r = responses[q.id] || {};
+          const ans = String(r.answer || '').trim() !== '';
+          if (navFilter === 'unanswered') return !ans;
+          if (navFilter === 'flagged') return flaggedSet.has(q.id);
+          if (navFilter === 'untagged') return !r.confidence;
+          return true;
+        });
+
+      const jumpToNextUnanswered = () => {
+        const after = questions.findIndex(
+          (q, idx) => idx > currentIndex && String(responses[q.id]?.answer || '').trim() === ''
+        );
+        const target =
+          after >= 0
+            ? after
+            : questions.findIndex((q) => String(responses[q.id]?.answer || '').trim() === '');
+        if (target >= 0) {
+          setActiveSession((prev) => (prev ? { ...prev, currentIndex: target } : prev));
+        } else {
+          notify('所有題目皆已填答完成！');
+        }
+      };
 
       return (
-        <div className="arena-session-shell">
-          {/* Top sticky exam bar */}
-          <div className="arena-session-topbar">
-            <div className="arena-session-title-group">
-              <button
-                type="button"
-                className="arena-btn-ghost"
-                onClick={() => {
-                  if (window.confirm('確定離開本次作答？未交卷的作答進度將不會儲存。')) {
-                    setActiveSession(null);
-                  }
-                }}
-              >
-                <ChevronLeft size={16} />
-                離開考場
-              </button>
-              <div>
-                <div className="arena-session-title">{exam.title}</div>
-                <div className="arena-session-meta">
-                  <span>{exam.subject}</span>
-                  <span>·</span>
-                  <span>已答 {answeredCount}/{questions.length}</span>
-                  <span>·</span>
-                  <span>信心標籤 {taggedCount}/{questions.length}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="arena-session-actions">
-              <div className={`arena-timer-pill ${isLowTime ? 'is-urgent' : ''}`}>
-                <Clock size={15} />
-                <span>{formatSeconds(secondsLeft)}</span>
+        <div className={`arena-session-shell font-scale-${fontScale}`}>
+          {/* Top Sticky Glass Exam Bar */}
+          <div className="arena-session-topbar is-sticky">
+            <div className="arena-session-topbar-main">
+              <div className="arena-session-title-group">
                 <button
                   type="button"
-                  className="arena-timer-toggle"
-                  onClick={() =>
-                    setActiveSession((prev) => (prev ? { ...prev, timerPaused: !prev.timerPaused } : prev))
-                  }
-                  title={timerPaused ? '繼續計時' : '暫停計時'}
+                  className="arena-btn-ghost"
+                  onClick={() => setConfirmModal('exit')}
                 >
-                  {timerPaused ? <Play size={13} /> : <Pause size={13} />}
+                  <ChevronLeft size={16} />
+                  離開
+                </button>
+                <div style={{ minWidth: 0 }}>
+                  <div className="arena-session-title">{exam.title}</div>
+                  <div className="arena-session-meta">
+                    <span>{exam.subject}</span>
+                    <span>·</span>
+                    <span>已答 <strong>{answeredCount}/{questions.length}</strong></span>
+                    <span>·</span>
+                    <span>信心 <strong>{taggedCount}/{questions.length}</strong></span>
+                    {flaggedIds.length > 0 && (
+                      <>
+                        <span>·</span>
+                        <span style={{ color: 'var(--accent-amber)', fontWeight: 700 }}>
+                          旗標 {flaggedIds.length}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="arena-session-actions">
+                {/* Font scale controls (kept visible on mobile) + Desktop-only Focus & Shortcuts */}
+                <div className="arena-utility-group">
+                  <button
+                    type="button"
+                    className="arena-icon-btn"
+                    onClick={() =>
+                      setFontScale((prev) => (prev === 'lg' ? 'md' : prev === 'md' ? 'sm' : 'sm'))
+                    }
+                    disabled={fontScale === 'sm'}
+                    title="縮小字體"
+                    aria-label="縮小字體"
+                  >
+                    A-
+                  </button>
+                  <button
+                    type="button"
+                    className="arena-icon-btn"
+                    onClick={() =>
+                      setFontScale((prev) => (prev === 'sm' ? 'md' : prev === 'md' ? 'lg' : 'lg'))
+                    }
+                    disabled={fontScale === 'lg'}
+                    title="放大字體"
+                    aria-label="放大字體"
+                  >
+                    A+
+                  </button>
+                  <button
+                    type="button"
+                    className={`arena-icon-btn arena-desktop-only-tools ${focusMode ? 'is-active' : ''}`}
+                    onClick={() => setFocusMode((p) => !p)}
+                    title={focusMode ? '顯示左側題號導覽' : '專注模式（收合題號欄，放大作答區）'}
+                    aria-label={focusMode ? '退出專注模式' : '切換專注模式'}
+                  >
+                    {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`arena-icon-btn arena-desktop-only-tools ${showShortcuts ? 'is-active' : ''}`}
+                    onClick={() => setShowShortcuts((p) => !p)}
+                    title="鍵盤快捷鍵說明"
+                    aria-label="鍵盤快捷鍵說明"
+                  >
+                    <Keyboard size={14} />
+                  </button>
+                </div>
+
+                <div
+                  className={`arena-timer-pill ${isUrgentTime ? 'is-urgent' : isWarnTime ? 'is-warn' : ''}`}
+                >
+                  <Clock size={15} />
+                  <span>{formatSeconds(secondsLeft)}</span>
+                  <button
+                    type="button"
+                    className="arena-timer-toggle"
+                    onClick={() =>
+                      setActiveSession((prev) => (prev ? { ...prev, timerPaused: !prev.timerPaused } : prev))
+                    }
+                    title={timerPaused ? '繼續計時' : '暫停計時'}
+                    aria-label={timerPaused ? '繼續計時' : '暫停計時'}
+                  >
+                    {timerPaused ? <Play size={12} /> : <Pause size={12} />}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="arena-btn-primary"
+                  onClick={() => setConfirmModal('submit')}
+                >
+                  <CheckCircle2 size={15} />
+                  交卷批改
                 </button>
               </div>
-
-              <button
-                type="button"
-                className="arena-btn-primary"
-                onClick={() => {
-                  const untaggedAnswered = questions.filter(
-                    (q) => String(responses[q.id]?.answer || '').trim() !== '' && !responses[q.id]?.confidence
-                  ).length;
-                  if (untaggedAnswered > 0) {
-                    const proceed = window.confirm(
-                      `還有 ${untaggedAnswered} 題已作答但尚未標註「會寫 / 靠猜 / 忘記公式」。仍要直接交卷嗎？`
-                    );
-                    if (!proceed) return;
-                  }
-                  handleSubmitExam();
-                }}
-              >
-                <CheckCircle2 size={15} />
-                交卷批改
-              </button>
             </div>
+
+            {/* Thin Progress Bar */}
+            <div className="arena-session-progress-track" aria-label={`作答進度 ${progressPct}%`}>
+              <div className="arena-session-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+
+            {showShortcuts && (
+              <div className="arena-shortcuts-strip">
+                <span><kbd>←</kbd> <kbd>→</kbd> 上／下一題</span>
+                <span><kbd>A</kbd>–<kbd>E</kbd> 單選快選</span>
+                <span><kbd>1</kbd> 會寫 · <kbd>2</kbd> 靠猜 · <kbd>3</kbd> 忘記</span>
+                <span><kbd>F</kbd> 插旗待查</span>
+                <span><kbd>S</kbd> 草稿紙</span>
+                <span>右鍵選項：刪除線排除法</span>
+              </div>
+            )}
           </div>
 
-          <div className="arena-session-body">
+          {/* Mobile Compact Navigator Toggle */}
+          <div className="arena-mobile-nav-bar">
+            <button
+              type="button"
+              className="arena-mobile-nav-trigger"
+              onClick={() => setMobileNavOpen((p) => !p)}
+            >
+              <span>
+                題號導覽 <strong>Q{currentQ.number}</strong> / {questions.length}（已答 {answeredCount}）
+              </span>
+              {mobileNavOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            {unansweredQuestions.length > 0 && (
+              <button type="button" className="arena-btn-ghost" onClick={jumpToNextUnanswered}>
+                下一未答 <ArrowRight size={13} />
+              </button>
+            )}
+          </div>
+
+          <div className={`arena-session-body ${focusMode ? 'is-focus' : ''}`}>
             {/* Left Navigator */}
-            <aside className="arena-nav-panel">
-              <div className="arena-nav-header">
-                <span>題號導覽</span>
-                <span className="arena-nav-sub">{currentIndex + 1} / {questions.length}</span>
-              </div>
-              <div className="arena-nav-grid">
-                {questions.map((q, idx) => {
-                  const r = responses[q.id] || {};
-                  const hasAns = String(r.answer || '').trim() !== '';
-                  const confClass = r.confidence ? `conf-${r.confidence}` : '';
-                  return (
+            {!focusMode && (
+              <aside className={`arena-nav-panel ${mobileNavOpen ? 'is-mobile-open' : ''}`}>
+                <div className="arena-nav-header">
+                  <span>題號導覽</span>
+                  <span className="arena-nav-sub">
+                    {answeredCount} / {questions.length} 已答
+                  </span>
+                </div>
+
+                {/* Quick Filter inside Navigator */}
+                <div className="arena-nav-filter-row">
+                  {[
+                    { id: 'all', label: '全', count: questions.length },
+                    { id: 'unanswered', label: '未答', count: unansweredQuestions.length },
+                    { id: 'flagged', label: '旗', count: flaggedIds.length },
+                    { id: 'untagged', label: '無標', count: untaggedQuestions.length },
+                  ].map((f) => (
                     <button
-                      key={q.id}
+                      key={f.id}
                       type="button"
-                      className={`arena-nav-dot ${idx === currentIndex ? 'is-current' : ''} ${hasAns ? 'is-answered' : ''} ${confClass}`}
-                      onClick={() =>
-                        setActiveSession((prev) => (prev ? { ...prev, currentIndex: idx } : prev))
-                      }
-                      title={`第 ${q.number} 題${q.isSpacedRecall ? '（間隔複習回馬槍）' : ''}`}
+                      className={`arena-nav-filter-btn ${navFilter === f.id ? 'active' : ''}`}
+                      onClick={() => setNavFilter(f.id)}
                     >
-                      <span>{q.number}</span>
-                      {q.isSpacedRecall && <span className="arena-recall-pip" />}
+                      {f.label}
+                      {f.count > 0 && <small>{f.count}</small>}
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
 
-              <div className="arena-nav-legend">
-                <div><span className="legend-dot conf-confident" /> 會寫</div>
-                <div><span className="legend-dot conf-guessed" /> 靠猜</div>
-                <div><span className="legend-dot conf-forgot" /> 忘記公式</div>
-                <div><span className="legend-dot is-recall" /> 間隔回馬槍</div>
-              </div>
+                <div className="arena-nav-grid">
+                  {navQuestions.length === 0 ? (
+                    <div className="arena-nav-empty">此篩選目前無題目</div>
+                  ) : (
+                    navQuestions.map(({ q, idx }) => {
+                      const r = responses[q.id] || {};
+                      const hasAns = String(r.answer || '').trim() !== '';
+                      const confClass = r.confidence ? `conf-${r.confidence}` : '';
+                      const flagged = flaggedSet.has(q.id);
+                      return (
+                        <button
+                          key={q.id}
+                          type="button"
+                          className={`arena-nav-dot ${idx === currentIndex ? 'is-current' : ''} ${hasAns ? 'is-answered' : ''} ${confClass} ${flagged ? 'is-flagged' : ''}`}
+                          onClick={() => {
+                            setActiveSession((prev) => (prev ? { ...prev, currentIndex: idx } : prev));
+                            setMobileNavOpen(false);
+                          }}
+                          title={`第 ${q.number} 題${flagged ? '（已插旗複查）' : ''}${q.isSpacedRecall ? '（間隔複習回馬槍）' : ''}`}
+                        >
+                          <span>{q.number}</span>
+                          {q.isSpacedRecall && <span className="arena-recall-pip" />}
+                          {flagged && <span className="arena-flag-pip" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
 
-              <div className="arena-no-hint-box">
-                <ShieldAlert size={14} />
-                <span>無提示實戰模式：作答期間已鎖定解答、公式與陷阱提示。</span>
-              </div>
-            </aside>
+                {unansweredQuestions.length > 0 && (
+                  <button
+                    type="button"
+                    className="arena-btn-secondary"
+                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.78rem', padding: '6px 10px' }}
+                    onClick={jumpToNextUnanswered}
+                  >
+                    跳至下一題未答 ({unansweredQuestions.length})
+                  </button>
+                )}
+
+                <div className="arena-nav-legend">
+                  <div><span className="legend-dot conf-confident" /> 會寫</div>
+                  <div><span className="legend-dot conf-guessed" /> 靠猜</div>
+                  <div><span className="legend-dot conf-forgot" /> 忘記公式</div>
+                  <div><span className="legend-dot is-flag" /> 插旗複查</div>
+                  <div><span className="legend-dot is-recall" /> 間隔回馬槍</div>
+                </div>
+
+                <div className="arena-no-hint-box">
+                  <ShieldAlert size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span>實戰盲測模式：已鎖定解答與提示，進度自動暫存於本機。</span>
+                </div>
+              </aside>
+            )}
 
             {/* Right Main Question Stage */}
             <div className={`arena-question-stage ${currentPassage ? 'has-passage' : ''}`}>
               {currentPassage && (
                 <div className="arena-passage-pane">
-                  <div className="arena-passage-title">{currentPassage.title}</div>
+                  <div className="arena-passage-title">
+                    <BookOpen size={15} />
+                    <span>{currentPassage.title}</span>
+                  </div>
                   <MarkdownBlock content={currentPassage.content} />
                 </div>
               )}
@@ -810,6 +1439,27 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                       </span>
                     )}
                   </div>
+
+                  <div className="arena-q-tools">
+                    <button
+                      type="button"
+                      className={`arena-tool-chip ${scratchpadOpen || currentResp.scratchpad ? 'is-active' : ''}`}
+                      onClick={() => setScratchpadOpen((p) => !p)}
+                      title="開啟或收合本題草稿驗算區 (快捷鍵 S)"
+                    >
+                      <PenTool size={13} />
+                      <span>草稿{currentResp.scratchpad ? ' (有筆記)' : ''}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`arena-tool-chip is-flag-btn ${isFlagged ? 'is-flagged' : ''}`}
+                      onClick={() => toggleFlagQuestion(currentQ.id)}
+                      title="插旗標記待交卷前複查 (快捷鍵 F)"
+                    >
+                      <Flag size={13} />
+                      <span>{isFlagged ? '已插旗' : '插旗複查'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="arena-q-prompt">
@@ -818,58 +1468,130 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
                 {/* Answer Input Area */}
                 {currentQ.type === 'mcq' ? (
-                  <div className="arena-mcq-list">
+                  <div className="arena-mcq-list" role="radiogroup" aria-label={`第 ${currentQ.number} 題選項`}>
                     {(currentQ.options || []).map((opt) => {
                       const selected = currentResp.answer === opt.key;
+                      const isElim = currentEliminated.includes(opt.key);
                       return (
-                        <button
+                        <div
                           key={opt.key}
-                          type="button"
-                          className={`arena-mcq-option ${selected ? 'is-selected' : ''}`}
-                          onClick={() => updateQuestionResponse(currentQ.id, { answer: opt.key })}
+                          className={`arena-mcq-option-wrap ${selected ? 'is-selected' : ''} ${isElim ? 'is-eliminated' : ''}`}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            toggleEliminateOption(currentQ.id, opt.key);
+                          }}
                         >
-                          <span className="arena-mcq-key">{opt.key}</span>
-                          <div className="arena-mcq-text">
-                            <MarkdownBlock content={opt.text} />
-                          </div>
-                        </button>
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            className="arena-mcq-option-main"
+                            onClick={() => handleSelectMcqOption(currentQ.id, opt.key)}
+                          >
+                            <span className="arena-mcq-key">{opt.key}</span>
+                            <div className="arena-mcq-text">
+                              <MarkdownBlock content={opt.text} />
+                            </div>
+                            {selected && (
+                              <span className="arena-mcq-selected-check" aria-hidden="true">
+                                <Check size={15} />
+                              </span>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            className={`arena-mcq-elim-btn ${isElim ? 'active' : ''}`}
+                            onClick={() => toggleEliminateOption(currentQ.id, opt.key)}
+                            title={isElim ? '取消排除' : '刪除線排除此選項（亦可在選項上按右鍵）'}
+                            aria-label={isElim ? `取消排除選項 ${opt.key}` : `排除選項 ${opt.key}`}
+                          >
+                            <EyeOff size={14} />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
                 ) : (
                   <div className="arena-text-answer-box">
-                    <label className="arena-input-label">
-                      {currentQ.type === 'fill'
-                        ? '填寫最終精簡答案（支援 LaTeX，例如 $\\frac{16}{5}$ 或純文字 16/5）'
-                        : '輸入你的最終答案與關鍵推導步驟（交卷後將與標準詳解並列自評）'}
-                    </label>
+                    <div className="arena-input-header">
+                      <label className="arena-input-label" htmlFor={`arena-ans-${currentQ.id}`}>
+                        {currentQ.type === 'fill'
+                          ? '最終精簡答案（支援直接輸入 LaTeX 如 \\frac{27}{20} 或純文字 27/20）'
+                          : '輸入你的最終答案與關鍵推導步驟（交卷後與標準詳解並列自評）'}
+                      </label>
+                    </div>
+
+                    {/* Math Quick-Insert Toolbar */}
+                    <div className="arena-math-toolbar" aria-label="數學符號快捷輸入列">
+                      {MATH_SNIPPETS.map((snip) => (
+                        <button
+                          key={snip.label}
+                          type="button"
+                          className="arena-math-chip"
+                          title={snip.title}
+                          onClick={() => insertMathSnippet(currentQ.id, snip)}
+                        >
+                          {snip.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <textarea
+                      id={`arena-ans-${currentQ.id}`}
+                      ref={answerTextareaRef}
                       className={`arena-answer-textarea ${currentQ.type === 'calculation' ? 'is-tall' : ''}`}
                       value={currentResp.answer || ''}
                       onChange={(e) => updateQuestionResponse(currentQ.id, { answer: e.target.value })}
                       placeholder={
                         currentQ.type === 'fill'
-                          ? '例：y = 2x - 1, y = -10x - 25 或 [e^-2, e^2)'
-                          : '記錄你的變數代換、邊界檢查與最終結果...'
+                          ? '例：y = 4x - 4, y = -2x - 1 或 \\frac{27}{20} 或 [e^{-3}, e^3)'
+                          : '記錄你的變數代換、臨界點分析、邊界條件與最終結果...'
                       }
                     />
-                    {currentResp.answer && currentResp.answer.includes('$') && (
+
+                    {shouldShowMathPreview && (
                       <div className="arena-math-preview">
-                        <div className="arena-preview-tag">LaTeX 即時預覽</div>
-                        <MarkdownBlock content={currentResp.answer} />
+                        <div className="arena-preview-tag">LaTeX 即時渲染預覽</div>
+                        <MarkdownBlock content={mathPreviewSource} />
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Mandatory Confidence Tagging Bar */}
-                <div className="arena-confidence-bar">
+                {/* Collapsible Scratchpad */}
+                {scratchpadOpen && (
+                  <div className="arena-scratchpad-box">
+                    <div className="arena-scratchpad-head">
+                      <span><PenTool size={13} /> 本題草稿與驗算區（不計入答案欄，復盤時可對照）</span>
+                      <button
+                        type="button"
+                        className="arena-btn-ghost"
+                        style={{ padding: '2px 8px', fontSize: '0.74rem' }}
+                        onClick={() => setScratchpadOpen(false)}
+                      >
+                        收合
+                      </button>
+                    </div>
+                    <textarea
+                      className="arena-scratchpad-textarea"
+                      value={currentResp.scratchpad || ''}
+                      onChange={(e) => updateQuestionResponse(currentQ.id, { scratchpad: e.target.value })}
+                      placeholder="隨手記錄變數代換、界線檢查、指標追蹤值或單字刪去理由..."
+                    />
+                  </div>
+                )}
+
+                {/* Confidence Tagging Cards */}
+                <div className={`arena-confidence-bar ${needsConfidenceNudge ? 'needs-nudge' : ''}`}>
                   <div className="arena-confidence-title">
                     <Brain size={15} />
-                    <span>作答信心標記（必選，區分真會與猜對）：</span>
+                    <span>
+                      作答信心標記
+                      {needsConfidenceNudge && <em className="arena-nudge-pill">請標記此題把握度</em>}
+                    </span>
                   </div>
                   <div className="arena-confidence-buttons">
-                    {CONFIDENCE_OPTIONS.map((opt) => {
+                    {CONFIDENCE_OPTIONS.map((opt, idx) => {
                       const active = currentResp.confidence === opt.id;
                       return (
                         <button
@@ -881,7 +1603,8 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                           {opt.id === 'confident' && <Check size={14} />}
                           {opt.id === 'guessed' && <HelpCircle size={14} />}
                           {opt.id === 'forgot' && <AlertTriangle size={14} />}
-                          {opt.label}
+                          <span>{opt.label}</span>
+                          <kbd className="arena-conf-kbd">{idx + 1}</kbd>
                         </button>
                       );
                     })}
@@ -903,6 +1626,10 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                     <ChevronLeft size={16} /> 上一題
                   </button>
 
+                  <div className="arena-footer-progress-text">
+                    第 <strong>{currentIndex + 1}</strong> / {questions.length} 題
+                  </div>
+
                   {currentIndex < questions.length - 1 ? (
                     <button
                       type="button"
@@ -918,14 +1645,171 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                       下一題 <ChevronRight size={16} />
                     </button>
                   ) : (
-                    <button type="button" className="arena-btn-primary" onClick={handleSubmitExam}>
-                      <CheckCircle2 size={16} /> 完成並交卷批改
+                    <button
+                      type="button"
+                      className="arena-btn-primary"
+                      onClick={() => setConfirmModal('submit')}
+                    >
+                      <CheckCircle2 size={16} /> 檢視並交卷
                     </button>
                   )}
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Custom In-App Exit / Submit Confirm Modals */}
+          {confirmModal === 'exit' && (
+            <div className="arena-modal-backdrop" onClick={() => setConfirmModal(null)}>
+              <div
+                ref={confirmModalRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="離開本次考場確認"
+                tabIndex={-1}
+                className="arena-confirm-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="arena-confirm-head">
+                  <h3>離開本次考場？</h3>
+                  <button type="button" className="arena-icon-btn" onClick={() => setConfirmModal(null)} aria-label="關閉視窗">
+                    <X size={16} />
+                  </button>
+                </div>
+                <p className="arena-confirm-desc">
+                  目前已作答 <strong>{answeredCount} / {questions.length}</strong> 題（剩餘時間 {formatSeconds(secondsLeft)}）。你可以暫存進度稍後回來續寫，或直接放棄本次進度。
+                </p>
+                <div className="arena-confirm-actions">
+                  <button type="button" className="arena-btn-ghost" onClick={() => setConfirmModal(null)}>
+                    繼續作答
+                  </button>
+                  <button
+                    type="button"
+                    className="arena-btn-danger-ghost"
+                    onClick={() => {
+                      if (exam?.id) clearDraftForExam(exam.id);
+                      setConfirmModal(null);
+                      setActiveSession(null);
+                      notify('已放棄本次未交卷進度');
+                    }}
+                  >
+                    放棄進度離開
+                  </button>
+                  <button
+                    type="button"
+                    className="arena-btn-primary"
+                    onClick={() => {
+                      saveDraftForSession(activeSession);
+                      setConfirmModal(null);
+                      setActiveSession(null);
+                      notify('已自動暫存作答進度，隨時可回試卷庫繼續作答');
+                    }}
+                  >
+                    <Save size={14} /> 暫存並離開
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {confirmModal === 'submit' && (
+            <div className="arena-modal-backdrop" onClick={() => setConfirmModal(null)}>
+              <div
+                ref={confirmModalRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="交卷前作答總覽確認"
+                tabIndex={-1}
+                className="arena-confirm-modal is-wide"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="arena-confirm-head">
+                  <h3>交卷前作答總覽確認</h3>
+                  <button type="button" className="arena-icon-btn" onClick={() => setConfirmModal(null)} aria-label="關閉視窗">
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="arena-submit-stat-grid">
+                  <div className="arena-submit-stat tone-emerald">
+                    <span>已作答</span>
+                    <strong>{answeredCount} / {questions.length}</strong>
+                  </div>
+                  <div className={`arena-submit-stat ${unansweredQuestions.length > 0 ? 'tone-danger' : ''}`}>
+                    <span>未作答</span>
+                    <strong>{unansweredQuestions.length}</strong>
+                  </div>
+                  <div className={`arena-submit-stat ${untaggedQuestions.length > 0 ? 'tone-amber' : ''}`}>
+                    <span>未標信心</span>
+                    <strong>{untaggedQuestions.length}</strong>
+                  </div>
+                  <div className={`arena-submit-stat ${flaggedIds.length > 0 ? 'tone-purple' : ''}`}>
+                    <span>已插旗複查</span>
+                    <strong>{flaggedIds.length}</strong>
+                  </div>
+                </div>
+
+                {unansweredQuestions.length > 0 && (
+                  <div className="arena-submit-jump-block">
+                    <div className="arena-submit-jump-label">尚未填答題號（點擊直接跳轉補寫）：</div>
+                    <div className="arena-submit-jump-chips">
+                      {unansweredQuestions.map((q) => {
+                        const idx = questions.findIndex((item) => item.id === q.id);
+                        return (
+                          <button
+                            key={q.id}
+                            type="button"
+                            className="arena-jump-chip is-danger"
+                            onClick={() => {
+                              setActiveSession((p) => (p ? { ...p, currentIndex: idx } : p));
+                              setConfirmModal(null);
+                            }}
+                          >
+                            Q{q.number}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {flaggedIds.length > 0 && (
+                  <div className="arena-submit-jump-block">
+                    <div className="arena-submit-jump-label">已插旗待複查題號：</div>
+                    <div className="arena-submit-jump-chips">
+                      {flaggedIds.map((fid) => {
+                        const idx = questions.findIndex((item) => item.id === fid);
+                        const q = questions[idx];
+                        if (!q) return null;
+                        return (
+                          <button
+                            key={fid}
+                            type="button"
+                            className="arena-jump-chip is-amber"
+                            onClick={() => {
+                              setActiveSession((p) => (p ? { ...p, currentIndex: idx } : p));
+                              setConfirmModal(null);
+                            }}
+                          >
+                            Q{q.number}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="arena-confirm-actions">
+                  <button type="button" className="arena-btn-secondary" onClick={() => setConfirmModal(null)}>
+                    返回檢查
+                  </button>
+                  <button type="button" className="arena-btn-primary" onClick={handleSubmitExam}>
+                    <CheckCircle2 size={15} /> 確認交卷並解鎖詳解
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -944,55 +1828,91 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
     const weightedContrib = subjectMeta
       ? Math.round(currentGrade.percentage * subjectMeta.weight * 10) / 10
       : null;
+    const targetScore = Number(exam.targetScore || 90);
+    const hitTarget = currentGrade.percentage >= targetScore;
+
+    const scrollToReviewQuestion = (qId) => {
+      if (reviewFilter !== 'all') {
+        setActiveSession((p) => (p ? { ...p, reviewFilter: 'all' } : p));
+      }
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById(`arena-review-q-${qId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    };
 
     return (
       <div className="arena-review-shell">
-        <div className="arena-session-topbar">
-          <div className="arena-session-title-group">
-            <button
-              type="button"
-              className="arena-btn-ghost"
-              onClick={() => setActiveSession(null)}
-            >
-              <ChevronLeft size={16} />
-              返回戰情室
-            </button>
-            <div>
-              <div className="arena-session-title">批改與復盤：{exam.title}</div>
-              <div className="arena-session-meta">
-                <span>耗時 {formatSeconds(activeSession.elapsedSeconds)}</span>
-                <span>·</span>
-                <span>目標分數 {exam.targetScore || 90} 分</span>
+        <div className="arena-session-topbar is-sticky">
+          <div className="arena-session-topbar-main">
+            <div className="arena-session-title-group">
+              <button
+                type="button"
+                className="arena-btn-ghost"
+                onClick={() => setActiveSession(null)}
+              >
+                <ChevronLeft size={16} />
+                返回戰情室
+              </button>
+              <div>
+                <div className="arena-session-title">批改與復盤：{exam.title}</div>
+                <div className="arena-session-meta">
+                  <span>耗時 {formatSeconds(activeSession.elapsedSeconds)}</span>
+                  <span>·</span>
+                  <span>目標 {targetScore} 分</span>
+                  <span>·</span>
+                  <span style={{ color: hitTarget ? 'var(--accent-emerald)' : 'var(--accent-amber)', fontWeight: 700 }}>
+                    {hitTarget ? '達標' : `距目標差 ${Math.round((targetScore - currentGrade.percentage) * 10) / 10}%`}
+                  </span>
+                </div>
               </div>
+            </div>
+
+            <div className="arena-session-actions">
+              <button
+                type="button"
+                className="arena-btn-secondary"
+                onClick={() => startExamSession(exam, activeSession.relativePath)}
+              >
+                <RotateCcw size={14} /> 重寫本卷
+              </button>
+              <button
+                type="button"
+                className={`arena-btn-primary ${synced ? 'is-synced' : ''}`}
+                disabled={isSyncingResults || currentGrade.pendingCount > 0}
+                title={
+                  currentGrade.pendingCount > 0
+                    ? `請先完成剩餘 ${currentGrade.pendingCount} 題填充/計算題自評再同步`
+                    : '儲存成績、更新錯題本並回寫 Learning_Status.md 與閃卡庫'
+                }
+                onClick={handleSyncReviewToWorkspace}
+              >
+                <Save size={15} />
+                {isSyncingResults
+                  ? '同步寫回中...'
+                  : synced
+                    ? '已同步至狀態表與閃卡庫'
+                    : '儲存並同步寫回狀態表＋閃卡'}
+              </button>
             </div>
           </div>
 
-          <div className="arena-session-actions">
-            <button
-              type="button"
-              className="arena-btn-secondary"
-              onClick={() => startExamSession(exam, activeSession.relativePath)}
-            >
-              <RotateCcw size={14} /> 重寫本卷
-            </button>
-            <button
-              type="button"
-              className={`arena-btn-primary ${synced ? 'is-synced' : ''}`}
-              disabled={isSyncingResults || currentGrade.pendingCount > 0}
-              title={
-                currentGrade.pendingCount > 0
-                  ? `請先完成剩餘 ${currentGrade.pendingCount} 題填充/計算題自評再同步`
-                  : '儲存成績、更新錯題本並回寫 Learning_Status.md 與閃卡庫'
-              }
-              onClick={handleSyncReviewToWorkspace}
-            >
-              <Save size={15} />
-              {isSyncingResults
-                ? '同步寫回中...'
-                : synced
-                  ? '已同步至狀態表與閃卡庫'
-                  : '儲存並同步寫回狀態表＋閃卡'}
-            </button>
+          {/* Review Quick Jump Strip */}
+          <div className="arena-review-jump-strip">
+            {questions.map((q) => {
+              const g = currentGrade.perQuestion[q.id];
+              return (
+                <button
+                  key={q.id}
+                  type="button"
+                  className={`arena-review-dot status-${g.status} ${g.isBlindSpot ? 'is-blind' : ''}`}
+                  onClick={() => scrollToReviewQuestion(q.id)}
+                  title={`跳至 Q${q.number}（${g.status === 'correct' ? '正確' : g.status === 'partial' ? '部分對' : g.status === 'wrong' ? '錯誤' : '待自評'}）`}
+                >
+                  {q.number}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1033,9 +1953,9 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
         {currentGrade.pendingCount > 0 && (
           <div className="arena-pending-banner">
-            <AlertTriangle size={16} />
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
             <span>
-              本卷尚有 <strong>{currentGrade.pendingCount} 題</strong> 填充／計算題等待你對照詳解進行步驟自評，自評完成後即可一鍵同步寫回學習狀態表與閃卡庫。
+              本卷尚有 <strong>{currentGrade.pendingCount} 題</strong> 填充／計算題等待你對照詳解進行步驟自評，完成後即可一鍵同步寫回學習狀態表與閃卡庫。
             </span>
           </div>
         )}
@@ -1078,6 +1998,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
             return (
               <div
                 key={q.id}
+                id={`arena-review-q-${q.id}`}
                 className={`arena-review-card status-${g.status} ${g.isBlindSpot ? 'is-blindspot' : ''}`}
               >
                 <div className="arena-review-card-head">
@@ -1093,7 +2014,9 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                       信心：{confLabel}
                     </span>
                     {q.chapter && <span className="arena-chip muted">{q.chapter}</span>}
-                    {q.isSpacedRecall && <span className="arena-chip recall">🔁 回馬槍</span>}
+                    {q.isSpacedRecall && (
+                      <span className="arena-chip recall"><RotateCcw size={11} /> 回馬槍</span>
+                    )}
                   </div>
                 </div>
 
@@ -1101,21 +2024,68 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                   <MarkdownBlock content={q.prompt} />
                 </div>
 
-                {/* Comparison Area */}
-                <div className="arena-answer-compare">
-                  <div className="arena-compare-box">
-                    <div className="arena-compare-label">你的作答</div>
-                    <div className="arena-compare-value">
-                      {resp.answer ? <MarkdownBlock content={resp.answer} /> : <span className="arena-dim">（未作答）</span>}
+                {/* MCQ Full Option Breakdown vs Text Answer Comparison */}
+                {q.type === 'mcq' && Array.isArray(q.options) && q.options.length > 0 ? (
+                  <div className="arena-review-mcq-list">
+                    {q.options.map((opt) => {
+                      const isCorrectOpt = String(q.answer || '').trim().toUpperCase() === opt.key;
+                      const isUserPick = String(resp.answer || '').trim().toUpperCase() === opt.key;
+                      const stateClass = isCorrectOpt
+                        ? 'is-correct'
+                        : isUserPick
+                          ? 'is-wrong-pick'
+                          : '';
+                      return (
+                        <div key={opt.key} className={`arena-review-mcq-opt ${stateClass}`}>
+                          <span className="arena-mcq-key">{opt.key}</span>
+                          <div className="arena-mcq-text">
+                            <MarkdownBlock content={opt.text} />
+                          </div>
+                          <div className="arena-review-opt-tags">
+                            {isCorrectOpt && (
+                              <span className="arena-opt-tag is-correct"><Check size={12} /> 正確答案</span>
+                            )}
+                            {isUserPick && !isCorrectOpt && (
+                              <span className="arena-opt-tag is-wrong"><X size={12} /> 你的選擇</span>
+                            )}
+                            {isUserPick && isCorrectOpt && (
+                              <span className="arena-opt-tag is-picked">你的選擇</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!resp.answer && (
+                      <div className="arena-review-unanswered-note">本題未作答</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="arena-answer-compare">
+                    <div className="arena-compare-box">
+                      <div className="arena-compare-label">你的作答</div>
+                      <div className="arena-compare-value">
+                        {resp.answer ? (
+                          <MarkdownBlock content={formatAnswerForMathPreview(resp.answer)} />
+                        ) : (
+                          <span className="arena-dim">（未作答）</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="arena-compare-box is-truth">
+                      <div className="arena-compare-label">標準答案</div>
+                      <div className="arena-compare-value">
+                        <MarkdownBlock content={q.answer} />
+                      </div>
                     </div>
                   </div>
-                  <div className="arena-compare-box is-truth">
-                    <div className="arena-compare-label">標準答案</div>
-                    <div className="arena-compare-value">
-                      <MarkdownBlock content={q.answer} />
-                    </div>
+                )}
+
+                {resp.scratchpad && (
+                  <div className="arena-review-scratchpad">
+                    <div className="arena-compare-label">你的考場草稿筆記</div>
+                    <pre>{resp.scratchpad}</pre>
                   </div>
-                </div>
+                )}
 
                 {/* Manual Self-Grading for Fill / Calculation */}
                 {q.type !== 'mcq' && (
@@ -1127,21 +2097,21 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                         className={`arena-sg-btn tone-emerald ${resp.selfGrade === 'correct' ? 'active' : ''}`}
                         onClick={() => updateQuestionResponse(q.id, { selfGrade: 'correct' })}
                       >
-                        ✅ 全對 ({q.points} 分)
+                        <CheckCircle2 size={14} /> 全對 ({q.points} 分)
                       </button>
                       <button
                         type="button"
                         className={`arena-sg-btn tone-amber ${resp.selfGrade === 'partial' ? 'active' : ''}`}
                         onClick={() => updateQuestionResponse(q.id, { selfGrade: 'partial' })}
                       >
-                        🟡 部分對 ({Math.round(q.points * 0.5 * 10) / 10} 分)
+                        <AlertTriangle size={14} /> 部分對 ({Math.round(q.points * 0.5 * 10) / 10} 分)
                       </button>
                       <button
                         type="button"
                         className={`arena-sg-btn tone-danger ${resp.selfGrade === 'wrong' ? 'active' : ''}`}
                         onClick={() => updateQuestionResponse(q.id, { selfGrade: 'wrong' })}
                       >
-                        ❌ 錯誤 (0 分)
+                        <XCircle size={14} /> 錯誤 (0 分)
                       </button>
                     </div>
                   </div>
@@ -1155,19 +2125,19 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                   <div className="arena-insight-grid">
                     {q.coreFormula && (
                       <div className="arena-insight-box tone-blue">
-                        <div className="arena-insight-label">📌 核心公式 / 定義</div>
+                        <div className="arena-insight-label"><Pin size={13} /> 核心公式 / 定義</div>
                         <MarkdownBlock content={q.coreFormula} />
                       </div>
                     )}
                     {q.pitfall && (
                       <div className="arena-insight-box tone-amber">
-                        <div className="arena-insight-label">⚠️ 易錯陷阱</div>
+                        <div className="arena-insight-label"><AlertTriangle size={13} /> 易錯陷阱</div>
                         <MarkdownBlock content={q.pitfall} />
                       </div>
                     )}
                     {q.mnemonic && (
                       <div className="arena-insight-box tone-purple">
-                        <div className="arena-insight-label">⚡ 一句話考前口訣</div>
+                        <div className="arena-insight-label"><Lightbulb size={13} /> 一句話考前口訣</div>
                         <MarkdownBlock content={q.mnemonic} />
                       </div>
                     )}
@@ -1187,9 +2157,12 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
   const gapToRegular = Math.round((projection.cutoff115Regular - projection.weightedTotal) * 10) / 10;
   const gapToSafe = Math.round((projection.target116Safe - projection.weightedTotal) * 10) / 10;
 
+  const hideHubChrome = subTab === 'flashcards' && isFlashcardStudying;
+
   return (
     <div className="arena-hub">
       {/* Top NTHU CS A4 Projection Hero */}
+      {!hideHubChrome && (
       <section className="arena-hero-card">
         <div className="arena-hero-left">
           <div className="arena-hero-eyebrow">
@@ -1262,23 +2235,71 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
             <button
               type="button"
               className="arena-kpi-box is-purple"
-              onClick={() =>
-                onPreviewFile?.({
-                  title: '116 主動回憶閃卡庫',
-                  path: ARENA_PATHS.FLASHCARDS,
-                  format: 'md',
-                })
-              }
+              onClick={() => setSubTab('flashcards')}
             >
               <Zap size={17} />
-              <strong>閃卡</strong>
-              <span>考前速記快篩</span>
+              <strong>{flashcardStats.dueCount > 0 ? `${flashcardStats.dueCount} 到期` : `${flashcardStats.totalActive} 張`}</strong>
+              <span>主動回憶閃卡{flashcardStats.streakDays > 0 ? ` · ${flashcardStats.streakDays}天` : ''}</span>
             </button>
           </div>
         </div>
       </section>
+      )}
+
+      {!hideHubChrome && savedReviewDraft?.exam && (
+        <div className="arena-review-resume-banner" role="status">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={16} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+            <span>
+              有尚未同步的復盤自評草稿：<strong>{savedReviewDraft.exam.title}</strong>
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="arena-btn-primary"
+              onClick={() => {
+                setActiveSession({
+                  exam: savedReviewDraft.exam,
+                  relativePath: savedReviewDraft.relativePath || '',
+                  phase: 'reviewing',
+                  currentIndex: 0,
+                  responses: savedReviewDraft.responses || {},
+                  flaggedIds: savedReviewDraft.flaggedIds || [],
+                  eliminated: savedReviewDraft.eliminated || {},
+                  secondsLeft: 0,
+                  elapsedSeconds: savedReviewDraft.elapsedSeconds || 0,
+                  timerPaused: true,
+                  reviewFilter: savedReviewDraft.reviewFilter || 'all',
+                  synced: false,
+                });
+              }}
+            >
+              繼續復盤與同步
+            </button>
+            <button
+              type="button"
+              className="arena-btn-ghost"
+              onClick={() => {
+                setSavedReviewDraft(null);
+                try { localStorage.removeItem(LOCAL_REVIEW_DRAFT_KEY); } catch {}
+              }}
+            >
+              清除草稿
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!hideHubChrome && examLoadError && (
+        <div className="arena-pending-banner">
+          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+          <span>{examLoadError}</span>
+        </div>
+      )}
 
       {/* Sub-navigation & Subject Filter */}
+      {!hideHubChrome && (
       <div className="arena-toolbar">
         <div className="arena-subtabs">
           <button
@@ -1290,17 +2311,24 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
           </button>
           <button
             type="button"
+            className={`arena-subtab ${subTab === 'flashcards' ? 'active' : ''}`}
+            onClick={() => setSubTab('flashcards')}
+          >
+            <Zap size={15} /> 主動回憶閃卡 ({flashcardStats.dueCount > 0 ? `${flashcardStats.dueCount} 到期` : flashcardStats.totalActive})
+          </button>
+          <button
+            type="button"
             className={`arena-subtab ${subTab === 'mistakes' ? 'active' : ''}`}
             onClick={() => setSubTab('mistakes')}
           >
-            <Flame size={15} /> 錯題與回馬槍重練 ({unresolvedMistakes.length})
+            <Flame size={15} /> 錯題重練 ({unresolvedMistakes.length})
           </button>
           <button
             type="button"
             className={`arena-subtab ${subTab === 'decay' ? 'active' : ''}`}
             onClick={() => setSubTab('decay')}
           >
-            <Brain size={15} /> 記憶衰減看板 ({overdueDecayRows.length})
+            <Brain size={15} /> 記憶衰減 ({overdueDecayRows.length})
           </button>
           <button
             type="button"
@@ -1313,7 +2341,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
         <div className="arena-toolbar-right">
           <div className="arena-subject-pills">
-            {['ALL', '微積分', '計算機概論', '英文'].map((subj) => (
+            {subjectFilterOptions.map((subj) => (
               <button
                 key={subj}
                 type="button"
@@ -1327,10 +2355,19 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
           <button
             type="button"
+            className="arena-btn-primary"
+            onClick={() => setIsGenModalOpen(true)}
+            title="自動讀取本機歷屆考古題與弱點狀態，一鍵生成可互動計時作答的 .exam.json 試卷"
+          >
+            <Wand2 size={14} /> AI 生成試卷
+          </button>
+
+          <button
+            type="button"
             className="arena-btn-secondary"
             onClick={loadWorkspaceArenaData}
             disabled={isLoadingExams}
-            title="重新掃描 Test_Bank/Exam_paper/ 內的所有 .exam.json"
+            title="重新掃描 Test_Bank/ 內的所有 .exam.json"
           >
             <RefreshCw size={14} className={isLoadingExams ? 'spin' : ''} />
             重新掃描
@@ -1353,6 +2390,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
           />
         </div>
       </div>
+      )}
 
       {/* ================= SUBTAB 1: LIBRARY ================= */}
       {subTab === 'library' && (
@@ -1363,9 +2401,17 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
               <h3>尚無符合篩選的互動試卷 (.exam.json)</h3>
               <p>
                 {isElectron
-                  ? '請點擊右上角「重新掃描」，或使用 Antigravity 的 Mock Exam Generator / Question Sweeper 產出新考卷後自動載入。'
-                  : '網頁版會自動從 Supabase 雲端載入試卷；若剛新增考卷請先於桌面端執行同步，或點擊右上角「重新掃描」／「匯入 JSON」。'}
+                  ? '可直接點擊下方「AI 生成試卷」讀取本機歷屆考古題產出新考卷，或點擊「重新掃描」載入工作區既有檔案。'
+                  : '網頁版會自動從 Supabase 雲端載入試卷；你也可以直接點下方「AI 生成試卷」線上命題，或點擊「重新掃描」／「匯入 JSON」。'}
               </p>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button type="button" className="arena-btn-primary" onClick={() => setIsGenModalOpen(true)}>
+                  <Wand2 size={15} /> 立即 AI 生成互動試卷
+                </button>
+                <button type="button" className="arena-btn-secondary" onClick={loadWorkspaceArenaData}>
+                  <RefreshCw size={14} /> 重新掃描
+                </button>
+              </div>
             </div>
           ) : (
             filteredExams.map((entry) => {
@@ -1374,6 +2420,10 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
               const recallCount = qList.filter((q) => q.isSpacedRecall).length;
               const lastAttempt = latestAttemptByExamId[ex.id];
               const subjMeta = SUBJECT_CONFIG[ex.subject];
+              const draft = ex.id ? draftsMap[ex.id] : null;
+              const draftAnswered = draft
+                ? Object.values(draft.responses || {}).filter((r) => String(r?.answer || '').trim() !== '').length
+                : 0;
 
               return (
                 <article key={entry.relativePath || ex.id} className="arena-exam-card">
@@ -1388,9 +2438,16 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                       {ex.subject || '一般科目'}
                       {subjMeta ? ` ×${subjMeta.weight}` : ''}
                     </span>
-                    <span className="arena-mode-tag">
-                      {MODE_LABELS[ex.mode] || ex.mode || '模擬卷'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {draft && (
+                        <span className="arena-draft-badge">
+                          進行中 · {draftAnswered}/{qList.length}
+                        </span>
+                      )}
+                      <span className="arena-mode-tag">
+                        {MODE_LABELS[ex.mode] || ex.mode || '模擬卷'}
+                      </span>
+                    </div>
                   </div>
 
                   <h3 className="arena-exam-card-title">{ex.title}</h3>
@@ -1409,19 +2466,43 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
 
                   {lastAttempt && (
                     <div className="arena-last-attempt">
-                      上次實測 ({lastAttempt.date})：<strong>{lastAttempt.percentage}%</strong>
-                      （盲區 {lastAttempt.blindSpotCount} 題）
+                      <Target size={13} />
+                      <span>
+                        上次實測 ({lastAttempt.date})：<strong>{lastAttempt.percentage}%</strong>
+                        （盲區 {lastAttempt.blindSpotCount} 題）
+                      </span>
                     </div>
                   )}
 
                   <div className="arena-exam-card-actions">
-                    <button
-                      type="button"
-                      className="arena-btn-primary"
-                      onClick={() => startExamSession(ex, entry.relativePath)}
-                    >
-                      <Play size={14} /> 開始計時作答
-                    </button>
+                    {draft ? (
+                      <>
+                        <button
+                          type="button"
+                          className="arena-btn-primary"
+                          onClick={() => startExamSession(ex, entry.relativePath, { resumeDraft: true })}
+                        >
+                          <Play size={14} /> 繼續上次作答
+                        </button>
+                        <button
+                          type="button"
+                          className="arena-btn-secondary"
+                          onClick={() => startExamSession(ex, entry.relativePath, { resumeDraft: false })}
+                          title="清除暫存進度並重新計時"
+                        >
+                          <RotateCcw size={13} /> 重頭開始
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="arena-btn-primary"
+                        onClick={() => startExamSession(ex, entry.relativePath)}
+                      >
+                        <Play size={14} /> 開始計時作答
+                      </button>
+                    )}
+
                     {ex.sourceMarkdown && (
                       <button
                         type="button"
@@ -1434,7 +2515,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                           })
                         }
                       >
-                        檢視原卷 MD
+                        原卷 MD
                       </button>
                     )}
                   </div>
@@ -1445,23 +2526,53 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
         </div>
       )}
 
+      {/* ================= SUBTAB 1.5: ACTIVE RECALL FLASHCARDS ================= */}
+      {subTab === 'flashcards' && (
+        <FlashcardHub
+          store={flashcardsStore}
+          subjectFilter={subjectFilter}
+          courses={courses}
+          decayRows={decayRows}
+          mistakeBank={mistakeBank}
+          onUpdateStore={onUpdateFlashcards}
+          onResyncFromMd={onResyncFlashcardsFromMd}
+          onPreviewFile={onPreviewFile}
+          onOpenAiSettings={onOpenAiSettings}
+          showToast={showToast}
+          pendingAction={pendingFlashcardAction}
+          onConsumePendingAction={() => setPendingFlashcardAction(null)}
+          onStudyActiveChange={setIsFlashcardStudying}
+        />
+      )}
+
       {/* ================= SUBTAB 2: MISTAKE BANK ================= */}
       {subTab === 'mistakes' && (
         <div className="arena-mistakes-panel">
           <div className="arena-panel-header">
             <div>
               <h3>錯題與盲區重練清單（含答錯、靠猜、忘記公式）</h3>
-              <p>每次交卷並同步後自動彙整；重練時「答對且標記會寫」即自動解除。</p>
+              <p>每次交卷並同步後自動彙整；重練時「答對且標記會寫」即自動解除，也可一鍵轉為 SM-2 主動回憶閃卡。</p>
             </div>
-            <button
-              type="button"
-              className="arena-btn-primary"
-              disabled={filteredMistakes.length === 0}
-              onClick={() => startMistakeRetrySession(subjectFilter)}
-            >
-              <Flame size={15} />
-              啟動無提示回馬槍重練 ({filteredMistakes.length} 題)
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="arena-btn-secondary"
+                disabled={filteredMistakes.length === 0}
+                onClick={() => handlePromoteAllMistakesToFlashcards(filteredMistakes)}
+                title="將目前篩選的所有錯題批量轉為結構化閃卡（自動去重）"
+              >
+                <Zap size={14} /> 全部轉為閃卡
+              </button>
+              <button
+                type="button"
+                className="arena-btn-primary"
+                disabled={filteredMistakes.length === 0}
+                onClick={() => startMistakeRetrySession(subjectFilter)}
+              >
+                <Flame size={15} />
+                啟動無提示回馬槍重練 ({filteredMistakes.length} 題)
+              </button>
+            </div>
           </div>
 
           {filteredMistakes.length === 0 ? (
@@ -1472,7 +2583,9 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
             </div>
           ) : (
             <div className="arena-mistake-list">
-              {filteredMistakes.map((m) => (
+              {filteredMistakes.map((m) => {
+                const alreadyInFlashcards = flashcardSourceRefSet.has(m.key);
+                return (
                 <div key={m.key} className="arena-mistake-item">
                   <div className="arena-mistake-head">
                     <div className="arena-q-badges">
@@ -1483,24 +2596,41 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                       ))}
                       <span className="arena-chip">累計失誤 {m.missCount} 次</span>
                     </div>
-                    <button
-                      type="button"
-                      className="arena-btn-ghost"
-                      onClick={() => toggleMistakeResolved(m.key)}
-                    >
-                      <Check size={14} /> 標記已攻克
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {alreadyInFlashcards ? (
+                        <span className="arena-chip" style={{ color: 'var(--accent-purple)' }}>
+                          <Zap size={12} /> 已收錄閃卡
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="arena-btn-ghost"
+                          onClick={() => handlePromoteMistakeToFlashcard(m)}
+                          title="將此錯題轉為結構化主動回憶閃卡"
+                        >
+                          <Zap size={13} /> 轉為閃卡
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="arena-btn-ghost"
+                        onClick={() => toggleMistakeResolved(m.key)}
+                      >
+                        <Check size={14} /> 標記已攻克
+                      </button>
+                    </div>
                   </div>
                   <div className="arena-mistake-body">
                     <MarkdownBlock content={m.question?.prompt || ''} />
                   </div>
                   {m.question?.mnemonic && (
                     <div className="arena-mistake-mnemonic">
-                      ⚡ 速記口訣：{m.question.mnemonic}
+                      <Lightbulb size={14} /> 速記口訣：{m.question.mnemonic}
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -1531,15 +2661,9 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
               <button
                 type="button"
                 className="arena-btn-secondary"
-                onClick={() =>
-                  onPreviewFile?.({
-                    title: '116 主動回憶閃卡庫',
-                    path: ARENA_PATHS.FLASHCARDS,
-                    format: 'md',
-                  })
-                }
+                onClick={() => setSubTab('flashcards')}
               >
-                <Zap size={14} /> 開啟主動回憶閃卡
+                <Zap size={14} /> 開啟主動回憶閃卡 ({flashcardStats.dueCount} 到期)
               </button>
             </div>
           </div>
@@ -1548,7 +2672,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
             <div className="arena-empty-card">
               <Filter size={26} />
               <h3>{decayLoadError}</h3>
-              <p>請點擊上方「重新掃描」或等待雲端同步完成，即可自動載入 26 個章節記憶衰減狀態。</p>
+              <p>請點擊上方「重新掃描」或等待雲端同步完成，即可自動載入章節記憶衰減狀態。</p>
             </div>
           ) : (
             <div className="arena-decay-grid">
@@ -1572,7 +2696,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                     <div className="arena-decay-bar-wrap">
                       <div className="arena-decay-bar-label">
                         <span>距上次複習 <strong>{row.daysSince}</strong> 天 / 半衰期 {row.halfLifeDays} 天</span>
-                        <span>{row.isOverdue ? '⚠️ 需立即喚醒' : `下次 ${row.nextReviewDate}`}</span>
+                        <span>{row.isOverdue ? '需立即喚醒' : `下次 ${row.nextReviewDate}`}</span>
                       </div>
                       <div className="arena-meter-track">
                         <div className={`arena-decay-fill tone-${tone}`} style={{ width: `${pct}%` }} />
@@ -1588,12 +2712,16 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
       )}
 
       {/* ================= SUBTAB 4: HISTORY ================= */}
-      {subTab === 'history' && (
+      {subTab === 'history' && (() => {
+        const filteredHistory = subjectFilter === 'ALL'
+          ? history
+          : history.filter((h) => h.subject === subjectFilter);
+        return (
         <div className="arena-history-panel">
-          {history.length === 0 ? (
+          {filteredHistory.length === 0 ? (
             <div className="arena-empty-card">
               <History size={28} />
-              <h3>尚無刷題紀錄</h3>
+              <h3>{history.length === 0 ? '尚無刷題紀錄' : `目前無「${subjectFilter}」的刷題紀錄`}</h3>
               <p>前往「試卷庫」完成第一份 116 喚醒診斷卷，系統將自動追蹤你的清大資工加權預估總分變化。</p>
             </div>
           ) : (
@@ -1611,7 +2739,7 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
                   </tr>
                 </thead>
                 <tbody>
-                  {history.map((h) => (
+                  {filteredHistory.map((h) => (
                     <tr key={h.id}>
                       <td>{h.date}</td>
                       <td><span className="arena-chip">{h.subject}</span></td>
@@ -1635,7 +2763,24 @@ export default function ExamArena({ onPreviewFile, showToast, assetManifestVersi
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
+
+      {/* AI Exam Generator Modal */}
+      <ExamGeneratorModal
+        isOpen={isGenModalOpen}
+        onClose={() => setIsGenModalOpen(false)}
+        initialSubject={subjectFilter === 'ALL' ? '微積分' : subjectFilter}
+        availableCourses={courses}
+        decayRows={decayRows}
+        mistakeBank={mistakeBank}
+        leechFlashcards={leechFlashcards}
+        onExamSaved={handleExamGeneratedAndSaved}
+        onStartExam={(examData, relPath) => startExamSession(examData, relPath)}
+        onOpenSettings={onOpenAiSettings}
+        onRequireUnlock={onRequireUnlock}
+        showToast={showToast}
+      />
     </div>
   );
 }

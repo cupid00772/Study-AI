@@ -105,8 +105,17 @@ export default function DesktopAlertWindow() {
   const urgent = payload?.urgentAssignments || [];
   const study = payload?.study || { studiedMinutes: 0, goalMinutes: 60, pendingDailyTasks: [], needsStudyNudge: true };
   const allAssignments = [...overdue, ...urgent];
+  const isFocusAlarm = payload?.kind === 'focus_complete' || payload?.kind === 'break_complete';
+  const isBreakComplete = payload?.kind === 'break_complete';
+  const focusAlarmInfo = payload?.focusAlarm || {
+    kind: payload?.kind || 'focus_complete',
+    minutes: isBreakComplete ? 5 : 25,
+    nextPresetMinutes: 25,
+    studiedMinutes: study.studiedMinutes || 0,
+    goalMinutes: study.goalMinutes || 60,
+  };
 
-  const isCritical = exams.length > 0 || overdue.length > 0 || urgent.some((u) => u.daysLeft <= 1);
+  const isCritical = isFocusAlarm || exams.length > 0 || overdue.length > 0 || urgent.some((u) => u.daysLeft <= 1);
   const soundConfig = useMemo(() => normalizeSoundConfig(payload?.soundConfig), [payload?.soundConfig]);
   const shouldPlaySound = payload?.playSound !== false;
   const shouldShake = soundConfig.shakeEnabled !== false;
@@ -116,7 +125,7 @@ export default function DesktopAlertWindow() {
     if (!payload || acknowledged) return undefined;
     if (!shouldPlaySound && !shouldShake) return undefined;
 
-    const soundSpec = resolveActiveSoundSpec(soundConfig, isCritical);
+    const soundSpec = resolveActiveSoundSpec(soundConfig, isCritical, payload?.kind || 'alert');
 
     const loop = createAlertAlarmLoop({
       soundSpec,
@@ -162,9 +171,14 @@ export default function DesktopAlertWindow() {
     window.electronAPI?.dismissAlertToday?.();
   };
 
-  const handleStartFocus = () => {
+  const handleStartFocus = (minutes = 25) => {
     stopAlarm();
-    window.electronAPI?.alertAction?.({ type: 'start-focus', minutes: 25 });
+    window.electronAPI?.alertAction?.({ type: 'start-focus', minutes });
+  };
+
+  const handleStartBreak = (minutes = 5) => {
+    stopAlarm();
+    window.electronAPI?.alertAction?.({ type: 'start-break', minutes });
   };
 
   const handleOpenTab = (tab) => {
@@ -191,19 +205,23 @@ export default function DesktopAlertWindow() {
         {/* Draggable Header */}
         <div className="alert-popup-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-            <div className={`alert-pulse-badge ${isCritical ? 'critical' : 'warning'} ${isRingingActive ? 'is-ringing' : ''}`}>
-              {isCritical ? <Flame size={18} /> : <AlertTriangle size={18} />}
+            <div className={`alert-pulse-badge ${isFocusAlarm ? 'focus' : isCritical ? 'critical' : 'warning'} ${isRingingActive ? 'is-ringing' : ''}`}>
+              {isFocusAlarm ? <BellRing size={18} /> : isCritical ? <Flame size={18} /> : <AlertTriangle size={18} />}
             </div>
             <div style={{ minWidth: 0 }}>
               <div className="alert-popup-title">
-                {exams.length > 0
-                  ? '考前倒數 & 任務緊急警告'
-                  : allAssignments.length > 0
-                    ? '快點繳作業與讀書提醒'
-                    : '每日讀書督促提醒'}
+                {isFocusAlarm
+                  ? isBreakComplete
+                    ? '休息倒數結束 · 回到專注！'
+                    : '讀書專注計時完成！'
+                  : exams.length > 0
+                    ? '考前倒數 & 任務緊急警告'
+                    : allAssignments.length > 0
+                      ? '快點繳作業與讀書提醒'
+                      : '每日讀書督促提醒'}
               </div>
               <div className="alert-popup-sub">
-                Task Commander · {payload?.todayKey || ''}
+                Task Commander · {isFocusAlarm ? (isBreakComplete ? `已完成 ${focusAlarmInfo.minutes} 分鐘休息` : `已完成 ${focusAlarmInfo.minutes} 分鐘專注`) : (payload?.todayKey || '')}
               </div>
             </div>
           </div>
@@ -232,6 +250,37 @@ export default function DesktopAlertWindow() {
 
         {/* Scrollable Body */}
         <div className="alert-popup-body">
+          {isFocusAlarm ? (
+            <div className="alert-section study" style={{ padding: '14px' }}>
+              <div className="alert-section-head">
+                <Clock size={15} />
+                <span>{isBreakComplete ? '短休時間到，準備進入下一輪衝刺' : `已完成一輪 ${focusAlarmInfo.minutes} 分鐘專注`}</span>
+              </div>
+              <div className="alert-study-box" style={{ marginTop: 8 }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: 8, lineHeight: 1.5 }}>
+                  {isBreakComplete
+                    ? '起身喝口水、回到座位，點下方按鈕立刻展開下一輪專注計時。'
+                    : '建議離開螢幕伸展 5 分鐘讓大腦固化記憶，時間到再繼續衝刺！'}
+                </div>
+                <div className="alert-study-stat">
+                  <span>今日累計專注</span>
+                  <strong>{focusAlarmInfo.studiedMinutes} / {focusAlarmInfo.goalMinutes} 分鐘</strong>
+                </div>
+                <div className="slim-progress-track">
+                  <div
+                    className="slim-progress-fill"
+                    style={{ width: `${Math.min(100, Math.round((focusAlarmInfo.studiedMinutes / Math.max(1, focusAlarmInfo.goalMinutes)) * 100))}%` }}
+                  />
+                </div>
+                {focusAlarmInfo.studiedMinutes >= focusAlarmInfo.goalMinutes && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 700, marginTop: 8 }}>
+                    今日讀書專注目標已達標！
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
           {/* 1. Exam 7-Day Daily Warning */}
           {exams.length > 0 && (
             <div className="alert-section danger">
@@ -335,24 +384,60 @@ export default function DesktopAlertWindow() {
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Footer Actions */}
         <div className="alert-popup-footer">
-          <button type="button" className="btn btn-primary" onClick={handleStartFocus} style={{ width: '100%' }}>
-            <Play size={15} /> 立刻開始專注讀書（25 分鐘，期間暫停提醒）
-          </button>
-          <div className="alert-footer-secondary">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleOpenTab(allAssignments.length > 0 ? 'assignments' : 'dashboard')}>
-              前往處理
-            </button>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={handleSnooze}>
-              <Clock size={13} /> 延後 {payload?.snoozeMinutes || 30} 分鐘
-            </button>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={handleDismissToday}>
-              <BellOff size={13} /> 今日不再提醒
-            </button>
-          </div>
+          {isFocusAlarm ? (
+            isBreakComplete ? (
+              <>
+                <button type="button" className="btn btn-primary" onClick={() => handleStartFocus(focusAlarmInfo.nextPresetMinutes || 25)} style={{ width: '100%' }}>
+                  <Play size={15} /> 開始下一輪專注（{focusAlarmInfo.nextPresetMinutes || 25} 分鐘）
+                </button>
+                <div className="alert-footer-secondary">
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleStartBreak(5)}>
+                    <Clock size={13} /> 再休息 5 分鐘
+                  </button>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={handleClose}>
+                    <BellOff size={13} /> 關閉鬧鐘
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button type="button" className="btn btn-primary" onClick={() => handleStartBreak(5)} style={{ width: '100%' }}>
+                  <Clock size={15} /> 開始 5 分鐘休息倒數（結束會再響鬧鐘）
+                </button>
+                <div className="alert-footer-secondary">
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleStartFocus(focusAlarmInfo.minutes || 25)}>
+                    <Play size={13} /> 直接再專注 {focusAlarmInfo.minutes || 25} 分
+                  </button>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={handleClose}>
+                    <BellOff size={13} /> 關閉鬧鐘
+                  </button>
+                </div>
+              </>
+            )
+          ) : (
+            <>
+              <button type="button" className="btn btn-primary" onClick={() => handleStartFocus(25)} style={{ width: '100%' }}>
+                <Play size={15} /> 立刻開始專注讀書（25 分鐘，期間暫停提醒）
+              </button>
+              <div className="alert-footer-secondary">
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleOpenTab(allAssignments.length > 0 ? 'assignments' : 'dashboard')}>
+                  前往處理
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={handleSnooze}>
+                  <Clock size={13} /> 延後 {payload?.snoozeMinutes || 30} 分鐘
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={handleDismissToday}>
+                  <BellOff size={13} /> 今日不再提醒
+                </button>
+              </div>
+            </>
+          )}
           <div className="alert-footer-brand">
             <TaskCommanderLogo size={13} />
             <span>

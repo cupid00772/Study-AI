@@ -21,12 +21,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFile: () => ipcRenderer.invoke('select-file'),
   scanWorkspaceDeliverables: () => ipcRenderer.invoke('scan-workspace-deliverables'),
   listExamPapers: () => ipcRenderer.invoke('list-exam-papers'),
+  listArenaReferenceFiles: () => ipcRenderer.invoke('list-arena-reference-files'),
   getWorkspaceInfo: () => ipcRenderer.invoke('get-workspace-info'),
   selectWorkspaceDir: () => ipcRenderer.invoke('select-workspace-dir'),
 
   // Notifications & Alerts
   sendNotification: (payload) => ipcRenderer.invoke('send-notification', payload),
   triggerAlertCheck: (options) => ipcRenderer.invoke('trigger-alert-check', options),
+  triggerFocusAlarm: (options) => ipcRenderer.invoke('trigger-focus-alarm', options),
   getAlertPayload: () => ipcRenderer.invoke('get-alert-payload'),
   snoozeAlert: (minutes) => ipcRenderer.invoke('snooze-alert', minutes),
   dismissAlertToday: () => ipcRenderer.invoke('dismiss-alert-today'),
@@ -87,4 +89,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onCloudAssetAutoSynced: (cb) => subscribe('cloud-asset-auto-synced', cb),
   onWindowMaximizedChanged: (cb) => subscribe('window-maximized-changed', cb),
   onAutoDeliverablesAdded: (cb) => subscribe('auto-deliverables-added', cb),
+  onExamPapersUpdated: (cb) => subscribe('exam-papers-updated', cb),
 });

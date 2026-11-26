@@ -1,10 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.jsx';
-import DesktopStickyNote from './components/DesktopStickyNote.jsx';
-import DesktopDailyWidget from './components/DesktopDailyWidget.jsx';
-import DesktopAlertWindow from './components/DesktopAlertWindow.jsx';
+import RootEntry from './RootEntry.jsx';
 
 // 提前標記平台 class 避免首幀背景閃爍
 if (typeof document !== 'undefined') {
@@ -44,16 +41,12 @@ const mode = params.get('mode');
 
 const root = createRoot(document.getElementById('root'));
 
-if (mode === 'sticky') {
-  root.render(<DesktopStickyNote />);
-} else if (mode === 'daily') {
-  root.render(<DesktopDailyWidget />);
-} else if (mode === 'alert') {
-  root.render(<DesktopAlertWindow />);
+if (mode === 'sticky' || mode === 'daily' || mode === 'alert') {
+  root.render(<RootEntry mode={mode} />);
 } else {
   root.render(
     <StrictMode>
-      <App />
+      <RootEntry mode={null} />
     </StrictMode>,
   );
 }

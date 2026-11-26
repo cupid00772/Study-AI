@@ -422,10 +422,12 @@ export default function ArtifactVault({
         {/* Breadcrumbs */}
         <div className="explorer-breadcrumbs">
           <button
+            type="button"
             className="btn btn-secondary btn-icon-circle"
             onClick={navigateUp}
             disabled={pathSegments.length === 0}
             title="返回上一層資料夾"
+            aria-label="返回上一層資料夾"
             style={{ width: 32, height: 32, opacity: pathSegments.length === 0 ? 0.4 : 1 }}
           >
             <ArrowLeft size={16} />
@@ -483,17 +485,23 @@ export default function ArtifactVault({
             style={{ padding: '2px' }}
           >
             <button
+              type="button"
               className={`nav-pill-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
               title="卡片網格檢視"
+              aria-label="卡片網格檢視"
+              aria-pressed={viewMode === 'grid'}
               style={{ padding: '0.35rem 0.65rem' }}
             >
               <Grid size={15} />
             </button>
             <button
+              type="button"
               className={`nav-pill-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
               title="詳細資料清單檢視 (File Explorer 模式)"
+              aria-label="詳細資料清單檢視"
+              aria-pressed={viewMode === 'list'}
               style={{ padding: '0.35rem 0.65rem' }}
             >
               <List size={15} />
@@ -592,7 +600,15 @@ export default function ArtifactVault({
 
             <div
               className="explorer-stat-card"
+              role="button"
+              tabIndex={0}
               onClick={() => setIsAiGenOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsAiGenOpen(true);
+                }
+              }}
               style={{ cursor: 'pointer', borderColor: 'rgba(99, 102, 241, 0.35)', background: 'var(--gemini-gradient-soft)' }}
               title="開啟 AI 成果庫生成工作室"
             >

@@ -37,7 +37,7 @@ const DEFAULT_NOTES = [
   }
 ];
 
-export default function StickyNotesBoard({ onRequireUnlock }) {
+export default function StickyNotesBoard({ onRequireUnlock, showToast }) {
   const [notes, setNotes] = useState(() => {
     try {
       const saved = localStorage.getItem('wt_sticky_notes');
@@ -195,12 +195,23 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
   };
 
   const handleDeleteNote = (id) => {
+    const target = notes.find(n => n.id === id);
     setNotes(prev => prev.filter(n => n.id !== id));
     setDeletedIds(prev => (prev.includes(id) ? prev : [...prev, id].slice(-200)));
     if (window.electronAPI?.deleteStickyPosition) {
       window.electronAPI.deleteStickyPosition(id);
     } else if (window.electronAPI?.closeStickyWindow) {
       window.electronAPI.closeStickyWindow(id);
+    }
+    if (target && showToast) {
+      showToast(`已刪除便條「${target.title || '未命名便條'}」`, {
+        actionLabel: '復原',
+        onAction: () => {
+          setNotes(prev => (prev.some(n => n.id === target.id) ? prev : [{ ...target, updatedAt: new Date().toISOString() }, ...prev]));
+          setDeletedIds(prev => prev.filter(did => did !== target.id));
+          showToast('已復原便條', { tone: 'success' });
+        },
+      });
     }
   };
 
@@ -251,11 +262,12 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
       <div className="filter-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button 
+            type="button"
             className="btn btn-primary"
             onClick={() => handleAddNote(true)}
             style={{ padding: '0.5rem 1.25rem', fontSize: '0.88rem' }}
           >
-            <Plus size={16} /> 新增桌面便條紙
+            <Plus size={16} /> {window.electronAPI ? '新增桌面便條紙' : '新增雲端便條'}
           </button>
 
           {window.electronAPI && (
@@ -358,19 +370,21 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                   </button>
 
                   {/* Change Note Color */}
-                  <div style={{ display: 'flex', gap: '4px' }}>
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }} role="group" aria-label="切換便條顏色">
                     {NOTE_COLORS.map(c => (
-                      <div
+                      <button
                         key={c.id}
+                        type="button"
+                        className="sticky-color-dot"
                         onClick={() => handleUpdateNote(note.id, 'color', c.id)}
+                        aria-label={`切換為${c.name}`}
+                        aria-pressed={note.color === c.id}
+                        title={c.name}
                         style={{
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
                           background: c.border,
-                          cursor: 'pointer',
-                          opacity: note.color === c.id ? 1 : 0.45,
-                          transform: note.color === c.id ? 'scale(1.2)' : 'scale(1)'
+                          borderColor: note.color === c.id ? colorCfg.text : 'transparent',
+                          opacity: note.color === c.id ? 1 : 0.5,
+                          transform: note.color === c.id ? 'scale(1.15)' : 'scale(1)'
                         }}
                       />
                     ))}
@@ -380,6 +394,7 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {window.electronAPI && (
                     <button
+                      type="button"
                       onClick={() => handleTogglePopOut(note.id)}
                       style={{
                         background: activeStickyIds.includes(note.id) ? 'rgba(34, 197, 94, 0.18)' : 'rgba(0, 0, 0, 0.05)',
@@ -402,16 +417,18 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => handleDeleteNote(note.id)}
                     style={{
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
                       color: colorCfg.text,
-                      opacity: 0.6,
+                      opacity: 0.72,
                       padding: '4px'
                     }}
-                    title="刪除便條"
+                    title="刪除便條（可於 5 秒內復原）"
+                    aria-label={`刪除便條「${note.title}」`}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -426,6 +443,7 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                 onChange={(e) => handleUpdateNote(note.id, 'title', e.target.value)}
                 style={{ color: colorCfg.text }}
                 placeholder="便條標題..."
+                aria-label="便條標題"
               />
 
               {/* Editable Content */}
@@ -435,6 +453,7 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                 onChange={(e) => handleUpdateNote(note.id, 'content', e.target.value)}
                 style={{ color: colorCfg.text }}
                 placeholder="點擊輸入內容..."
+                aria-label="便條內容"
                 rows={4}
               />
 
@@ -448,30 +467,31 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'space-between',
-                        fontSize: '0.85rem',
                         gap: '6px'
                       }}
                     >
-                      <div 
+                      <button
+                        type="button"
+                        className="sticky-todo-row-btn"
                         onClick={() => handleToggleTodo(note.id, t.id)}
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '6px', 
-                          cursor: 'pointer',
+                        aria-pressed={t.completed}
+                        style={{
                           textDecoration: t.completed ? 'line-through' : 'none',
-                          opacity: t.completed ? 0.6 : 1
+                          opacity: t.completed ? 0.65 : 1
                         }}
                       >
-                        {t.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+                        {t.completed ? <CheckCircle2 size={15} style={{ flexShrink: 0 }} /> : <Circle size={15} style={{ flexShrink: 0 }} />}
                         <span>{t.text}</span>
-                      </div>
-                      <span 
-                        onClick={() => handleDeleteTodo(note.id, t.id)} 
-                        style={{ cursor: 'pointer', opacity: 0.4, fontSize: '0.75rem' }}
+                      </button>
+                      <button
+                        type="button"
+                        className="sticky-todo-del-btn"
+                        onClick={() => handleDeleteTodo(note.id, t.id)}
+                        aria-label={`刪除待辦「${t.text}」`}
+                        title="移除此項"
                       >
-                        ✕
-                      </span>
+                        <X size={13} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -482,6 +502,7 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                 <input
                   type="text"
                   placeholder="+ 新增待辦事項..."
+                  aria-label="新增便條待辦事項"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleAddTodo(note.id, e.target.value);
@@ -492,10 +513,10 @@ export default function StickyNotesBoard({ onRequireUnlock }) {
                     width: '100%',
                     background: 'transparent',
                     border: 'none',
-                    outline: 'none',
-                    fontSize: '0.8rem',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem',
                     color: colorCfg.text,
-                    opacity: 0.8
+                    opacity: 0.85
                   }}
                 />
               </div>

@@ -1,6 +1,6 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-25T08:30:03.696440+08:00",
+  "last_updated": "2026-11-26T21:49:28.863034+08:00",
   "academic_year": "115",
   "courses": [
     {
@@ -3352,6 +3352,14 @@
   "announcements": [
     {
       "id": "ann-dash-1",
+      "date": "11-25",
+      "course": "服務學習課程",
+      "title": "11/26 打掃同學請於中午 12:00 集合",
+      "isHot": false,
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/175300"
+    },
+    {
+      "id": "ann-dash-2",
       "date": "11-23",
       "course": "經濟學",
       "title": "作業CH12、作業CH22、作業CH28",
@@ -3359,7 +3367,7 @@
       "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
     },
     {
-      "id": "ann-dash-2",
+      "id": "ann-dash-3",
       "date": "11-20",
       "course": "資料與檔案結構",
       "title": "有關程式作業的補充說明",
@@ -3367,7 +3375,7 @@
       "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
     },
     {
-      "id": "ann-dash-3",
+      "id": "ann-dash-4",
       "date": "11-19",
       "course": "資料與檔案結構",
       "title": "第五章講義已上線",
@@ -3375,7 +3383,7 @@
       "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
     },
     {
-      "id": "ann-dash-4",
+      "id": "ann-dash-5",
       "date": "11-18",
       "course": "服務學習課程",
       "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
@@ -3385,10 +3393,10 @@
     {
       "id": "ann-dash-5",
       "date": "11-16",
-      "course": "經濟學",
-      "title": "期中考成績公告",
+      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264",
       "isHot": false,
-      "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
+      "title": "期中考成績公告",
+      "course": "經濟學"
     },
     {
       "id": "ann-dash-1",
@@ -3716,6 +3724,14 @@
     "latest_announcements": [
       {
         "id": "ann-dash-1",
+        "date": "11-25",
+        "course": "服務學習課程",
+        "title": "11/26 打掃同學請於中午 12:00 集合",
+        "isHot": false,
+        "link": "https://ncueeclass.ncu.edu.tw/bulletin/175300"
+      },
+      {
+        "id": "ann-dash-2",
         "date": "11-23",
         "course": "經濟學",
         "title": "作業CH12、作業CH22、作業CH28",
@@ -3723,7 +3739,7 @@
         "link": "https://ncueeclass.ncu.edu.tw/bulletin/175048"
       },
       {
-        "id": "ann-dash-2",
+        "id": "ann-dash-3",
         "date": "11-20",
         "course": "資料與檔案結構",
         "title": "有關程式作業的補充說明",
@@ -3731,7 +3747,7 @@
         "link": "https://ncueeclass.ncu.edu.tw/bulletin/174737"
       },
       {
-        "id": "ann-dash-3",
+        "id": "ann-dash-4",
         "date": "11-19",
         "course": "資料與檔案結構",
         "title": "第五章講義已上線",
@@ -3739,20 +3755,12 @@
         "link": "https://ncueeclass.ncu.edu.tw/bulletin/174596"
       },
       {
-        "id": "ann-dash-4",
+        "id": "ann-dash-5",
         "date": "11-18",
         "course": "服務學習課程",
         "title": "第10組、第11組請於明天（11月19日）中午 12:00 前往資管系系辦",
         "isHot": false,
         "link": "https://ncueeclass.ncu.edu.tw/bulletin/174400"
-      },
-      {
-        "id": "ann-dash-5",
-        "date": "11-16",
-        "course": "經濟學",
-        "title": "期中考成績公告",
-        "isHot": false,
-        "link": "https://ncueeclass.ncu.edu.tw/bulletin/174264"
       }
     ]
   },

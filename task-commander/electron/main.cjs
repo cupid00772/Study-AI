@@ -161,6 +161,7 @@ const DEFAULT_ALERT_SOUND_CONFIG = {
   separateCriticalSound: false,
   normalSound: { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' },
   criticalSound: { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' },
+  focusSound: { type: 'preset', id: 'digital-alarm', label: '經典電子鬧鐘' },
 };
 
 const DEFAULT_APP_CONFIG = {
@@ -179,6 +180,7 @@ const DEFAULT_APP_CONFIG = {
     triggerOnStartup: true,
     showPopupWindow: true,
     playAlertSound: true,
+    focusAlarmEnabled: true,
     showWindowsToast: true,
     snoozeMinutes: 30,
     dailyStudyGoalMinutes: 60,
@@ -209,6 +211,9 @@ function mergeConfig(saved) {
         criticalSound: savedSound.criticalSound?.type
           ? { ...savedSound.criticalSound }
           : { ...DEFAULT_ALERT_SOUND_CONFIG.criticalSound },
+        focusSound: savedSound.focusSound?.type
+          ? { ...savedSound.focusSound }
+          : { ...DEFAULT_ALERT_SOUND_CONFIG.focusSound },
       },
     },
   };
@@ -1221,6 +1226,10 @@ function setupDeliverablesWatcher() {
         const relPath = `${dirName}/${normalizedSub}`;
         pendingModifiedAssetPaths.add(relPath);
 
+        if (relPath.toLowerCase().endsWith('.exam.json') && mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('exam-papers-updated', { relativePath: relPath });
+        }
+
         clearTimeout(deliverablesDebounceTimer);
         deliverablesDebounceTimer = setTimeout(() => {
           const newlyIngestedPaths = autoIngestNewDeliverables();
@@ -1864,11 +1873,15 @@ ipcMain.handle('scan-workspace-deliverables', async () => {
 
 ipcMain.handle('list-exam-papers', async () => {
   try {
-    const baseResolved = resolveSafeWorkspacePath('Test_Bank/Exam_paper');
+    const baseResolved = resolveSafeWorkspacePath('Test_Bank');
     if (!baseResolved || !fs.existsSync(baseResolved.fullPath)) {
-      return { success: true, exams: [] };
+      return { success: true, exams: [], workspaceRoot };
     }
     const exams = [];
+    const seenIds = new Set();
+    const parseErrors = [];
+    const ignoredDirs = new Set(['node_modules', 'archive', 'tessdata', '.git']);
+
     const walk = (dirPath) => {
       let entries = [];
       try {
@@ -1877,23 +1890,28 @@ ipcMain.handle('list-exam-papers', async () => {
         return;
       }
       for (const entry of entries) {
-        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'archive') continue;
+        if (entry.name.startsWith('.') || ignoredDirs.has(entry.name)) continue;
         const full = path.join(dirPath, entry.name);
         if (entry.isDirectory()) {
           walk(full);
         } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.exam.json')) {
           try {
-            const raw = fs.readFileSync(full, 'utf-8');
+            const raw = fs.readFileSync(full, 'utf-8').replace(/^\uFEFF/, '');
             const parsed = JSON.parse(raw);
             const stat = fs.statSync(full);
-            const rel = path.relative(workspaceDir, full).replace(/\\/g, '/');
-            exams.push({
-              relativePath: rel,
-              mtimeMs: stat.mtimeMs,
-              data: parsed,
-            });
+            const rel = path.relative(workspaceRoot, full).replace(/\\/g, '/');
+            const dedupeKey = parsed?.id ? `${parsed.id}::${rel}` : rel;
+            if (!seenIds.has(dedupeKey)) {
+              seenIds.add(dedupeKey);
+              exams.push({
+                relativePath: rel,
+                mtimeMs: stat.mtimeMs,
+                data: parsed,
+              });
+            }
           } catch (parseErr) {
             console.error('[ExamArena] Failed to parse exam json:', full, parseErr.message);
+            parseErrors.push({ file: path.relative(workspaceRoot, full).replace(/\\/g, '/'), error: parseErr.message });
           }
         }
       }
@@ -1905,9 +1923,68 @@ ipcMain.handle('list-exam-papers', async () => {
       if (db !== da) return db.localeCompare(da);
       return (b.mtimeMs || 0) - (a.mtimeMs || 0);
     });
-    return { success: true, exams };
+    return { success: true, exams, parseErrors, workspaceRoot };
   } catch (err) {
-    return { success: false, error: err.message, exams: [] };
+    return { success: false, error: err.message, exams: [], workspaceRoot };
+  }
+});
+
+ipcMain.handle('list-arena-reference-files', async () => {
+  try {
+    const readableExts = new Set(['.md', '.txt']);
+    const ignoredDirs = new Set(['node_modules', '.git', 'tessdata', 'archive', 'figures', 'Homework']);
+    const roots = [
+      { dir: 'Reference', group: 'Reference' },
+      { dir: 'Study_Materials', group: 'Study_Materials' },
+      { dir: 'Test_Bank/Exam_paper', group: 'Test_Bank' },
+      { dir: '.agent/skills/mock-exam-generator/references', group: 'Blueprint' },
+    ];
+    const files = [];
+
+    const walk = (fullDir, group, depth = 0) => {
+      if (depth > 5 || !fs.existsSync(fullDir)) return;
+      let entries = [];
+      try {
+        entries = fs.readdirSync(fullDir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const entry of entries) {
+        if (entry.name.startsWith('~$')) continue;
+        if (entry.isDirectory()) {
+          if (entry.name.startsWith('.') || ignoredDirs.has(entry.name)) continue;
+          walk(path.join(fullDir, entry.name), group, depth + 1);
+        } else if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase();
+          if (!readableExts.has(ext)) continue;
+          const full = path.join(fullDir, entry.name);
+          try {
+            const stat = fs.statSync(full);
+            if (stat.size > 3 * 1024 * 1024) continue;
+            const rel = path.relative(workspaceRoot, full).replace(/\\/g, '/');
+            files.push({
+              path: rel,
+              name: entry.name,
+              group,
+              size: stat.size,
+              mtimeMs: stat.mtimeMs,
+            });
+          } catch {}
+        }
+      }
+    };
+
+    for (const r of roots) {
+      const resolved = resolveSafeWorkspacePath(r.dir);
+      if (resolved && fs.existsSync(resolved.fullPath)) {
+        walk(resolved.fullPath, r.group, 0);
+      }
+    }
+
+    files.sort((a, b) => a.path.localeCompare(b.path));
+    return { success: true, files };
+  } catch (err) {
+    return { success: false, error: err.message, files: [] };
   }
 });
 
@@ -1919,6 +1996,72 @@ ipcMain.handle('set-auto-launch', (_event, enabled) => setAutoLaunchEnabled(enab
 
 // Alert Engine IPC
 ipcMain.handle('trigger-alert-check', (_event, options = {}) => runAlertCheck({ manual: !!options.manual, reason: options.reason || 'manual' }));
+ipcMain.handle('trigger-focus-alarm', (_event, options = {}) => {
+  const cfg = appConfig.alerts || DEFAULT_APP_CONFIG.alerts;
+  const kind = options.kind === 'break_complete' ? 'break_complete' : 'focus_complete';
+  const minutes = Math.max(1, Number(options.minutes || (kind === 'break_complete' ? 5 : 25)));
+  const studiedMinutes = Number(options.studyMinutesToday ?? lastStudyState.studyMinutesToday ?? 0);
+  const goalMinutes = Number(options.goalMinutes ?? cfg.dailyStudyGoalMinutes ?? 60);
+  const playSound = options.playSound !== undefined ? Boolean(options.playSound) : cfg.focusAlarmEnabled !== false;
+  const showPopup = options.showPopup !== undefined ? Boolean(options.showPopup) : cfg.showPopupWindow !== false;
+
+  const focusPayload = {
+    generatedAt: new Date().toISOString(),
+    todayKey: getLocalDateKey(),
+    reason: kind,
+    kind,
+    hasAlerts: true,
+    upcomingExams: [],
+    urgentAssignments: [],
+    overdueAssignments: [],
+    focusAlarm: {
+      kind,
+      minutes,
+      nextPresetMinutes: Number(options.nextPresetMinutes || 25),
+      studiedMinutes,
+      goalMinutes,
+    },
+    study: {
+      studiedMinutes,
+      goalMinutes,
+      pendingDailyTasks: Array.isArray(lastStudyState.pendingDailyTasks) ? lastStudyState.pendingDailyTasks : [],
+      needsStudyNudge: false,
+      isFocusActive: false,
+    },
+    playSound,
+    soundConfig: cfg.soundConfig || { ...DEFAULT_ALERT_SOUND_CONFIG },
+    snoozeMinutes: 5,
+  };
+
+  if (showPopup) {
+    createAlertWindow(focusPayload);
+  }
+
+  if (Notification.isSupported() && cfg.showWindowsToast !== false) {
+    const title = kind === 'break_complete' ? '⏰ 休息時間結束！' : '⏰ 專注讀書計時完成！';
+    const body = kind === 'break_complete'
+      ? `已完成 ${minutes} 分鐘休息，準備回到讀書節奏吧！`
+      : `太棒了！已完成 ${minutes} 分鐘專注（今日累計 ${studiedMinutes}/${goalMinutes} 分鐘），適度休息 5 分鐘。`;
+    const notif = new Notification({
+      title,
+      body,
+      icon: getAppIconPath(true),
+      urgency: 'critical',
+      silent: showPopup && playSound,
+    });
+    notif.on('click', () => {
+      if (alertWindow && !alertWindow.isDestroyed()) {
+        alertWindow.show();
+        alertWindow.focus();
+      } else {
+        showMainWindow('dashboard');
+      }
+    });
+    notif.show();
+  }
+
+  return { triggered: true, popupShown: showPopup, playSound };
+});
 ipcMain.handle('get-alert-payload', () => latestAlertPayload || computeAlertPayload('manual'));
 ipcMain.handle('snooze-alert', (_event, minutes) => {
   const mins = Math.max(5, Number(minutes || appConfig.alerts?.snoozeMinutes || 30));
@@ -1944,7 +2087,14 @@ ipcMain.handle('alert-action', (_event, action = {}) => {
     showMainWindow('dashboard');
     setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('start-focus-timer', { minutes: action.minutes || 25 });
+        mainWindow.webContents.send('start-focus-timer', { minutes: action.minutes || 25, mode: 'focus' });
+      }
+    }, 150);
+  } else if (action.type === 'start-break') {
+    showMainWindow('dashboard');
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('start-focus-timer', { minutes: action.minutes || 5, mode: 'break' });
       }
     }, 150);
   } else if (action.type === 'open-url' && action.url) {
@@ -2310,6 +2460,10 @@ ipcMain.handle('ai-generate-agy', async (event, { requestId, model, prompt }) =>
           });
         }
       }
+    });
+
+    child.stdin.on('error', () => {
+      // Prevent uncaught EPIPE if agy closes early
     });
 
     // Write NDJSON prompt event cleanly over UTF-8 stdin (no Windows CLI length limits)

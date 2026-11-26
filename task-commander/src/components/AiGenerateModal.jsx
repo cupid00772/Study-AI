@@ -20,6 +20,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 import { renderMarkdownWithKatex } from '../utils/markdownRenderer';
 import { renderMermaidSafe, renderMermaidErrorInto } from '../utils/mermaidRenderer';
 import {
@@ -31,6 +32,12 @@ import {
   splitExamAndSolution,
   GEMINI_API_MODEL_PRESETS,
 } from '../services/aiService';
+import {
+  buildInteractiveExamPrompt,
+  parseAndRepairExamJson,
+  buildExamSavePaths,
+  convertExamJsonToMarkdown,
+} from '../utils/examGeneratorUtils';
 import {
   fetchCloudAssetText,
   uploadTextAssetToCloud,
@@ -150,14 +157,11 @@ export default function AiGenerateModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape' && !isGenerating && !isSaving) onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, isGenerating, isSaving, onClose]);
+  const { dialogRef } = useModalA11y({
+    isOpen,
+    onClose,
+    disabled: isGenerating || isSaving,
+  });
 
   const candidateRefItems = useMemo(() => {
     const readableExts = new Set(['md', 'txt', 'html', 'htm', 'json']);
@@ -234,17 +238,32 @@ export default function AiGenerateModal({
       setStatusText(selectedRefPaths.length > 0 ? `正在讀取 ${selectedRefPaths.length} 份參考教材...` : '正在組合命題／整理指令...');
       const refTexts = await loadReferenceFileTexts();
 
-      const { systemPrompt, userPrompt } = buildAiPrompt({
-        mode,
-        subject,
-        topic: topic.trim(),
-        examOptions: { questionTypes, questionCount, difficulty, outputLayout },
-        notesOptions,
-        customFormat,
-        referenceFiles: refTexts,
-        extraInstructions,
-        isAgyCli: aiConfig.engine === 'agy',
-      });
+      const promptPayload =
+        mode === 'exam' && outputLayout === 'interactive'
+          ? buildInteractiveExamPrompt({
+              subject,
+              mode: 'mock',
+              topic: topic.trim(),
+              questionCount,
+              timeLimitMinutes: Math.max(20, questionCount * 4),
+              questionFormat: 'auto',
+              difficulty,
+              referenceFiles: refTexts,
+              extraInstructions,
+              isAgyCli: aiConfig.engine === 'agy',
+            })
+          : buildAiPrompt({
+              mode,
+              subject,
+              topic: topic.trim(),
+              examOptions: { questionTypes, questionCount, difficulty, outputLayout },
+              notesOptions,
+              customFormat,
+              referenceFiles: refTexts,
+              extraInstructions,
+              isAgyCli: aiConfig.engine === 'agy',
+            });
+      const { systemPrompt, userPrompt } = promptPayload;
 
       const res = await streamAiGeneration({
         config: aiConfig,
@@ -292,8 +311,35 @@ export default function AiGenerateModal({
     return splitExamAndSolution(generatedText);
   }, [mode, outputLayout, generatedText]);
 
+  const isInteractiveExamOutput = mode === 'exam' && outputLayout === 'interactive';
+  const interactiveExamParsed = useMemo(() => {
+    if (!isInteractiveExamOutput || !generatedText.trim()) return { exam: null, error: '' };
+    try {
+      const exam = parseAndRepairExamJson(generatedText, {
+        subject,
+        topic: topic.trim(),
+        timeLimitMinutes: Math.max(20, questionCount * 4),
+      });
+      return { exam, error: '' };
+    } catch (err) {
+      return { exam: null, error: err?.message || '' };
+    }
+  }, [isInteractiveExamOutput, generatedText, subject, topic, questionCount]);
+
   const previewMarkdownHtml = useMemo(() => {
     if (isHtmlOutput || !generatedText) return '';
+    if (isInteractiveExamOutput) {
+      if (interactiveExamParsed.exam) {
+        const { examMarkdown, answerMarkdown } = convertExamJsonToMarkdown(interactiveExamParsed.exam);
+        const text = splitPreviewTab === 'solution' ? answerMarkdown : examMarkdown;
+        try {
+          return renderMarkdownWithKatex(text);
+        } catch {
+          return `<pre>${text}</pre>`;
+        }
+      }
+      return `<pre>${generatedText.slice(-3000)}</pre>`;
+    }
     const text = splitParsed.isSplit
       ? (splitPreviewTab === 'solution' ? splitParsed.solutionText : splitParsed.examText)
       : generatedText;
@@ -302,7 +348,7 @@ export default function AiGenerateModal({
     } catch {
       return `<pre>${text}</pre>`;
     }
-  }, [isHtmlOutput, generatedText, splitParsed, splitPreviewTab]);
+  }, [isHtmlOutput, isInteractiveExamOutput, interactiveExamParsed, generatedText, splitParsed, splitPreviewTab]);
 
   useEffect(() => {
     if (isGenerating || isHtmlOutput || outputViewMode !== 'preview' || !previewBodyRef.current) return undefined;
@@ -352,7 +398,53 @@ export default function AiGenerateModal({
 
       const filesToCreate = [];
 
-      if (mode === 'exam' && splitParsed.isSplit) {
+      if (mode === 'exam' && outputLayout === 'interactive') {
+        const parsedExam = parseAndRepairExamJson(generatedText, {
+          subject,
+          topic: topic.trim(),
+          timeLimitMinutes: Math.max(20, questionCount * 4),
+        });
+        const paths = buildExamSavePaths(parsedExam);
+        const finalExam = {
+          ...parsedExam,
+          sourceMarkdown: paths.examMdPath,
+          answerMarkdown: paths.answerMdPath,
+        };
+        const { examMarkdown, answerMarkdown } = convertExamJsonToMarkdown(finalExam);
+        filesToCreate.push(
+          {
+            title: `${finalExam.title}（互動試卷 JSON）`,
+            relPath: paths.jsonPath,
+            content: JSON.stringify(finalExam, null, 2),
+            category: 'Test_Bank',
+            type: 'exam',
+            format: 'json',
+            summary: `可於「刷題戰情室」互動計時作答的試卷（${finalExam.questions.length} 題 · ${finalExam.totalPoints} 分）。`,
+            tags: ['AI生成', '互動考卷', subject],
+            skipDeliverablesList: true,
+          },
+          {
+            title: `${finalExam.title}（模擬試卷）`,
+            relPath: paths.examMdPath,
+            content: examMarkdown,
+            category: 'Test_Bank',
+            type: 'exam',
+            format: 'md',
+            summary: `對應互動試卷之空白考卷（${finalExam.questions.length} 題 · ${finalExam.totalPoints} 分）。`,
+            tags: ['AI生成', '模擬考卷', subject],
+          },
+          {
+            title: `${finalExam.title}（完整詳解）`,
+            relPath: paths.answerMdPath,
+            content: answerMarkdown,
+            category: 'Test_Bank',
+            type: 'exam',
+            format: 'md',
+            summary: `對應互動試卷之逐題詳解、公式與陷阱解析。`,
+            tags: ['AI生成', '詳解', subject],
+          }
+        );
+      } else if (mode === 'exam' && splitParsed.isSplit) {
         filesToCreate.push({
           title: `${baseTitle}（模擬試卷）`,
           relPath: `Test_Bank/${safeCourse}/${safeBase}_${today}_${stamp}_考卷.md`,
@@ -417,20 +509,22 @@ export default function AiGenerateModal({
           throw new Error('未設定雲端連線且非桌面版，無法儲存生成檔案');
         }
 
-        createdDeliverables.push({
-          id: `del-ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          title: f.title,
-          course: subject,
-          category: f.category,
-          type: f.type,
-          path: f.relPath,
-          format: f.format,
-          certified: true,
-          updatedAt: today,
-          summary: f.summary,
-          tags: f.tags,
-          _initialContent: f.content,
-        });
+        if (!f.skipDeliverablesList) {
+          createdDeliverables.push({
+            id: `del-ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            title: f.title,
+            course: subject,
+            category: f.category,
+            type: f.type,
+            path: f.relPath,
+            format: f.format,
+            certified: true,
+            updatedAt: today,
+            summary: f.summary,
+            tags: f.tags,
+            _initialContent: f.content,
+          });
+        }
       }
 
       const cleanForStore = createdDeliverables.map(({ _initialContent, ...rest }) => rest);
@@ -448,7 +542,14 @@ export default function AiGenerateModal({
 
   return (
     <div className="viewer-modal-overlay">
-      <div className="viewer-modal-container fullscreen ai-studio-modal">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="AI 成果庫智慧生成工作室"
+        tabIndex={-1}
+        className="viewer-modal-container fullscreen ai-studio-modal"
+      >
         {/* Top Header */}
         <div className="viewer-toolbar" style={{ flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
@@ -516,6 +617,7 @@ export default function AiGenerateModal({
                   onClick={checkAgy}
                   disabled={checkingAgy || isGenerating}
                   title="重新偵測本機 agy 可用模型"
+                  aria-label="重新偵測本機 agy 可用模型"
                 >
                   <RefreshCw size={13} className={checkingAgy ? 'spin' : ''} />
                 </button>
@@ -689,25 +791,35 @@ export default function AiGenerateModal({
                     className="nav-pills"
                     activeKey={outputLayout}
                     indicatorClassName="sliding-pill-indicator pill-slider"
-                    style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '3px', gap: '4px' }}
+                    style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '3px', gap: '4px' }}
                   >
+                    <button
+                      type="button"
+                      className={`nav-pill-btn ${outputLayout === 'interactive' ? 'active' : ''}`}
+                      onClick={() => setOutputLayout('interactive')}
+                      disabled={isGenerating}
+                      style={{ justifyContent: 'center', fontSize: '0.73rem', padding: '0.38rem 0.25rem' }}
+                      title="同步產出 .exam.json + 空白卷 MD + 詳解卷 MD，可直接進入刷題戰情室計時作答"
+                    >
+                      互動刷題卷 (.exam.json)
+                    </button>
                     <button
                       type="button"
                       className={`nav-pill-btn ${outputLayout === 'split' ? 'active' : ''}`}
                       onClick={() => setOutputLayout('split')}
                       disabled={isGenerating}
-                      style={{ justifyContent: 'center', fontSize: '0.76rem', padding: '0.38rem' }}
+                      style={{ justifyContent: 'center', fontSize: '0.73rem', padding: '0.38rem 0.25rem' }}
                     >
-                      分開存成「題目卷 + 詳解卷」
+                      分開存成 MD 兩份
                     </button>
                     <button
                       type="button"
                       className={`nav-pill-btn ${outputLayout === 'combined' ? 'active' : ''}`}
                       onClick={() => setOutputLayout('combined')}
                       disabled={isGenerating}
-                      style={{ justifyContent: 'center', fontSize: '0.76rem', padding: '0.38rem' }}
+                      style={{ justifyContent: 'center', fontSize: '0.73rem', padding: '0.38rem 0.25rem' }}
                     >
-                      合卷（含折疊隱藏詳解）
+                      合卷（折疊詳解）
                     </button>
                   </SlidingContainer>
                 </div>
@@ -891,7 +1003,7 @@ export default function AiGenerateModal({
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                {splitParsed.isSplit && outputViewMode === 'preview' && (
+                {(splitParsed.isSplit || (isInteractiveExamOutput && interactiveExamParsed.exam)) && outputViewMode === 'preview' && (
                   <SlidingContainer
                     className="nav-pills"
                     activeKey={splitPreviewTab}

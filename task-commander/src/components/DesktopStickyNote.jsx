@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CheckCircle2, Circle, X, Trash2 } from 'lucide-react';
 import PencilStrikeText from './PencilStrikeText';
+import ConfirmDialog from './ConfirmDialog';
 
 // 100% opaque curated palettes for Light & Dark modes (zero semi-transparent white corner halos)
 const NOTE_COLORS = [
@@ -197,21 +198,26 @@ export default function DesktopStickyNote() {
     }
   };
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
   const handleDelete = () => {
-    if (window.confirm('確定要從桌面與資料庫中刪除這張便條紙嗎？')) {
-      try {
-        const saved = localStorage.getItem('wt_sticky_notes');
-        if (saved) {
-          const notes = JSON.parse(saved);
-          const remaining = notes.filter((n) => n.id !== noteId);
-          localStorage.setItem('wt_sticky_notes', JSON.stringify(remaining));
-        }
-      } catch {}
-      if (window.electronAPI?.deleteStickyPosition) {
-        window.electronAPI.deleteStickyPosition(noteId);
-      } else {
-        handleClose();
+    setConfirmDeleteOpen(true);
+  };
+
+  const confirmDeleteNote = () => {
+    setConfirmDeleteOpen(false);
+    try {
+      const saved = localStorage.getItem('wt_sticky_notes');
+      if (saved) {
+        const notes = JSON.parse(saved);
+        const remaining = notes.filter((n) => n.id !== noteId);
+        localStorage.setItem('wt_sticky_notes', JSON.stringify(remaining));
       }
+    } catch {}
+    if (window.electronAPI?.deleteStickyPosition) {
+      window.electronAPI.deleteStickyPosition(noteId);
+    } else {
+      handleClose();
     }
   };
 
@@ -297,6 +303,7 @@ export default function DesktopStickyNote() {
               onClick={handleDelete}
               style={{ background: theme.btnBg, color: theme.muted, border: 'none' }}
               title="刪除便條紙"
+              aria-label="刪除便條紙"
             >
               <Trash2 size={12} />
             </button>
@@ -459,6 +466,15 @@ export default function DesktopStickyNote() {
           更新於：{formattedTime}
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={confirmDeleteOpen}
+        title="刪除這張便條紙？"
+        message="確定要從桌面與資料庫中永久刪除這張便條紙嗎？"
+        confirmLabel="確認刪除"
+        danger
+        onCancel={() => setConfirmDeleteOpen(false)}
+        onConfirm={confirmDeleteNote}
+      />
     </div>
   );
 }

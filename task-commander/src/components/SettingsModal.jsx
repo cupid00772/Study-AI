@@ -1,16 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SlidingContainer from './SlidingContainer';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Settings,
   BellRing,
-  Cpu,
   Heart,
-  Wrench,
   Plus,
   Trash2,
   X,
   FolderOpen,
-  GraduationCap,
   Check,
   Cloud,
   RefreshCw,
@@ -29,7 +27,6 @@ import {
 import {
   getResolvedCloudConfig,
   saveCloudConfigOverride,
-  getDeviceId,
 } from '../services/supabaseClient';
 import { getAssetManifest } from '../services/cloudAssetService';
 import {
@@ -45,6 +42,17 @@ import {
   OPENAI_ENDPOINT_PRESETS,
 } from '../services/aiService';
 
+const SYNC_INTERVAL_PRESETS = [1, 2, 4, 6, 12, 24];
+
+function resolveInitialTab(tab, isElectron) {
+  if (tab === 'alerts' || tab === 'automation' || tab === 'desktop') {
+    return isElectron ? 'desktop' : 'cloud';
+  }
+  if (tab === 'tools') return 'cloud';
+  if (tab === 'cloud' || tab === 'ai' || tab === 'reminders' || tab === 'appearance') return tab;
+  return isElectron ? 'desktop' : 'cloud';
+}
+
 export default function SettingsModal({
   onClose,
   initialTab = null,
@@ -53,16 +61,17 @@ export default function SettingsModal({
   reminders,
   setReminders,
   onTriggerAlertTest,
-  onOpenGraduationCredits,
   cloudStatus,
   cloudAuth,
   onForceCloudSync,
   onOpenCloudUnlock,
   onLockCloudWrite,
   onCloudConfigSaved,
+  reducedMotionPref = 'auto',
+  onChangeReducedMotionPref,
 }) {
   const isElectron = Boolean(window.electronAPI?.isElectron);
-  const [activeTab, setActiveTab] = useState(() => initialTab || (isElectron ? 'alerts' : 'cloud'));
+  const [activeTab, setActiveTab] = useState(() => resolveInitialTab(initialTab, isElectron));
 
   const [draft, setDraft] = useState(() => ({
     minimizeToTray: appConfig?.minimizeToTray ?? true,
@@ -80,6 +89,7 @@ export default function SettingsModal({
       triggerOnStartup: appConfig?.alerts?.triggerOnStartup ?? true,
       showPopupWindow: appConfig?.alerts?.showPopupWindow ?? true,
       playAlertSound: appConfig?.alerts?.playAlertSound ?? true,
+      focusAlarmEnabled: appConfig?.alerts?.focusAlarmEnabled ?? true,
       showWindowsToast: appConfig?.alerts?.showWindowsToast ?? true,
       snoozeMinutes: appConfig?.alerts?.snoozeMinutes ?? 30,
       dailyStudyGoalMinutes: appConfig?.alerts?.dailyStudyGoalMinutes ?? 60,
@@ -98,13 +108,15 @@ export default function SettingsModal({
   const [soundActionMsg, setSoundActionMsg] = useState('');
   const previewHandleRef = useRef(null);
 
-  // AI Engine Config State (stored locally only)
+  // AI Engine Config State (auto-saved locally in browser storage)
   const [aiDraft, setAiDraft] = useState(() => loadAiConfig());
   const [showGeminiKey, setShowGeminiKey] = useState(false);
   const [showOpenAiKey, setShowOpenAiKey] = useState(false);
   const [agyModels, setAgyModels] = useState([]);
   const [agyStatus, setAgyStatus] = useState({ checked: false, available: false, error: '' });
+  const [checkingAgy, setCheckingAgy] = useState(false);
   const [aiSavedMsg, setAiSavedMsg] = useState('');
+  const aiSavedTimerRef = useRef(null);
 
   // Cloud config form
   const resolvedCloud = getResolvedCloudConfig();
@@ -117,11 +129,32 @@ export default function SettingsModal({
 
   const assetCount = Object.keys(getAssetManifest()?.files || {}).length;
 
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const stopPreviewSound = useCallback(() => {
+    if (previewHandleRef.current) {
+      previewHandleRef.current.stop();
+      previewHandleRef.current = null;
+    }
+    setPreviewingKey(null);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    stopPreviewSound();
+    onClose();
+  }, [stopPreviewSound, onClose]);
+
+  const checkAgy = useCallback(async () => {
+    if (!isElectron || !window.electronAPI?.checkAgyCli) return;
+    setCheckingAgy(true);
+    try {
+      const res = await window.electronAPI.checkAgyCli();
+      setAgyStatus({ checked: true, available: Boolean(res?.available), error: res?.error || '' });
+      if (Array.isArray(res?.models)) setAgyModels(res.models);
+    } finally {
+      setCheckingAgy(false);
+    }
+  }, [isElectron]);
+
+  const { dialogRef } = useModalA11y({ isOpen: true, onClose: handleClose });
 
   useEffect(() => {
     if (!isElectron) return;
@@ -144,36 +177,37 @@ export default function SettingsModal({
 
   useEffect(() => {
     return () => {
-      if (previewHandleRef.current) {
-        previewHandleRef.current.stop();
-        previewHandleRef.current = null;
-      }
+      stopPreviewSound();
+      if (aiSavedTimerRef.current) window.clearTimeout(aiSavedTimerRef.current);
     };
-  }, []);
+  }, [stopPreviewSound]);
 
   const updateAlertField = (field, value) => {
     setDraft((prev) => ({ ...prev, alerts: { ...prev.alerts, [field]: value } }));
   };
 
-  const updateSoundConfigField = (field, value) => {
+  const updateSoundConfigPatch = (patch) => {
     setDraft((prev) => ({
       ...prev,
       alerts: {
         ...prev.alerts,
         soundConfig: {
           ...normalizeSoundConfig(prev.alerts.soundConfig),
-          [field]: value,
+          ...patch,
         },
       },
     }));
   };
 
-  const stopPreviewSound = () => {
-    if (previewHandleRef.current) {
-      previewHandleRef.current.stop();
-      previewHandleRef.current = null;
-    }
-    setPreviewingKey(null);
+  const updateAiDraft = (patch) => {
+    setAiDraft((prev) => {
+      const next = { ...prev, ...patch };
+      saveAiConfig(next);
+      return next;
+    });
+    setAiSavedMsg('已自動儲存');
+    if (aiSavedTimerRef.current) window.clearTimeout(aiSavedTimerRef.current);
+    aiSavedTimerRef.current = window.setTimeout(() => setAiSavedMsg(''), 1800);
   };
 
   const handleTogglePreviewSound = (key, soundSpec, isCritical = false) => {
@@ -197,7 +231,7 @@ export default function SettingsModal({
     });
   };
 
-  const handleImportCustomSound = async (assignTarget = null) => {
+  const handleImportCustomSound = async () => {
     if (!window.electronAPI?.importAlertSound) return;
     setSoundActionMsg('');
     const res = await window.electronAPI.importAlertSound();
@@ -209,12 +243,8 @@ export default function SettingsModal({
     if (Array.isArray(res.list)) setCustomSounds(res.list);
     if (res.sound) {
       const spec = { type: 'custom', id: res.sound.id, fileName: res.sound.fileName, label: res.sound.label };
-      if (assignTarget === 'critical') {
-        updateSoundConfigField('criticalSound', spec);
-      } else {
-        updateSoundConfigField('normalSound', spec);
-      }
-      setSoundActionMsg(`已匯入「${res.sound.label}」並複製至 App 安全資料夾`);
+      updateSoundConfigPatch({ normalSound: spec, separateCriticalSound: false });
+      setSoundActionMsg(`已匯入「${res.sound.label}」並設為提醒音效`);
     }
   };
 
@@ -226,11 +256,18 @@ export default function SettingsModal({
     if (res?.success && Array.isArray(res.list)) {
       setCustomSounds(res.list);
       const sc = normalizeSoundConfig(draft.alerts.soundConfig);
+      const patch = {};
       if (sc.normalSound?.type === 'custom' && sc.normalSound.fileName === sound.fileName) {
-        updateSoundConfigField('normalSound', { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' });
+        patch.normalSound = { type: 'preset', id: 'classic-chime', label: '清脆警報（經典預設）' };
       }
       if (sc.criticalSound?.type === 'custom' && sc.criticalSound.fileName === sound.fileName) {
-        updateSoundConfigField('criticalSound', { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' });
+        patch.criticalSound = { type: 'preset', id: 'urgent-radar', label: '雷達急促警示' };
+      }
+      if (sc.focusSound?.type === 'custom' && sc.focusSound.fileName === sound.fileName) {
+        patch.focusSound = { type: 'preset', id: 'digital-alarm', label: '經典電子鬧鐘' };
+      }
+      if (Object.keys(patch).length > 0) {
+        updateSoundConfigPatch(patch);
       }
     }
   };
@@ -319,6 +356,7 @@ export default function SettingsModal({
   };
 
   const handleSave = async () => {
+    stopPreviewSound();
     saveAiConfig(aiDraft);
     await onSaveAppConfig?.(draft);
     if (isElectron && window.electronAPI?.setAutoLaunch) {
@@ -329,12 +367,6 @@ export default function SettingsModal({
       setSavedFeedback(false);
       onClose();
     }, 450);
-  };
-
-  const handleSaveAiOnly = () => {
-    saveAiConfig(aiDraft);
-    setAiSavedMsg('已儲存本裝置 AI 引擎設定');
-    window.setTimeout(() => setAiSavedMsg(''), 2500);
   };
 
   const statusBadgeMap = {
@@ -348,19 +380,27 @@ export default function SettingsModal({
   };
   const badgeInfo = statusBadgeMap[cloudStatus?.status || 'idle'] || statusBadgeMap.idle;
 
+  const syncIntervalHours = Number(draft.autoSyncIntervalHours) || 4;
+  const hasCustomSyncInterval = !SYNC_INTERVAL_PRESETS.includes(syncIntervalHours);
+
   return (
     <div className="modal-overlay">
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
+        tabIndex={-1}
         className="modal-content"
-        style={{ maxWidth: '660px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: '1.35rem' }}
+        style={{ maxWidth: '640px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: '1.35rem' }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Settings size={20} style={{ color: 'var(--accent-primary)' }} />
-            <h2 className="modal-title" style={{ margin: 0, fontSize: '1.12rem' }}>系統設定與雲端同步</h2>
+            <h2 id="settings-modal-title" className="modal-title" style={{ margin: 0, fontSize: '1.12rem' }}>系統設定</h2>
           </div>
-          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={onClose} aria-label="關閉設定">
+          <button type="button" className="btn btn-secondary btn-icon-sm" onClick={handleClose} aria-label="關閉設定">
             <X size={16} />
           </button>
         </div>
@@ -379,20 +419,15 @@ export default function SettingsModal({
             <Sparkles size={14} /> AI 引擎
           </button>
           {isElectron && (
-            <>
-              <button type="button" className={`settings-tab-btn ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
-                <BellRing size={14} /> 警告與讀書提醒
-              </button>
-              <button type="button" className={`settings-tab-btn ${activeTab === 'automation' ? 'active' : ''}`} onClick={() => setActiveTab('automation')}>
-                <Cpu size={14} /> 自動化與常駐
-              </button>
-            </>
+            <button type="button" className={`settings-tab-btn ${activeTab === 'desktop' ? 'active' : ''}`} onClick={() => setActiveTab('desktop')}>
+              <BellRing size={14} /> 桌面與提醒
+            </button>
           )}
           <button type="button" className={`settings-tab-btn ${activeTab === 'reminders' ? 'active' : ''}`} onClick={() => setActiveTab('reminders')}>
             <Heart size={14} /> 生活叮嚀
           </button>
-          <button type="button" className={`settings-tab-btn ${activeTab === 'tools' ? 'active' : ''}`} onClick={() => setActiveTab('tools')}>
-            <Wrench size={14} /> 其他功能
+          <button type="button" className={`settings-tab-btn ${activeTab === 'appearance' ? 'active' : ''}`} onClick={() => setActiveTab('appearance')}>
+            <Settings size={14} /> 介面偏好
           </button>
         </SlidingContainer>
 
@@ -404,21 +439,20 @@ export default function SettingsModal({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <div className="setting-row-title" style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                     <Cloud size={16} style={{ color: 'var(--accent-primary)' }} />
-                    <span>Supabase 跨設備同步狀態</span>
+                    <span>Supabase 跨設備同步</span>
                   </div>
                   <span className={`badge-chip ${badgeInfo.cls}`}>{badgeInfo.text}</span>
                 </div>
 
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '6px' }}>
-                  <div>裝置代碼：<code>{getDeviceId()}</code></div>
-                  <div>雲端可讀檔案：<strong>{assetCount} 份</strong></div>
-                  <div>待補推變更：<strong>{cloudStatus?.pendingCount || 0} 筆</strong></div>
-                  <div>
-                    上次同步：
-                    {cloudStatus?.lastSyncedAt
-                      ? new Date(cloudStatus.lastSyncedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                      : '尚未同步'}
-                  </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  上次同步：
+                  {cloudStatus?.lastSyncedAt
+                    ? new Date(cloudStatus.lastSyncedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                    : '尚未同步'}
+                  {' · '}雲端檔案：<strong>{assetCount} 份</strong>
+                  {(cloudStatus?.pendingCount || 0) > 0 && (
+                    <> · 待補推：<strong>{cloudStatus.pendingCount} 筆</strong></>
+                  )}
                 </div>
 
                 {cloudStatus?.error && (
@@ -438,7 +472,7 @@ export default function SettingsModal({
                         <Lock size={14} /> 鎖定回唯讀 ({cloudAuth.email || '已登入'})
                       </button>
                     ) : (
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => { onClose(); onOpenCloudUnlock?.(); }}>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => { handleClose(); onOpenCloudUnlock?.(); }}>
                         <Unlock size={14} /> 解鎖此裝置寫入權限
                       </button>
                     )
@@ -464,17 +498,19 @@ export default function SettingsModal({
               </div>
 
               <div className="setting-box">
-                <div
+                <button
+                  type="button"
+                  className="collapsible-header-btn"
+                  aria-expanded={showAdvancedCloud}
                   onClick={() => setShowAdvancedCloud((p) => !p)}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
                 >
                   <span className="setting-label" style={{ margin: 0 }}>
-                    進階：手動設定此裝置的 Supabase 連線資訊（覆寫環境變數）
+                    進階：手動設定此裝置的 Supabase 連線資訊
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
                     {showAdvancedCloud ? '收合' : '展開'}
                   </span>
-                </div>
+                </button>
 
                 {showAdvancedCloud && (
                   <form onSubmit={handleSaveCloudOverride} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
@@ -511,573 +547,455 @@ export default function SettingsModal({
           )}
 
           {activeTab === 'ai' && (
-            <>
-              <div className="setting-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="setting-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                 <div className="setting-row-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Sparkles size={16} style={{ color: 'var(--accent-primary)' }} />
-                  <span>AI 成果庫預設生成引擎</span>
+                  <span>預設生成引擎</span>
                 </div>
-
-                <SlidingContainer
-                  className="nav-pills"
-                  activeKey={aiDraft.engine}
-                  deps={[isElectron]}
-                  indicatorClassName="sliding-pill-indicator pill-slider"
-                  style={{ display: 'grid', gridTemplateColumns: isElectron ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '4px', padding: '3px' }}
-                >
-                  {isElectron && (
-                    <button
-                      type="button"
-                      className={`nav-pill-btn ${aiDraft.engine === 'agy' ? 'active' : ''}`}
-                      onClick={() => setAiDraft((p) => ({ ...p, engine: 'agy' }))}
-                      style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
-                    >
-                      ⚡ 本機 agy CLI
-                    </button>
+                <span style={{ fontSize: '0.73rem', color: aiSavedMsg ? 'var(--accent-emerald)' : 'var(--text-dim)', fontWeight: aiSavedMsg ? 600 : 400, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {aiSavedMsg ? (
+                    <><Check size={12} /> {aiSavedMsg}</>
+                  ) : (
+                    <><KeyRound size={12} /> 憑證自動儲存於本機瀏覽器，不會上傳雲端</>
                   )}
-                  <button
-                    type="button"
-                    className={`nav-pill-btn ${aiDraft.engine === 'gemini' ? 'active' : ''}`}
-                    onClick={() => setAiDraft((p) => ({ ...p, engine: 'gemini' }))}
-                    style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
-                  >
-                    🌐 Gemini API
-                  </button>
-                  <button
-                    type="button"
-                    className={`nav-pill-btn ${aiDraft.engine === 'openai' ? 'active' : ''}`}
-                    onClick={() => setAiDraft((p) => ({ ...p, engine: 'openai' }))}
-                    style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
-                  >
-                    🔌 OpenAI / Ollama
-                  </button>
-                </SlidingContainer>
+                </span>
+              </div>
 
-                {isElectron && aiDraft.engine === 'agy' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>
-                        使用本機已登入之官方 Antigravity CLI，直接呼叫 Neon / Carbon / Claude 5.5 額度（免另付 API 費）。
-                      </span>
+              <SlidingContainer
+                className="nav-pills"
+                activeKey={aiDraft.engine}
+                deps={[isElectron]}
+                indicatorClassName="sliding-pill-indicator pill-slider"
+                style={{ display: 'grid', gridTemplateColumns: isElectron ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '4px', padding: '3px' }}
+              >
+                {isElectron && (
+                  <button
+                    type="button"
+                    className={`nav-pill-btn ${aiDraft.engine === 'agy' ? 'active' : ''}`}
+                    onClick={() => updateAiDraft({ engine: 'agy' })}
+                    style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
+                  >
+                    ⚡ 本機 agy CLI
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={`nav-pill-btn ${aiDraft.engine === 'gemini' ? 'active' : ''}`}
+                  onClick={() => updateAiDraft({ engine: 'gemini' })}
+                  style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
+                >
+                  🌐 Gemini API
+                </button>
+                <button
+                  type="button"
+                  className={`nav-pill-btn ${aiDraft.engine === 'openai' ? 'active' : ''}`}
+                  onClick={() => updateAiDraft({ engine: 'openai' })}
+                  style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '0.45rem 0.35rem' }}
+                >
+                  🔌 OpenAI / Ollama
+                </button>
+              </SlidingContainer>
+
+              {isElectron && aiDraft.engine === 'agy' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '0.77rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      本機官方 Antigravity CLI（免 API Key，共用已登入額度）
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <span className={`badge-chip ${agyStatus.available ? 'badge-green' : 'badge-amber'}`}>
-                        {agyStatus.available ? `已偵測 ${agyModels.length} 模型` : '偵測中／未就緒'}
+                        {agyStatus.available ? `已偵測 ${agyModels.length} 模型` : (agyStatus.checked ? '未就緒' : '偵測中')}
                       </span>
-                    </div>
-
-                    <div>
-                      <label className="setting-label">預設模型（含 Neon / Carbon）</label>
-                      <select
-                        className="form-control"
-                        value={aiDraft.agyModel}
-                        onChange={(e) => setAiDraft((p) => ({ ...p, agyModel: e.target.value }))}
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-icon-sm"
+                        style={{ width: 26, height: 26 }}
+                        onClick={checkAgy}
+                        disabled={checkingAgy}
+                        title="重新偵測本機 agy 模型"
+                        aria-label="重新偵測本機 agy 模型"
                       >
-                        {agyModels.length > 0 ? (
-                          agyModels.map((m) => (
-                            <option key={m.id} value={m.id}>{m.label} ({m.id})</option>
-                          ))
-                        ) : (
-                          <>
-                            <option value="gemini-4-neon-high">Gemini 4 Neon (High)</option>
-                            <option value="gemini-4-neon-xhigh">Gemini 4 Neon (XHigh)</option>
-                            <option value="gemini-4-carbon-high">Gemini 4 Carbon (High)</option>
-                            <option value="gemini-3.8-flash-high">Gemini 3.8 Flash (High)</option>
-                          </>
-                        )}
-                      </select>
+                        <RefreshCw size={12} className={checkingAgy ? 'spin' : ''} />
+                      </button>
                     </div>
                   </div>
-                )}
+                  {agyStatus.checked && !agyStatus.available && agyStatus.error && (
+                    <div style={{ fontSize: '0.74rem', color: 'var(--accent-danger)' }}>
+                      {agyStatus.error}
+                    </div>
+                  )}
 
-                {aiDraft.engine === 'gemini' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ fontSize: '0.77rem', color: 'var(--text-muted)' }}>
-                      適用於網頁版、手機 PWA 與桌面版。API Key 僅保存於此裝置本機瀏覽器，絕不會上傳至公開雲端。
-                    </div>
-                    <div>
-                      <label className="setting-label">Google Gemini API Key</label>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <input
-                          type={showGeminiKey ? 'text' : 'password'}
-                          className="form-control"
-                          placeholder="AIzaSy..."
-                          value={aiDraft.geminiApiKey}
-                          onChange={(e) => setAiDraft((p) => ({ ...p, geminiApiKey: e.target.value }))}
-                          style={{ flex: 1 }}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-icon-sm"
-                          onClick={() => setShowGeminiKey((v) => !v)}
-                          title={showGeminiKey ? '隱藏 Key' : '顯示 Key'}
-                        >
-                          {showGeminiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="setting-label">Gemini 模型名稱</label>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                        {GEMINI_API_MODEL_PRESETS.map((m) => (
-                          <button
-                            key={m.id}
-                            type="button"
-                            className={`btn btn-xs ${aiDraft.geminiModel === m.id ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => setAiDraft((p) => ({ ...p, geminiModel: m.id }))}
-                          >
-                            {m.id}
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <label className="setting-label">預設模型</label>
+                    <select
+                      className="form-control"
+                      value={aiDraft.agyModel}
+                      onChange={(e) => updateAiDraft({ agyModel: e.target.value })}
+                    >
+                      {agyModels.length > 0 ? (
+                        agyModels.map((m) => (
+                          <option key={m.id} value={m.id}>{m.label} ({m.id})</option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="gemini-4-neon-high">Gemini 4 Neon (High)</option>
+                          <option value="gemini-4-neon-xhigh">Gemini 4 Neon (XHigh)</option>
+                          <option value="gemini-4-carbon-high">Gemini 4 Carbon (High)</option>
+                          <option value="gemini-3.8-flash-high">Gemini 3.8 Flash (High)</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {aiDraft.engine === 'gemini' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '0.77rem', color: 'var(--text-muted)' }}>
+                    支援桌面、網頁與手機 PWA，直接以串流模式呼叫 Google Gemini 官方 API。
+                  </div>
+                  <div>
+                    <label className="setting-label">Google Gemini API Key</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
                       <input
-                        type="text"
+                        type={showGeminiKey ? 'text' : 'password'}
                         className="form-control"
-                        value={aiDraft.geminiModel}
-                        onChange={(e) => setAiDraft((p) => ({ ...p, geminiModel: e.target.value }))}
-                        placeholder="gemini-2.5-pro"
+                        placeholder="AIzaSy..."
+                        value={aiDraft.geminiApiKey}
+                        onChange={(e) => updateAiDraft({ geminiApiKey: e.target.value })}
+                        style={{ flex: 1 }}
                       />
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-icon-sm"
+                        onClick={() => setShowGeminiKey((v) => !v)}
+                        title={showGeminiKey ? '隱藏 Key' : '顯示 Key'}
+                      >
+                        {showGeminiKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
                     </div>
                   </div>
-                )}
-
-                {aiDraft.engine === 'openai' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {OPENAI_ENDPOINT_PRESETS.map((preset) => (
+                  <div>
+                    <label className="setting-label">Gemini 模型名稱</label>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                      {GEMINI_API_MODEL_PRESETS.map((m) => (
                         <button
-                          key={preset.label}
+                          key={m.id}
                           type="button"
-                          className="btn btn-secondary btn-xs"
-                          onClick={() => setAiDraft((p) => ({ ...p, openaiBaseUrl: preset.baseUrl, openaiModel: preset.model }))}
+                          className={`btn btn-xs ${aiDraft.geminiModel === m.id ? 'btn-primary' : 'btn-secondary'}`}
+                          onClick={() => updateAiDraft({ geminiModel: m.id })}
                         >
-                          套用 {preset.label}
+                          {m.id}
                         </button>
                       ))}
                     </div>
-                    <div>
-                      <label className="setting-label">API Base URL（OpenAI 相容端點）</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        value={aiDraft.openaiBaseUrl}
-                        onChange={(e) => setAiDraft((p) => ({ ...p, openaiBaseUrl: e.target.value }))}
-                        placeholder="https://api.openai.com/v1 或 http://localhost:11434/v1"
-                      />
-                    </div>
-                    <div>
-                      <label className="setting-label">API Key（本機 Ollama 可留空）</label>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <input
-                          type={showOpenAiKey ? 'text' : 'password'}
-                          className="form-control"
-                          value={aiDraft.openaiApiKey}
-                          onChange={(e) => setAiDraft((p) => ({ ...p, openaiApiKey: e.target.value }))}
-                          placeholder="sk-..."
-                          style={{ flex: 1 }}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-icon-sm"
-                          onClick={() => setShowOpenAiKey((v) => !v)}
-                        >
-                          {showOpenAiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="setting-label">模型 ID</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={aiDraft.openaiModel}
-                        onChange={(e) => setAiDraft((p) => ({ ...p, openaiModel: e.target.value }))}
-                        placeholder="gpt-4.1 / qwen2.5:14b"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>
-                    {aiSavedMsg || (
-                      <span style={{ color: 'var(--text-dim)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <KeyRound size={12} /> 憑證僅儲存在本裝置本機
-                      </span>
-                    )}
-                  </span>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={handleSaveAiOnly}>
-                    <Check size={14} /> 儲存 AI 引擎設定
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {isElectron && activeTab === 'alerts' && (
-            <>
-              <div className="setting-toggle-row">
-                <div>
-                  <div className="setting-row-title">啟用智慧學習與截止警告</div>
-                  <div className="setting-row-desc">定時檢查即將截止作業、考前倒數與每日讀書目標</div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.enabled}
-                  onChange={(e) => updateAlertField('enabled', e.target.checked)}
-                />
-              </div>
-
-              <div className="setting-grid-2">
-                <div className="setting-box">
-                  <label className="setting-label">作業提前警告天數</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="14"
-                    className="form-control"
-                    value={draft.alerts.assignmentLeadDays}
-                    onChange={(e) => updateAlertField('assignmentLeadDays', Number(e.target.value) || 3)}
-                  />
-                </div>
-                <div className="setting-box">
-                  <label className="setting-label">考前每日倒數天數（預設 7 天）</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    className="form-control"
-                    value={draft.alerts.examLeadDays}
-                    onChange={(e) => updateAlertField('examLeadDays', Number(e.target.value) || 7)}
-                  />
-                </div>
-              </div>
-
-              <div className="setting-grid-2">
-                <div className="setting-box">
-                  <label className="setting-label">每日讀書專注目標（分鐘）</label>
-                  <input
-                    type="number"
-                    min="15"
-                    max="480"
-                    step="15"
-                    className="form-control"
-                    value={draft.alerts.dailyStudyGoalMinutes}
-                    onChange={(e) => updateAlertField('dailyStudyGoalMinutes', Number(e.target.value) || 60)}
-                  />
-                </div>
-                <div className="setting-box">
-                  <label className="setting-label">延後提醒間隔（Snooze 分鐘）</label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="180"
-                    step="5"
-                    className="form-control"
-                    value={draft.alerts.snoozeMinutes}
-                    onChange={(e) => updateAlertField('snoozeMinutes', Number(e.target.value) || 30)}
-                  />
-                </div>
-              </div>
-
-              <div className="setting-box">
-                <label className="setting-label">每日固定跳警告時段</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-                  {draft.alerts.dailyTriggerTimes.map((slot) => (
-                    <span key={slot} className="badge-chip badge-blue" style={{ padding: '4px 10px', gap: '6px' }}>
-                      <span>{slot}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTimeSlot(slot)}
-                        style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, display: 'flex' }}
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="time"
-                    className="form-control"
-                    style={{ width: '150px' }}
-                    value={newTimeSlot}
-                    onChange={(e) => setNewTimeSlot(e.target.value)}
-                  />
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={handleAddTimeSlot}>
-                    <Plus size={14} /> 新增時段
-                  </button>
-                </div>
-              </div>
-
-              <div className="setting-toggle-row">
-                <div>
-                  <div className="setting-row-title">開機／首次啟動時立即檢查一次</div>
-                  <div className="setting-row-desc">每天第一次啟動時自動顯示當日作業與考前 7 天警告</div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.triggerOnStartup}
-                  onChange={(e) => updateAlertField('triggerOnStartup', e.target.checked)}
-                />
-              </div>
-
-              <div className="setting-toggle-row">
-                <div>
-                  <div className="setting-row-title">彈出置頂獨立警告視窗</div>
-                  <div className="setting-row-desc">除系統通知外，直接於右下角浮現醒目互動警告卡</div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.showPopupWindow}
-                  onChange={(e) => updateAlertField('showPopupWindow', e.target.checked)}
-                />
-              </div>
-
-              <div className="setting-toggle-row">
-                <div>
-                  <div className="setting-row-title">警告時持續播放音效（直到點擊視窗）</div>
-                  <div className="setting-row-desc">彈出警告視窗後將依節奏循環響鈴，點擊警告視窗任意處即刻停止</div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.playAlertSound}
-                  onChange={(e) => updateAlertField('playAlertSound', e.target.checked)}
-                />
-              </div>
-
-              <div className="setting-toggle-row">
-                <div>
-                  <div className="setting-row-title">警告視窗同步脈衝微幅震動</div>
-                  <div className="setting-row-desc">與音效節奏同步微晃視窗與發光邊框，點擊視窗任意處立即靜止歸位</div>
-                </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.soundConfig?.shakeEnabled !== false}
-                  onChange={(e) => updateSoundConfigField('shakeEnabled', e.target.checked)}
-                />
-              </div>
-
-              {/* 自訂警報音效面板 */}
-              <div className="setting-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                  <div className="setting-row-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Music size={15} style={{ color: 'var(--accent-primary)' }} />
-                    <span>自訂警告音效與響鈴節奏</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-xs"
-                    onClick={() => handleImportCustomSound('normal')}
-                  >
-                    <Upload size={13} /> 匯入本機音效 (MP3/WAV/OGG)
-                  </button>
-                </div>
-
-                {/* 音量與循環間隔 */}
-                <div className="setting-grid-2">
-                  <div>
-                    <label className="setting-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>提醒音量</span>
-                      <strong>{Math.round((draft.alerts.soundConfig?.volume ?? 0.75) * 100)}%</strong>
-                    </label>
                     <input
-                      type="range"
-                      min="10"
-                      max="100"
-                      step="5"
-                      value={Math.round((draft.alerts.soundConfig?.volume ?? 0.75) * 100)}
-                      onChange={(e) => updateSoundConfigField('volume', Number(e.target.value) / 100)}
-                      style={{ width: '100%', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                      type="text"
+                      className="form-control"
+                      value={aiDraft.geminiModel}
+                      onChange={(e) => updateAiDraft({ geminiModel: e.target.value })}
+                      placeholder="gemini-2.5-pro"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {aiDraft.engine === 'openai' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {OPENAI_ENDPOINT_PRESETS.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        onClick={() => updateAiDraft({ openaiBaseUrl: preset.baseUrl, openaiModel: preset.model })}
+                      >
+                        套用 {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="setting-label">API Base URL（OpenAI 相容端點）</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      value={aiDraft.openaiBaseUrl}
+                      onChange={(e) => updateAiDraft({ openaiBaseUrl: e.target.value })}
+                      placeholder="https://api.openai.com/v1 或 http://localhost:11434/v1"
                     />
                   </div>
                   <div>
-                    <label className="setting-label">震動與響鈴循環節奏</label>
-                    <select
-                      className="form-control"
-                      value={draft.alerts.soundConfig?.repeatIntervalMs || 2500}
-                      onChange={(e) => updateSoundConfigField('repeatIntervalMs', Number(e.target.value))}
-                    >
-                      <option value={1800}>急促（每 1.8 秒脈衝）</option>
-                      <option value={2500}>標準鬧鐘（每 2.5 秒脈衝）</option>
-                      <option value={3500}>舒緩（每 3.5 秒脈衝）</option>
-                      <option value={5000}>低頻（每 5 秒脈衝）</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* 區分緊急/一般音效開關 */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-main)', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(draft.alerts.soundConfig?.separateCriticalSound)}
-                    onChange={(e) => updateSoundConfigField('separateCriticalSound', e.target.checked)}
-                    style={{ accentColor: 'var(--accent-primary)', width: 15, height: 15 }}
-                  />
-                  <span>分別設定「緊急警告（考前／逾期）」與「一般提醒」的專屬音效</span>
-                </label>
-
-                {/* 主音效選擇器 */}
-                <div>
-                  <label className="setting-label">
-                    {draft.alerts.soundConfig?.separateCriticalSound ? '一般提醒音效' : '警告預設音效（所有提醒共用）'}
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select
-                      className="form-control"
-                      style={{ flex: 1 }}
-                      value={soundSpecToValue(draft.alerts.soundConfig?.normalSound)}
-                      onChange={(e) => updateSoundConfigField('normalSound', soundValueToSpec(e.target.value))}
-                    >
-                      <optgroup label="內建合成鈴聲">
-                        {BUILTIN_ALERT_SOUNDS.map((p) => (
-                          <option key={p.id} value={`preset:${p.id}`}>{p.label}</option>
-                        ))}
-                      </optgroup>
-                      {customSounds.length > 0 && (
-                        <optgroup label="已匯入的自訂音訊檔">
-                          {customSounds.map((s) => (
-                            <option key={s.fileName} value={`custom:${s.fileName}`}>🎵 {s.label}</option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </select>
-                    <button
-                      type="button"
-                      className={`btn btn-sm ${previewingKey === 'normal' ? 'btn-primary' : 'btn-secondary'}`}
-                      onClick={() => handleTogglePreviewSound('normal', draft.alerts.soundConfig?.normalSound, false)}
-                    >
-                      {previewingKey === 'normal' ? <><Square size={12} /> 停止</> : <><Volume2 size={13} /> 試聽</>}
-                    </button>
-                  </div>
-                </div>
-
-                {/* 緊急專屬音效選擇器 */}
-                {draft.alerts.soundConfig?.separateCriticalSound && (
-                  <div>
-                    <label className="setting-label" style={{ color: 'var(--accent-danger)' }}>
-                      緊急警告專屬音效（考前 7 天／逾期／明天截止）
-                    </label>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <select
+                    <label className="setting-label">API Key（本機 Ollama 可留空）</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type={showOpenAiKey ? 'text' : 'password'}
                         className="form-control"
+                        value={aiDraft.openaiApiKey}
+                        onChange={(e) => updateAiDraft({ openaiApiKey: e.target.value })}
+                        placeholder="sk-..."
                         style={{ flex: 1 }}
-                        value={soundSpecToValue(draft.alerts.soundConfig?.criticalSound)}
-                        onChange={(e) => updateSoundConfigField('criticalSound', soundValueToSpec(e.target.value))}
-                      >
-                        <optgroup label="內建合成鈴聲">
-                          {BUILTIN_ALERT_SOUNDS.map((p) => (
-                            <option key={p.id} value={`preset:${p.id}`}>{p.label}</option>
-                          ))}
-                        </optgroup>
-                        {customSounds.length > 0 && (
-                          <optgroup label="已匯入的自訂音訊檔">
-                            {customSounds.map((s) => (
-                              <option key={s.fileName} value={`custom:${s.fileName}`}>🎵 {s.label}</option>
-                            ))}
-                          </optgroup>
-                        )}
-                      </select>
+                      />
                       <button
                         type="button"
-                        className={`btn btn-sm ${previewingKey === 'critical' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => handleTogglePreviewSound('critical', draft.alerts.soundConfig?.criticalSound, true)}
+                        className="btn btn-secondary btn-icon-sm"
+                        onClick={() => setShowOpenAiKey((v) => !v)}
+                        title={showOpenAiKey ? '隱藏 Key' : '顯示 Key'}
                       >
-                        {previewingKey === 'critical' ? <><Square size={12} /> 停止</> : <><Volume2 size={13} /> 試聽</>}
+                        {showOpenAiKey ? <EyeOff size={14} /> : <Eye size={14} />}
                       </button>
                     </div>
                   </div>
-                )}
-
-                {/* 已匯入本機音效庫清單 */}
-                {customSounds.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
-                    <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-                      已匯入的自訂音效庫（已備份至本機 App 資料夾，原檔移動不影響播放）：
-                    </div>
-                    {customSounds.map((s) => {
-                      const spec = { type: 'custom', id: s.id, fileName: s.fileName, label: s.label };
-                      const isPlaying = previewingKey === `lib:${s.fileName}`;
-                      return (
-                        <div key={s.fileName} className="setting-list-item" style={{ background: 'var(--bg-panel)', padding: '6px 10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
-                            <Music size={13} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {s.label}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', flexShrink: 0 }}>
-                              {(s.size / 1024).toFixed(0)} KB
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                            <button
-                              type="button"
-                              className="icon-ghost-btn"
-                              onClick={() => handleTogglePreviewSound(`lib:${s.fileName}`, spec, false)}
-                              title={isPlaying ? '停止試聽' : '試聽'}
-                            >
-                              {isPlaying ? <Square size={12} /> : <Volume2 size={13} />}
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-ghost-btn danger"
-                              onClick={() => handleDeleteCustomSound(s)}
-                              title="刪除此自訂音效"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div>
+                    <label className="setting-label">模型 ID</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={aiDraft.openaiModel}
+                      onChange={(e) => updateAiDraft({ openaiModel: e.target.value })}
+                      placeholder="gpt-4.1 / qwen2.5:14b"
+                    />
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+          )}
 
-                {soundActionMsg && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>
-                    {soundActionMsg}
-                  </div>
-                )}
+          {isElectron && activeTab === 'desktop' && (
+            <>
+              {/* Section 1: 學習提醒與目標 */}
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', paddingLeft: '2px' }}>
+                學習提醒與目標
               </div>
 
               <div className="setting-toggle-row">
                 <div>
-                  <div className="setting-row-title">同時發送 Windows 系統通知 (Toast)</div>
-                  <div className="setting-row-desc">保留於 Windows 通知中心，避免漏看</div>
+                  <div className="setting-row-title">啟用作業與考前提醒</div>
+                  <div className="setting-row-desc">定時檢查即將截止作業、考前倒數與每日讀書目標</div>
                 </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.alerts.showWindowsToast}
-                  onChange={(e) => updateAlertField('showWindowsToast', e.target.checked)}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-xs"
+                    onClick={async () => {
+                      stopPreviewSound();
+                      await onSaveAppConfig?.(draft);
+                      onTriggerAlertTest?.();
+                    }}
+                  >
+                    <BellRing size={13} /> 測試彈窗
+                  </button>
+                  <input
+                    type="checkbox"
+                    className="toggle-switch"
+                    checked={draft.alerts.enabled}
+                    onChange={(e) => updateAlertField('enabled', e.target.checked)}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  onClick={async () => {
-                    stopPreviewSound();
-                    await onSaveAppConfig?.(draft);
-                    onTriggerAlertTest?.();
-                  }}
-                >
-                  <BellRing size={14} /> 套用並立即測試彈出警告視窗
-                </button>
-              </div>
-            </>
-          )}
+              {draft.alerts.enabled && (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
+                    <div className="setting-box">
+                      <label className="setting-label">作業提前 (天)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="14"
+                        className="form-control"
+                        value={draft.alerts.assignmentLeadDays}
+                        onChange={(e) => updateAlertField('assignmentLeadDays', Number(e.target.value) || 3)}
+                      />
+                    </div>
+                    <div className="setting-box">
+                      <label className="setting-label">考前倒數 (天)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        className="form-control"
+                        value={draft.alerts.examLeadDays}
+                        onChange={(e) => updateAlertField('examLeadDays', Number(e.target.value) || 7)}
+                      />
+                    </div>
+                    <div className="setting-box">
+                      <label className="setting-label">每日目標 (分)</label>
+                      <input
+                        type="number"
+                        min="15"
+                        max="480"
+                        step="15"
+                        className="form-control"
+                        value={draft.alerts.dailyStudyGoalMinutes}
+                        onChange={(e) => updateAlertField('dailyStudyGoalMinutes', Number(e.target.value) || 60)}
+                      />
+                    </div>
+                  </div>
 
-          {isElectron && activeTab === 'automation' && (
-            <>
+                  <div className="setting-box">
+                    <label className="setting-label">每日提醒時段</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                      {draft.alerts.dailyTriggerTimes.map((slot) => (
+                        <span key={slot} className="badge-chip badge-blue" style={{ padding: '4px 10px', gap: '6px' }}>
+                          <span>{slot}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTimeSlot(slot)}
+                            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, display: 'flex' }}
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input
+                        type="time"
+                        className="form-control"
+                        style={{ width: '150px' }}
+                        value={newTimeSlot}
+                        onChange={(e) => setNewTimeSlot(e.target.value)}
+                      />
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleAddTimeSlot}>
+                        <Plus size={14} /> 新增時段
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="setting-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          className="toggle-switch"
+                          checked={draft.alerts.playAlertSound}
+                          onChange={(e) => updateAlertField('playAlertSound', e.target.checked)}
+                        />
+                        <span className="setting-row-title">播放提醒音效</span>
+                      </label>
+
+                      {draft.alerts.playAlertSound && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                            音量 {Math.round((draft.alerts.soundConfig?.volume ?? 0.75) * 100)}%
+                          </span>
+                          <input
+                            type="range"
+                            min="10"
+                            max="100"
+                            step="5"
+                            value={Math.round((draft.alerts.soundConfig?.volume ?? 0.75) * 100)}
+                            onChange={(e) => updateSoundConfigPatch({ volume: Number(e.target.value) / 100 })}
+                            style={{ width: '110px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {draft.alerts.playAlertSound && (
+                      <>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <select
+                            className="form-control"
+                            style={{ flex: 1, minWidth: '180px' }}
+                            value={soundSpecToValue(draft.alerts.soundConfig?.normalSound)}
+                            onChange={(e) =>
+                              updateSoundConfigPatch({
+                                normalSound: soundValueToSpec(e.target.value),
+                                separateCriticalSound: false,
+                              })
+                            }
+                          >
+                            <optgroup label="內建鈴聲">
+                              {BUILTIN_ALERT_SOUNDS.map((p) => (
+                                <option key={p.id} value={`preset:${p.id}`}>{p.label}</option>
+                              ))}
+                            </optgroup>
+                            {customSounds.length > 0 && (
+                              <optgroup label="自訂音訊檔">
+                                {customSounds.map((s) => (
+                                  <option key={s.fileName} value={`custom:${s.fileName}`}>🎵 {s.label}</option>
+                                ))}
+                              </optgroup>
+                            )}
+                          </select>
+                          <button
+                            type="button"
+                            className={`btn btn-sm ${previewingKey === 'normal' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleTogglePreviewSound('normal', draft.alerts.soundConfig?.normalSound, false)}
+                          >
+                            {previewingKey === 'normal' ? <><Square size={12} /> 停止</> : <><Volume2 size={13} /> 試聽</>}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={handleImportCustomSound}
+                          >
+                            <Upload size={13} /> 匯入音效
+                          </button>
+                        </div>
+
+                        {customSounds.length > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {customSounds.map((s) => {
+                              const spec = { type: 'custom', id: s.id, fileName: s.fileName, label: s.label };
+                              const isPlaying = previewingKey === `lib:${s.fileName}`;
+                              return (
+                                <div key={s.fileName} className="setting-list-item" style={{ background: 'var(--bg-panel)', padding: '6px 10px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0 }}>
+                                    <Music size={13} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {s.label}
+                                    </span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', flexShrink: 0 }}>
+                                      {(s.size / 1024).toFixed(0)} KB
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                    <button
+                                      type="button"
+                                      className="icon-ghost-btn"
+                                      onClick={() => handleTogglePreviewSound(`lib:${s.fileName}`, spec, false)}
+                                      title={isPlaying ? '停止試聽' : '試聽'}
+                                    >
+                                      {isPlaying ? <Square size={12} /> : <Volume2 size={13} />}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="icon-ghost-btn danger"
+                                      onClick={() => handleDeleteCustomSound(s)}
+                                      title="刪除此自訂音效"
+                                    >
+                                      <Trash2 size={13} />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {soundActionMsg && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>
+                            {soundActionMsg}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Section 2: 系統常駐與自動同步 */}
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', paddingLeft: '2px', marginTop: '4px' }}>
+                系統常駐與自動同步
+              </div>
+
               <div className="setting-toggle-row">
                 <div>
                   <div className="setting-row-title">關閉視窗時縮至系統匣常駐</div>
-                  <div className="setting-row-desc">確保背景定時提醒、考前倒數與 eeclass 同步持續運作</div>
+                  <div className="setting-row-desc">保持背景提醒、考前倒數與自動同步運作</div>
                 </div>
                 <input
                   type="checkbox"
@@ -1089,8 +1007,8 @@ export default function SettingsModal({
 
               <div className="setting-toggle-row">
                 <div>
-                  <div className="setting-row-title">Windows 開機自動啟動（背景靜默）</div>
-                  <div className="setting-row-desc">登入 Windows 時自動啟動於系統匣並恢復桌面便條</div>
+                  <div className="setting-row-title">Windows 開機自動啟動</div>
+                  <div className="setting-row-desc">登入時靜默啟動於系統匣並恢復桌面便條</div>
                 </div>
                 <input
                   type="checkbox"
@@ -1103,35 +1021,38 @@ export default function SettingsModal({
               <div className="setting-toggle-row">
                 <div>
                   <div className="setting-row-title">背景自動同步中央大學 eeclass</div>
-                  <div className="setting-row-desc">啟動時若資料過舊自動同步，並依設定間隔定時更新</div>
+                  <div className="setting-row-desc">啟動時若資料過舊自動同步，並依間隔定時更新</div>
                 </div>
-                <input
-                  type="checkbox"
-                  className="toggle-switch"
-                  checked={draft.autoSyncEnabled}
-                  onChange={(e) => setDraft((p) => ({ ...p, autoSyncEnabled: e.target.checked }))}
-                />
-              </div>
-
-              {draft.autoSyncEnabled && (
-                <div className="setting-box">
-                  <label className="setting-label">eeclass 自動同步間隔（小時）</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  {draft.autoSyncEnabled && (
+                    <select
+                      className="form-control"
+                      style={{ width: 'auto', height: '30px', padding: '0 8px', fontSize: '0.78rem' }}
+                      value={syncIntervalHours}
+                      onChange={(e) => setDraft((p) => ({ ...p, autoSyncIntervalHours: Number(e.target.value) || 4 }))}
+                      aria-label="eeclass 自動同步間隔"
+                    >
+                      {hasCustomSyncInterval && (
+                        <option value={syncIntervalHours}>每 {syncIntervalHours} 小時</option>
+                      )}
+                      {SYNC_INTERVAL_PRESETS.map((h) => (
+                        <option key={h} value={h}>每 {h} 小時</option>
+                      ))}
+                    </select>
+                  )}
                   <input
-                    type="number"
-                    min="1"
-                    max="24"
-                    className="form-control"
-                    style={{ width: '140px' }}
-                    value={draft.autoSyncIntervalHours}
-                    onChange={(e) => setDraft((p) => ({ ...p, autoSyncIntervalHours: Number(e.target.value) || 4 }))}
+                    type="checkbox"
+                    className="toggle-switch"
+                    checked={draft.autoSyncEnabled}
+                    onChange={(e) => setDraft((p) => ({ ...p, autoSyncEnabled: e.target.checked }))}
                   />
                 </div>
-              )}
+              </div>
 
               <div className="setting-toggle-row">
                 <div>
-                  <div className="setting-row-title">AI 成果庫自動監聽與雲端增量同步</div>
-                  <div className="setting-row-desc">自動偵測 Study_Materials/、Test_Bank/ 與 Review_Dashboard/ 新增與修改檔案，背景收錄並增量上傳至雲端</div>
+                  <div className="setting-row-title">自動監聽教材變更並增量上雲</div>
+                  <div className="setting-row-desc">偵測 Study_Materials/、Test_Bank/ 與 Review_Dashboard/ 異動並自動同步</div>
                 </div>
                 <input
                   type="checkbox"
@@ -1142,14 +1063,16 @@ export default function SettingsModal({
               </div>
 
               {workspaceInfo && (
-                <div className="setting-box">
-                  <label className="setting-label">Study-space 工作區路徑</label>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <code className="workspace-path-code">{workspaceInfo.workspaceRoot}</code>
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={handlePickWorkspace}>
-                      <FolderOpen size={14} /> 變更資料夾
-                    </button>
+                <div className="setting-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="setting-label" style={{ marginBottom: '2px' }}>Study-space 工作區路徑</div>
+                    <code className="workspace-path-code" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {workspaceInfo.workspaceRoot}
+                    </code>
                   </div>
+                  <button type="button" className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }} onClick={handlePickWorkspace}>
+                    <FolderOpen size={14} /> 變更
+                  </button>
                 </div>
               )}
             </>
@@ -1195,29 +1118,43 @@ export default function SettingsModal({
             </div>
           )}
 
-          {activeTab === 'tools' && (
+          {activeTab === 'appearance' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div className="setting-box" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: '200px' }}>
-                  <div className="setting-row-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <GraduationCap size={16} style={{ color: 'var(--accent-primary)' }} />
-                    128 畢業學分檢核表（選課用）
-                  </div>
-                  <div className="setting-row-desc">
-                    檢視並勾選資管系 4 年必修、通識與必選修學分進度表，跨裝置自動同步。
+              <div className="setting-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <div className="setting-row-title">減少動態效果（Reduce Motion）</div>
+                  <div className="setting-row-desc" style={{ marginTop: '3px', lineHeight: 1.5 }}>
+                    控制介面過場動畫、滑動指示條與任務勾選的 760ms 鉛筆劃線動效。
+                    選擇「自動」時，網頁／iOS PWA 會跟隨系統無障礙設定，Windows 桌面版預設保留完整動效以避開系統外觀誤判。
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  style={{ flexShrink: 0 }}
-                  onClick={() => {
-                    onClose();
-                    onOpenGraduationCredits?.();
-                  }}
+
+                <SlidingContainer
+                  className="nav-pills form-grid-3"
+                  activeKey={reducedMotionPref}
+                  indicatorClassName="sliding-pill-indicator pill-slider"
+                  style={{ padding: '4px' }}
                 >
-                  開啟檢核表
-                </button>
+                  {[
+                    { key: 'auto', label: '自動（預設）' },
+                    { key: 'off', label: '保留完整動效' },
+                    { key: 'on', label: '開啟減少動效' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      className={`nav-pill-btn ${reducedMotionPref === opt.key ? 'active' : ''}`}
+                      onClick={() => onChangeReducedMotionPref?.(opt.key)}
+                      style={{ justifyContent: 'center', fontSize: '0.8rem', padding: '0.45rem 0.4rem' }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </SlidingContainer>
+
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  此設定僅儲存在目前裝置的本機瀏覽器中，切換後立即生效。
+                </div>
               </div>
             </div>
           )}
@@ -1225,7 +1162,7 @@ export default function SettingsModal({
 
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border-color)' }}>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={handleClose}>
             關閉
           </button>
           {isElectron && (

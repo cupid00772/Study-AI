@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import PencilStrikeText from './PencilStrikeText';
+import { useModalA11y } from '../hooks/useModalA11y';
 import {
   Crosshair,
   Check,
@@ -69,8 +70,10 @@ function TaskCard({
   onUncomplete,
   onEdit,
   onDelete,
+  onCategoryChange,
   onToggleChecklistItem,
   onResetChecklist,
+  reducedMotion = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -78,6 +81,11 @@ function TaskCard({
   const completeTimerRef = useRef(null);
   const todayKey = getLocalDateKey();
   const isOverdue = task.dueDate && task.dueDate < todayKey && !task.completed;
+
+  const { dialogRef: detailModalRef } = useModalA11y({
+    isOpen,
+    onClose: () => setIsOpen(false),
+  });
 
   const stats = getChecklistStats(task);
   const repeatLabel = formatRepeatDaysLabel(task.repeatDays);
@@ -91,6 +99,10 @@ function TaskCard({
 
   const triggerCompleteAnimation = () => {
     if (isCompleting || task.completed) return;
+    if (reducedMotion) {
+      onComplete?.(task.id);
+      return;
+    }
     setIsCompleting(true);
     completeTimerRef.current = window.setTimeout(() => {
       setIsCompleting(false);
@@ -108,12 +120,22 @@ function TaskCard({
     <>
       <div
         className={`mission-card ${task.completed ? 'is-completed' : ''} ${isCompleting ? 'is-completing-drop' : ''}`}
+        role="button"
+        tabIndex={0}
+        aria-label={`檢視任務「${task.title}」詳情`}
         draggable={!task.completed && !isCompleting}
         onDragStart={(e) => {
           e.dataTransfer.setData('text/plain', task.id);
           e.dataTransfer.effectAllowed = 'move';
         }}
         onClick={() => { if (!isCompleting) setIsOpen(true); }}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if ((e.key === 'Enter' || e.key === ' ') && !isCompleting) {
+            e.preventDefault();
+            setIsOpen(true);
+          }
+        }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
           <button
@@ -125,6 +147,7 @@ function TaskCard({
               else triggerCompleteAnimation();
             }}
             title={task.completed ? '標記為未完成' : '標記完成'}
+            aria-label={task.completed ? `將「${task.title}」標記為未完成` : `將「${task.title}」標記完成`}
           >
             {task.completed || isCompleting ? (
               <CheckCircle2 size={18} style={{ color: 'var(--accent-emerald)' }} />
@@ -137,7 +160,7 @@ function TaskCard({
             <div className="mission-title-text" style={{ fontWeight: 600, fontSize: '0.9rem', lineHeight: 1.48, letterSpacing: '0.015em', marginBottom: '3px' }}>
               <PencilStrikeText
                 active={Boolean(isCompleting || task.completed)}
-                instant={Boolean(task.completed && !isCompleting)}
+                instant={Boolean(reducedMotion || (task.completed && !isCompleting))}
                 strokeColor="var(--text-muted)"
               >
                 {task.title}
@@ -151,16 +174,15 @@ function TaskCard({
           </div>
 
           <div className="mission-card-actions" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="icon-ghost-btn" onClick={() => onEdit?.(task)} title="編輯任務">
+            <button type="button" className="icon-ghost-btn" onClick={() => onEdit?.(task)} title="編輯任務" aria-label={`編輯任務「${task.title}」`}>
               <Edit3 size={13} />
             </button>
             <button
               type="button"
               className="icon-ghost-btn danger"
-              onClick={() => {
-                if (window.confirm(`確定要刪除「${task.title}」嗎？`)) onDelete?.(task.id);
-              }}
-              title="刪除任務"
+              onClick={() => onDelete?.(task.id)}
+              title="刪除任務（可於 5 秒內復原）"
+              aria-label={`刪除任務「${task.title}」`}
             >
               <Trash2 size={13} />
             </button>
@@ -235,10 +257,16 @@ function TaskCard({
       </div>
 
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
           <div
+            ref={detailModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={task.title}
+            tabIndex={-1}
             className="modal-content"
             style={{ maxWidth: 520, maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem', flexShrink: 0 }}>
               <div style={{ minWidth: 0, paddingRight: '8px' }}>
@@ -260,19 +288,18 @@ function TaskCard({
                 <h2 className="modal-title" style={{ margin: 0 }}>{task.title}</h2>
               </div>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                <button type="button" className="icon-ghost-btn" onClick={() => { setIsOpen(false); onEdit?.(task); }} title="編輯">
+                <button type="button" className="icon-ghost-btn" onClick={() => { setIsOpen(false); onEdit?.(task); }} title="編輯" aria-label="編輯任務">
                   <Edit3 size={15} />
                 </button>
                 <button
                   type="button"
                   className="icon-ghost-btn danger"
                   onClick={() => {
-                    if (window.confirm(`確定要刪除「${task.title}」嗎？`)) {
-                      onDelete?.(task.id);
-                      setIsOpen(false);
-                    }
+                    onDelete?.(task.id);
+                    setIsOpen(false);
                   }}
-                  title="刪除"
+                  title="刪除（可復原）"
+                  aria-label="刪除任務"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -287,6 +314,27 @@ function TaskCard({
                 </button>
               </div>
             </div>
+
+            {onCategoryChange && !task.completed && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '0.85rem', flexShrink: 0 }}>
+                <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600 }}>移動至分類：</span>
+                {[
+                  { key: 'Daily', label: '每日目標' },
+                  { key: 'Main', label: '學期主線' },
+                  { key: 'Challenge', label: '衝刺挑戰' },
+                ].map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    className={`btn btn-xs ${task.category === cat.key ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => onCategoryChange(task.id, cat.key)}
+                    aria-pressed={task.category === cat.key}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingRight: '2px' }}>
               {task.desc && (
@@ -366,6 +414,8 @@ export default function TaskBoard({
   onAddNew,
   onToggleChecklistItem,
   onResetChecklist,
+  isMobile = false,
+  reducedMotion = false,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState('ALL');
@@ -510,7 +560,9 @@ export default function TaskBoard({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {col.list.length === 0 ? (
-                  <div className="empty-mini" style={{ padding: '2rem 1rem' }}>目前無待辦項目，可拖曳卡片至此</div>
+                  <div className="empty-mini" style={{ padding: '2rem 1rem' }}>
+                    {isMobile ? '目前無待辦項目' : '目前無待辦項目，可拖曳卡片至此'}
+                  </div>
                 ) : (
                   col.list.map((t) => (
                     <TaskCard
@@ -520,8 +572,10 @@ export default function TaskBoard({
                       onUncomplete={onUncomplete}
                       onEdit={onEdit}
                       onDelete={onDelete}
+                      onCategoryChange={onCategoryChange}
                       onToggleChecklistItem={onToggleChecklistItem}
                       onResetChecklist={onResetChecklist}
+                      reducedMotion={reducedMotion}
                     />
                   ))
                 )}
@@ -531,6 +585,7 @@ export default function TaskBoard({
                     <button
                       type="button"
                       className="other-schedule-toggle"
+                      aria-expanded={showOtherSchedule}
                       onClick={() => setIsOtherScheduleExpanded((p) => !p)}
                     >
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -549,8 +604,10 @@ export default function TaskBoard({
                             onUncomplete={onUncomplete}
                             onEdit={onEdit}
                             onDelete={onDelete}
+                            onCategoryChange={onCategoryChange}
                             onToggleChecklistItem={onToggleChecklistItem}
                             onResetChecklist={onResetChecklist}
+                            reducedMotion={reducedMotion}
                           />
                         ))}
                       </div>
@@ -566,16 +623,18 @@ export default function TaskBoard({
       {/* Collapsible Completed History */}
       {completedTasks.length > 0 && (
         <div className="bento-card" style={{ padding: '0.9rem 1.2rem' }}>
-          <div
+          <button
+            type="button"
+            className="collapsible-header-btn"
+            aria-expanded={isCompletedExpanded}
             onClick={() => setIsCompletedExpanded((p) => !p)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.88rem' }}>
               <CheckCircle2 size={16} style={{ color: 'var(--accent-emerald)' }} />
               <span>已完成任務（{completedTasks.length}）</span>
             </div>
             {isCompletedExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </div>
+          </button>
           {isCompletedExpanded && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border-subtle)' }}>
               {completedTasks.map((t) => (
@@ -586,8 +645,10 @@ export default function TaskBoard({
                   onUncomplete={onUncomplete}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onCategoryChange={onCategoryChange}
                   onToggleChecklistItem={onToggleChecklistItem}
                   onResetChecklist={onResetChecklist}
+                  reducedMotion={reducedMotion}
                 />
               ))}
             </div>

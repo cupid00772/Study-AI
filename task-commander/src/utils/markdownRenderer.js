@@ -1,5 +1,6 @@
 import { marked } from 'marked';
 import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 export function renderMarkdownWithKatex(content) {
   if (!content) return '';
